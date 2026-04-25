@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '../../lib/supabase/client'
 
+
 type Profile = {
   full_name: string | null
   role: string | null

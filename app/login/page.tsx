@@ -4,9 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '../../lib/supabase/client'
-export const metadata = {
-  title: 'MFP Login',
-}
+
 
 export default function LoginPage() {
   const supabase = createClient()
