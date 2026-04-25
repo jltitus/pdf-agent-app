@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '../../lib/supabase/client'
-
+import HeaderBar from '../components/HeaderBar'
 type Source = {
   title: string
   filename: string
@@ -181,6 +181,7 @@ export default function ChatPage() {
 
   return (
     <main className="min-h-screen bg-white p-6 md:p-10">
+      <HeaderBar />
       <div className="mx-auto max-w-5xl space-y-8">
         <header>
           <p className="text-sm font-semibold text-gray-500">

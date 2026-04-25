@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '../../lib/supabase/client'
-
+import HeaderBar from '../components/HeaderBar'
 
 type Profile = {
   full_name: string | null
@@ -83,6 +83,7 @@ export default function DashboardPage() {
 
   return (
     <main className="min-h-screen p-6 md:p-10">
+      <HeaderBar />
       <div className="mx-auto max-w-5xl space-y-8">
         <header className="space-y-2">
           <p className="text-sm font-semibold uppercase tracking-wide text-gray-500">

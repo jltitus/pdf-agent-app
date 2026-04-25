@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '../../lib/supabase/client'
-
+import HeaderBar from '../components/HeaderBar'
 
 type DocumentRow = {
   id: string
@@ -386,6 +386,7 @@ export default function AdminPage() {
 
   return (
     <main className="min-h-screen p-8">
+      <HeaderBar />
       <div className="max-w-5xl mx-auto space-y-8">
         <div>
           <h1 className="text-3xl font-bold">Admin: Manage PDF Agent</h1>
