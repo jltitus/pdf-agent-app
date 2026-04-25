@@ -61,15 +61,13 @@ export async function POST(request: Request) {
 
     const temporaryPassword = makeTempPassword()
 
-    const { data: createdUser, error: createUserError } =
-      await supabaseAdmin.auth.admin.createUser({
-        email: accessRequest.email,
-        password: temporaryPassword,
-        email_confirm: true,
-        user_metadata: {
-          full_name: accessRequest.full_name,
-        },
-      })
+// Create user WITHOUT password (invite flow)
+const { data: createdUser, error: createUserError } =
+  await supabaseAdmin.auth.admin.inviteUserByEmail(accessRequest.email, {
+    data: {
+      full_name: accessRequest.full_name,
+    },
+  })
 
     if (createUserError || !createdUser.user) {
       return NextResponse.json(
@@ -102,11 +100,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: updateError.message }, { status: 500 })
     }
 
-    return NextResponse.json({
-      success: true,
-      email: accessRequest.email,
-      temporaryPassword,
-    })
+return NextResponse.json({
+  success: true,
+  email: accessRequest.email,
+  invited: true,
+})
   } catch (error: any) {
     return NextResponse.json(
       { error: error.message ?? 'Unknown approval error' },
