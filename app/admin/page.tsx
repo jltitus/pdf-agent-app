@@ -11,10 +11,18 @@ type DocumentRow = {
   version?: string | null
   is_active: boolean
   storage_path?: string | null
-  openai_file_id?: string | null
   vector_store_id?: string | null
   uploaded_at?: string | null
   page_count?: number
+}
+
+type AccessRequest = {
+  id: string
+  full_name: string
+  email: string
+  reason?: string | null
+  status: string
+  created_at: string
 }
 
 export default function AdminPage() {
@@ -22,18 +30,28 @@ export default function AdminPage() {
 
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [message, setMessage] = useState('')
+
+  const [documents, setDocuments] = useState<DocumentRow[]>([])
+  const [accessRequests, setAccessRequests] = useState<AccessRequest[]>([])
+
   const [title, setTitle] = useState('')
   const [category, setCategory] = useState('')
   const [version, setVersion] = useState('')
   const [file, setFile] = useState<File | null>(null)
-  const [message, setMessage] = useState('')
-  const [documents, setDocuments] = useState<DocumentRow[]>([])
+
   const [processingId, setProcessingId] = useState<string | null>(null)
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [approvingId, setApprovingId] = useState<string | null>(null)
+
+  const [approvedUserInfo, setApprovedUserInfo] = useState<{
+    email: string
+    temporaryPassword: string
+  } | null>(null)
 
   useEffect(() => {
-    async function checkAdmin() {
+    async function init() {
       const { data } = await supabase.auth.getSession()
 
       if (!data.session) {
@@ -41,24 +59,28 @@ export default function AdminPage() {
         return
       }
 
-      const user = data.session.user
-
       const { data: profile } = await supabase
         .from('profiles')
         .select('role, is_active')
-        .eq('id', user.id)
+        .eq('id', data.session.user.id)
         .single()
 
       if (profile?.role === 'admin' && profile?.is_active) {
         setIsAdmin(true)
         await loadDocuments()
+        await loadAccessRequests()
       }
 
       setLoading(false)
     }
 
-    checkAdmin()
+    init()
   }, [supabase])
+
+  async function getToken() {
+    const { data } = await supabase.auth.getSession()
+    return data.session?.access_token
+  }
 
   async function loadDocuments() {
     const { data: docs, error: docsError } = await supabase
@@ -78,20 +100,44 @@ export default function AdminPage() {
     const pageCounts: Record<string, number> = {}
 
     for (const page of pages ?? []) {
-      pageCounts[page.document_id] = (pageCounts[page.document_id] ?? 0) + 1
+      const documentId = String(page.document_id)
+      pageCounts[documentId] = (pageCounts[documentId] ?? 0) + 1
     }
 
-    setDocuments(
-      docs.map((doc) => ({
-        ...doc,
-        page_count: pageCounts[doc.id] ?? 0,
-      }))
-    )
+    const enrichedDocs = docs.map((doc) => ({
+      ...doc,
+      page_count: pageCounts[String(doc.id)] ?? 0,
+    }))
+
+    setDocuments(enrichedDocs)
+  }
+
+  async function loadAccessRequests() {
+    const token = await getToken()
+
+    if (!token) return
+
+    const response = await fetch('/api/access-requests', {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+
+    const result = await response.json()
+
+    if (!response.ok) {
+      setMessage(`Could not load access requests: ${result.error}`)
+      return
+    }
+
+    setAccessRequests(result.requests ?? [])
   }
 
   async function handleUpload(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setMessage('Uploading...')
+    setApprovedUserInfo(null)
 
     if (!file) {
       setMessage('Please choose a PDF file.')
@@ -150,10 +196,10 @@ export default function AdminPage() {
   async function processDocument(documentId: string) {
     setProcessingId(documentId)
     setMessage('Processing document for AI search...')
+    setApprovedUserInfo(null)
 
     try {
-      const { data } = await supabase.auth.getSession()
-      const token = data.session?.access_token
+      const token = await getToken()
 
       if (!token) {
         setMessage('You must be signed in.')
@@ -170,13 +216,7 @@ export default function AdminPage() {
         body: JSON.stringify({ documentId }),
       })
 
-      let result: any = {}
-
-      try {
-        result = await response.json()
-      } catch {
-        result = {}
-      }
+      const result = await response.json().catch(() => ({}))
 
       if (!response.ok) {
         setMessage(`Processing failed: ${result.error ?? 'Unknown processing error.'}`)
@@ -201,9 +241,9 @@ export default function AdminPage() {
   async function updateDocumentStatus(documentId: string, isActive: boolean) {
     setUpdatingId(documentId)
     setMessage(isActive ? 'Unarchiving document...' : 'Archiving document...')
+    setApprovedUserInfo(null)
 
-    const { data } = await supabase.auth.getSession()
-    const token = data.session?.access_token
+    const token = await getToken()
 
     if (!token) {
       setMessage('You must be signed in.')
@@ -220,10 +260,10 @@ export default function AdminPage() {
       body: JSON.stringify({ documentId, isActive }),
     })
 
-    const result = await response.json()
+    const result = await response.json().catch(() => ({}))
 
     if (!response.ok) {
-      setMessage(`Status update failed: ${result.error}`)
+      setMessage(`Status update failed: ${result.error ?? 'Unknown status error.'}`)
       setUpdatingId(null)
       return
     }
@@ -235,17 +275,17 @@ export default function AdminPage() {
 
   async function deleteDocument(documentId: string, documentTitle: string) {
     const confirmed = window.confirm(
-      `Delete "${documentTitle}"? This will remove the PDF, page chunks, and document record. This cannot be undone.`
+      `Delete "${documentTitle}"? This will remove the PDF, page chunks, OpenAI files, and document record. This cannot be undone.`
     )
 
     if (!confirmed) return
 
     setDeletingId(documentId)
     setMessage('Deleting document...')
+    setApprovedUserInfo(null)
 
     try {
-      const { data } = await supabase.auth.getSession()
-      const token = data.session?.access_token
+      const token = await getToken()
 
       if (!token) {
         setMessage('You must be signed in.')
@@ -262,13 +302,7 @@ export default function AdminPage() {
         body: JSON.stringify({ documentId }),
       })
 
-      let result: any = {}
-
-      try {
-        result = await response.json()
-      } catch {
-        result = {}
-      }
+      const result = await response.json().catch(() => ({}))
 
       if (!response.ok) {
         setMessage(`Delete failed: ${result.error ?? 'Unknown delete error.'}`)
@@ -285,6 +319,51 @@ export default function AdminPage() {
     }
   }
 
+  async function approveAccessRequest(requestId: string) {
+    setApprovingId(requestId)
+    setMessage('Approving access request...')
+    setApprovedUserInfo(null)
+
+    try {
+      const token = await getToken()
+
+      if (!token) {
+        setMessage('You must be signed in.')
+        setApprovingId(null)
+        return
+      }
+
+      const response = await fetch('/api/approve-access-request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ requestId }),
+      })
+
+      const result = await response.json().catch(() => ({}))
+
+      if (!response.ok) {
+        setMessage(`Approval failed: ${result.error ?? 'Unknown approval error.'}`)
+        setApprovingId(null)
+        return
+      }
+
+      setApprovedUserInfo({
+        email: result.email,
+        temporaryPassword: result.temporaryPassword,
+      })
+
+      setMessage('Access request approved. Copy the temporary password before leaving this page.')
+      setApprovingId(null)
+      await loadAccessRequests()
+    } catch (error: any) {
+      setMessage(`Approval failed: ${error.message ?? 'Network or server error.'}`)
+      setApprovingId(null)
+    }
+  }
+
   if (loading) {
     return <main className="min-h-screen p-8">Loading...</main>
   }
@@ -293,7 +372,7 @@ export default function AdminPage() {
     return (
       <main className="min-h-screen p-8">
         <h1 className="text-2xl font-bold">Access denied</h1>
-        <p>You must be an admin to upload PDFs.</p>
+        <p>You must be an admin to manage this app.</p>
       </main>
     )
   }
@@ -302,18 +381,42 @@ export default function AdminPage() {
   const activeDocs = documents.filter((doc) => doc.is_active).length
   const archivedDocs = documents.filter((doc) => !doc.is_active).length
   const totalPages = documents.reduce((sum, doc) => sum + (doc.page_count ?? 0), 0)
+  const pendingRequests = accessRequests.filter((request) => request.status === 'pending')
 
   return (
     <main className="min-h-screen p-8">
       <div className="max-w-5xl mx-auto space-y-8">
         <div>
-          <h1 className="text-3xl font-bold">Admin: Manage PDFs</h1>
+          <h1 className="text-3xl font-bold">Admin: Manage PDF Agent</h1>
           <p className="text-gray-600">
-            Upload, process, archive, delete, and review PDFs in the agent knowledge base.
+            Upload, process, archive, delete, and approve access requests.
           </p>
         </div>
 
-        <section className="grid grid-cols-1 md:grid-cols-4 gap-3">
+        {message && (
+          <div className="rounded-lg border p-3 text-sm">
+            {message}
+          </div>
+        )}
+
+        {approvedUserInfo && (
+          <section className="rounded-2xl border p-5 space-y-3">
+            <h2 className="text-xl font-bold">Approved User Login</h2>
+            <p className="text-sm text-gray-600">
+              Send this login information to the approved tester. Ask them to change their password later.
+            </p>
+            <div className="rounded-lg border p-3 text-sm space-y-1">
+              <p>
+                <strong>Email:</strong> {approvedUserInfo.email}
+              </p>
+              <p>
+                <strong>Temporary password:</strong> {approvedUserInfo.temporaryPassword}
+              </p>
+            </div>
+          </section>
+        )}
+
+        <section className="grid grid-cols-1 md:grid-cols-5 gap-3">
           <div className="rounded-2xl border p-4">
             <p className="text-sm text-gray-600">Total documents</p>
             <p className="text-2xl font-bold">{totalDocs}</p>
@@ -333,6 +436,51 @@ export default function AdminPage() {
             <p className="text-sm text-gray-600">Processed pages</p>
             <p className="text-2xl font-bold">{totalPages}</p>
           </div>
+
+          <div className="rounded-2xl border p-4">
+            <p className="text-sm text-gray-600">Pending requests</p>
+            <p className="text-2xl font-bold">{pendingRequests.length}</p>
+          </div>
+        </section>
+
+        <section className="rounded-2xl border p-6 space-y-4">
+          <div>
+            <h2 className="text-2xl font-bold">Access Requests</h2>
+            <p className="text-sm text-gray-600">
+              Approve requesters to create a member account with a temporary password.
+            </p>
+          </div>
+
+          {pendingRequests.length === 0 ? (
+            <p className="text-sm text-gray-600">No pending access requests.</p>
+          ) : (
+            <div className="space-y-3">
+              {pendingRequests.map((request) => (
+                <div key={request.id} className="rounded-lg border p-4">
+                  <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                    <div className="space-y-1">
+                      <p className="font-semibold">{request.full_name}</p>
+                      <p className="text-sm text-gray-600">{request.email}</p>
+                      <p className="text-sm">
+                        <strong>Reason:</strong> {request.reason || 'None provided'}
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Requested: {new Date(request.created_at).toLocaleString()}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => approveAccessRequest(request.id)}
+                      disabled={approvingId === request.id}
+                      className="rounded-lg border px-3 py-2 text-sm"
+                    >
+                      {approvingId === request.id ? 'Approving...' : 'Approve'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </section>
 
         <form onSubmit={handleUpload} className="rounded-2xl border p-6 space-y-4">
@@ -383,12 +531,6 @@ export default function AdminPage() {
               required
             />
           </div>
-
-          {message && (
-            <div className="rounded-lg border p-3 text-sm">
-              {message}
-            </div>
-          )}
 
           <button
             type="submit"
@@ -474,17 +616,17 @@ export default function AdminPage() {
                               : 'Unarchive'}
                         </button>
 
-<button
-  onClick={() => processDocument(doc.id)}
-  disabled={processingId === doc.id || deletingId === doc.id}
-  className="rounded-lg border px-3 py-2 text-sm"
->
-  {processingId === doc.id
-    ? 'Processing...'
-    : isProcessed
-      ? 'Reprocess'
-      : 'Process for AI Search'}
-</button>
+                        <button
+                          onClick={() => processDocument(doc.id)}
+                          disabled={processingId === doc.id || deletingId === doc.id}
+                          className="rounded-lg border px-3 py-2 text-sm"
+                        >
+                          {processingId === doc.id
+                            ? 'Processing...'
+                            : isProcessed
+                              ? 'Reprocess'
+                              : 'Process for AI Search'}
+                        </button>
 
                         <button
                           onClick={() => deleteDocument(doc.id, doc.title)}
