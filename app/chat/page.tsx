@@ -32,6 +32,11 @@ type DocumentOption = {
   category?: string | null
 }
 
+type ConversationTurn = {
+  question: string
+  answer: string
+}
+
 export default function ChatPage() {
   const supabase = createClient()
 
@@ -51,6 +56,7 @@ export default function ChatPage() {
   const [answerMode, setAnswerMode] = useState('general')
 
   const [history, setHistory] = useState<HistoryItem[]>([])
+  const [conversationTurns, setConversationTurns] = useState<ConversationTurn[]>([])
 
   const filteredDocuments = useMemo(() => {
     if (category === 'all') return documents
@@ -77,11 +83,11 @@ export default function ChatPage() {
       const activeDocs = (docData ?? []) as DocumentOption[]
       setDocuments(activeDocs)
 
-      const unique = Array.from(
-        new Set(activeDocs.map((d) => d.category).filter(Boolean) as string[])
+      const uniqueCategories = Array.from(
+        new Set(activeDocs.map((doc) => doc.category).filter(Boolean) as string[])
       ).sort()
 
-      setCategories(unique)
+      setCategories(uniqueCategories)
 
       const { data: hist } = await supabase
         .from('chat_history')
@@ -94,6 +100,16 @@ export default function ChatPage() {
 
     loadData()
   }, [supabase])
+
+  async function refreshHistory() {
+    const { data } = await supabase
+      .from('chat_history')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(10)
+
+    setHistory((data ?? []) as HistoryItem[])
+  }
 
   async function askQuestion(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -124,6 +140,7 @@ export default function ChatPage() {
         category,
         documentId,
         answerMode,
+        conversationTurns,
       }),
     })
 
@@ -138,7 +155,28 @@ export default function ChatPage() {
     setAnswer(result.answer)
     setSources(result.sources ?? [])
     setEvidenceStrength(result.evidenceStrength ?? null)
+
+    setConversationTurns((prev) =>
+      [
+        ...prev,
+        {
+          question,
+          answer: result.answer,
+        },
+      ].slice(-4)
+    )
+
     setLoading(false)
+    await refreshHistory()
+  }
+
+  function startNewChat() {
+    setQuestion('')
+    setAnswer('')
+    setSources([])
+    setEvidenceStrength(null)
+    setConversationTurns([])
+    setMessage('')
   }
 
   return (
@@ -151,8 +189,21 @@ export default function ChatPage() {
           <h1 className="text-4xl font-bold">MFP Publication Agent</h1>
           <p className="mt-2 max-w-3xl text-gray-600">
             Ask questions against active processed publications. Use filters to narrow the search and improve speed.
+            Follow-up questions use recent conversation context while still requiring support from the source PDFs.
           </p>
         </header>
+
+        {conversationTurns.length > 0 && (
+          <section className="rounded-2xl border p-4 text-sm text-gray-600">
+            <p className="font-semibold text-gray-800">
+              Continuing current chat
+            </p>
+            <p>
+              {conversationTurns.length} recent question
+              {conversationTurns.length === 1 ? '' : 's'} will be used to understand follow-ups.
+            </p>
+          </section>
+        )}
 
         <form onSubmit={askQuestion} className="space-y-4 rounded-2xl border p-5 md:p-6">
           <div className="grid gap-4 md:grid-cols-3">
@@ -178,9 +229,9 @@ export default function ChatPage() {
                 className="w-full rounded border p-2"
               >
                 <option value="all">All categories</option>
-                {categories.map((c) => (
-                  <option key={c} value={c}>
-                    {c}
+                {categories.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
                   </option>
                 ))}
               </select>
@@ -207,19 +258,33 @@ export default function ChatPage() {
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             className="min-h-[120px] w-full rounded border p-3"
-            placeholder="Ask your question..."
+            placeholder={
+              conversationTurns.length > 0
+                ? 'Ask a follow-up question...'
+                : 'Ask your question...'
+            }
             required
           />
 
           {message && <div className="text-red-600">{message}</div>}
 
-          <button
-            type="submit"
-            className="rounded bg-black px-4 py-2 text-white"
-            disabled={loading}
-          >
-            {loading ? 'Searching...' : 'Ask'}
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="submit"
+              className="rounded bg-black px-4 py-2 text-white disabled:opacity-50"
+              disabled={loading}
+            >
+              {loading ? 'Searching...' : 'Ask'}
+            </button>
+
+            <button
+              type="button"
+              onClick={startNewChat}
+              className="rounded border px-4 py-2"
+            >
+              New chat
+            </button>
+          </div>
         </form>
 
         {answer && (
@@ -245,24 +310,24 @@ export default function ChatPage() {
                 <p>No sources found.</p>
               ) : (
                 <div className="space-y-3">
-                  {sources.map((s, i) => {
-                    const firstPage = s.pages?.[0]
+                  {sources.map((source, index) => {
+                    const firstPage = source.pages?.[0]
                     const url = `/api/view-source?file=${encodeURIComponent(
-                      s.filename
+                      source.filename
                     )}${firstPage ? `&page=${firstPage}` : ''}`
 
                     return (
                       <a
-                        key={`${s.filename}-${i}`}
+                        key={`${source.filename}-${index}`}
                         href={url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="block rounded border p-3 hover:bg-gray-50"
                       >
-                        <p className="font-semibold">{s.title}</p>
-                        <p className="text-sm text-gray-600">{s.filename}</p>
+                        <p className="font-semibold">{source.title}</p>
+                        <p className="text-sm text-gray-600">{source.filename}</p>
                         <p className="text-sm">
-                          Pages: {s.pages?.join(', ') || 'Unknown'}
+                          Pages: {source.pages?.join(', ') || 'Unknown'}
                         </p>
                       </a>
                     )
@@ -283,26 +348,32 @@ export default function ChatPage() {
             <p className="text-sm text-gray-600">No recent questions yet.</p>
           ) : (
             <div className="space-y-2">
-              {history.map((h) => (
+              {history.map((item) => (
                 <button
-                  key={h.id}
+                  key={item.id}
                   type="button"
                   className="w-full rounded border p-3 text-left hover:bg-gray-50"
                   onClick={() => {
-                    setQuestion(h.question)
-                    setAnswer(h.answer)
-                    setSources(h.sources || [])
-                    setEvidenceStrength(h.evidence_strength || null)
-                    setAnswerMode(h.answer_mode || 'general')
-                    setCategory(h.category || 'all')
+                    setQuestion(item.question)
+                    setAnswer(item.answer)
+                    setSources(item.sources || [])
+                    setEvidenceStrength(item.evidence_strength || null)
+                    setAnswerMode(item.answer_mode || 'general')
+                    setCategory(item.category || 'all')
+                    setConversationTurns([
+                      {
+                        question: item.question,
+                        answer: item.answer,
+                      },
+                    ])
                     setMessage('')
                   }}
                 >
-                  <p className="font-medium">{h.question}</p>
+                  <p className="font-medium">{item.question}</p>
                   <p className="mt-1 text-xs text-gray-500">
-                    {new Date(h.created_at).toLocaleString()}
-                    {h.answer_mode ? ` • Mode: ${h.answer_mode}` : ''}
-                    {h.evidence_strength ? ` • Evidence: ${h.evidence_strength.label}` : ''}
+                    {new Date(item.created_at).toLocaleString()}
+                    {item.answer_mode ? ` • Mode: ${item.answer_mode}` : ''}
+                    {item.evidence_strength ? ` • Evidence: ${item.evidence_strength.label}` : ''}
                   </p>
                 </button>
               ))}
