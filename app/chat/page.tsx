@@ -346,17 +346,30 @@ export default function ChatPage() {
                   No structured source metadata returned.
                 </p>
               ) : (
-                <div className="space-y-3">
-                  {sources.map((s, i) => (
-                    <article key={`${s.filename}-${i}`} className="rounded-xl border p-4">
-                      <p className="font-semibold">{s.title}</p>
-                      <p className="text-sm text-gray-600">{s.filename}</p>
-                      <p className="text-sm">
-                        Pages: {s.pages?.join(', ') || 'Unknown'}
-                      </p>
-                    </article>
-                  ))}
-                </div>
+<div className="space-y-3">
+  {sources.map((s, i) => {
+    const firstPage = s.pages?.[0]
+    const sourceUrl = `/api/view-source?file=${encodeURIComponent(
+      s.filename
+    )}${firstPage ? `&page=${firstPage}` : ''}`
+
+    return (
+      <a
+        key={`${s.filename}-${i}`}
+        href={sourceUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block rounded-xl border p-4 hover:bg-gray-50"
+      >
+        <p className="font-semibold">{s.title}</p>
+        <p className="text-sm text-gray-600">{s.filename}</p>
+        <p className="text-sm">
+          Pages: {s.pages?.join(', ') || 'Unknown'}
+        </p>
+      </a>
+    )
+  })}
+</div>
               )}
             </div>
           </section>
