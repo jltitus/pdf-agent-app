@@ -159,7 +159,12 @@ function getEvidenceStrength(sources: any[]) {
 
 export async function POST(request: Request) {
   try {
-    const { question, category, answerMode = 'general' } = await request.json()
+    const {
+      question,
+      category,
+      documentId = 'all',
+      answerMode = 'general',
+    } = await request.json()
 
     if (!question) {
       return NextResponse.json({ error: 'Missing question' }, { status: 400 })
@@ -205,6 +210,10 @@ export async function POST(request: Request) {
       docsQuery = docsQuery.eq('category', category)
     }
 
+    if (documentId && documentId !== 'all') {
+      docsQuery = docsQuery.eq('id', documentId)
+    }
+
     const { data: activeDocs, error: docsError } = await docsQuery
 
     if (docsError) {
@@ -213,10 +222,7 @@ export async function POST(request: Request) {
 
     if (!activeDocs || activeDocs.length === 0) {
       return NextResponse.json({
-        answer:
-          category && category !== 'all'
-            ? `I can't answer because there are no active documents in the "${category}" category.`
-            : "I can't answer because there are no active documents in the knowledge base.",
+        answer: "I can't answer because there are no active publications matching the selected filters.",
         sources: [],
         evidenceStrength: {
           label: 'Not found',
@@ -259,10 +265,7 @@ export async function POST(request: Request) {
 
     if (activePageRows.length === 0) {
       return NextResponse.json({
-        answer:
-          category && category !== 'all'
-            ? `I can't answer because there are no processed pages in the "${category}" category.`
-            : "I can't answer because there are no processed pages in the knowledge base.",
+        answer: "I can't answer because there are no processed pages matching the selected filters.",
         sources: [],
         evidenceStrength: {
           label: 'Not found',
@@ -296,11 +299,13 @@ If the answer is not clearly supported by the active PDFs, say:
 Only use these active OpenAI file IDs:
 ${activeFileIds.join('\n')}
 
-${
-  category && category !== 'all'
-    ? `The user selected this category filter: ${category}. Only answer from active documents in this category.`
-    : 'The user selected all active documents.'
-}
+${category && category !== 'all'
+  ? `The user selected this category filter: ${category}. Only answer from active documents in this category.`
+  : 'The user selected all active categories.'}
+
+${documentId && documentId !== 'all'
+  ? `The user selected one specific publication. Only answer from that selected publication.`
+  : 'The user selected all active publications matching the category filter.'}
 
 ${getModeInstructions(answerMode)}
 
@@ -324,8 +329,9 @@ Evidence rules:
         {
           type: 'file_search',
           vector_store_ids: [process.env.OPENAI_VECTOR_STORE_ID!],
+          max_num_results: 5,
         },
-      ],
+      ] as any,
     })
 
     const citedFileIds = new Set<string>()
@@ -347,7 +353,6 @@ Evidence rules:
 
         for (const result of results) {
           if (!result.file_id) continue
-
           if (!activeFileIds.includes(result.file_id)) continue
 
           citedFileIds.add(result.file_id)
@@ -425,7 +430,8 @@ Evidence rules:
       .toLowerCase()
       .includes("i can't find that in the provided documents")
 
-    const noEvidence = sources.length === 0 || citedFileIds.size === 0 || modelSaysNotFound
+    const noEvidence =
+      sources.length === 0 || citedFileIds.size === 0 || modelSaysNotFound
 
     if (noEvidence) {
       const evidenceStrength = {
