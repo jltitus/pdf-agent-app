@@ -74,7 +74,7 @@ export default function ChatPage() {
         .order('created_at', { ascending: false })
         .limit(10)
 
-      setHistory(hist ?? [])
+      setHistory((hist ?? []) as HistoryItem[])
     }
 
     loadData()
@@ -87,7 +87,7 @@ export default function ChatPage() {
       .order('created_at', { ascending: false })
       .limit(10)
 
-    setHistory(data ?? [])
+    setHistory((data ?? []) as HistoryItem[])
   }
 
   async function askQuestion(e: React.FormEvent<HTMLFormElement>) {
@@ -189,7 +189,7 @@ export default function ChatPage() {
           </h1>
           <p className="max-w-3xl text-gray-600">
             Ask questions against active processed publications. Answers are limited
-            to uploaded source documents and include source pages and excerpts when available.
+            to uploaded source documents and include source pages when available.
           </p>
         </header>
 
@@ -250,7 +250,7 @@ export default function ChatPage() {
               </div>
             )}
 
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-3">
               <button
                 type="submit"
                 disabled={loading}
@@ -349,27 +349,11 @@ export default function ChatPage() {
                 <div className="space-y-3">
                   {sources.map((s, i) => (
                     <article key={`${s.filename}-${i}`} className="rounded-xl border p-4">
-                      <div className="mb-2">
-                        <p className="font-semibold">{s.title}</p>
-                        <p className="text-sm text-gray-600">{s.filename}</p>
-                        <p className="text-sm">
-                          Pages: {s.pages?.join(', ') || 'Unknown'}
-                        </p>
-                      </div>
-
-                      {s.excerpts && s.excerpts.length > 0 && (
-                        <div className="space-y-2">
-                          <p className="text-sm font-medium">Relevant excerpts</p>
-                          {s.excerpts.map((excerpt, j) => (
-                            <blockquote
-                              key={j}
-                              className="rounded-lg border-l-4 pl-3 text-sm leading-6 text-gray-700"
-                            >
-                              {excerpt}
-                            </blockquote>
-                          ))}
-                        </div>
-                      )}
+                      <p className="font-semibold">{s.title}</p>
+                      <p className="text-sm text-gray-600">{s.filename}</p>
+                      <p className="text-sm">
+                        Pages: {s.pages?.join(', ') || 'Unknown'}
+                      </p>
                     </article>
                   ))}
                 </div>

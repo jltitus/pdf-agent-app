@@ -5,7 +5,7 @@ import { createClient } from '@supabase/supabase-js'
 export const maxDuration = 60
 
 function cleanExcerpt(text: string) {
-  return text.replace(/\s+/g, ' ').trim().slice(0, 600)
+  return text.replace(/\s+/g, ' ').trim().slice(0, 700)
 }
 
 function getSearchResultText(result: any): string {
@@ -25,17 +25,27 @@ function getModeInstructions(answerMode: string) {
     return `
 Answer mode: Find a recipe.
 
-Use this structure:
-- Recipe name
-- Ingredients
-- Steps
-- Processing or storage notes
-- Important safety notes, if stated in the documents
+Use this exact structure:
 
-Rules for recipe mode:
-- Only provide recipes explicitly found in the PDFs.
+Recipe
+- Name:
+- What the publication says:
+
+Ingredients
+- Only list ingredients explicitly found in the documents.
+
+Steps
+1. Only include steps found in the documents.
+
+Processing / Storage Notes
+- Include time, temperature, storage, or preservation notes only if stated.
+
+Important Safety Notes
+- Include safety warnings if present.
+
+Rules:
 - Do not invent ingredients, processing times, temperatures, yields, substitutions, or storage instructions.
-- If no recipe is found, say: "I can't find a recipe for that in the provided documents."
+- If no recipe exists, say: "I can't find a recipe for that in the provided documents."
 `
   }
 
@@ -43,16 +53,22 @@ Rules for recipe mode:
     return `
 Answer mode: Compare documents.
 
-Use this structure:
-- Short comparison summary
-- Similarities
-- Differences
-- Any conflicts or gaps
-- What the documents do not clearly answer
+Use this exact structure:
 
-Rules for comparison mode:
-- Compare only what is supported by the active PDFs.
-- Do not infer beyond the documents.
+Comparison Summary
+- Short summary.
+
+Similarities
+- List agreements.
+
+Differences
+- List differences.
+
+Conflicts or Gaps
+- Note contradictions or missing information.
+
+Bottom Line
+- Conclusion based only on documents.
 `
   }
 
@@ -60,26 +76,44 @@ Rules for comparison mode:
     return `
 Answer mode: Safety guidance.
 
-Use this structure:
-- Safety guidance
-- Key precautions
-- What not to do, if stated
-- When the documents do not provide enough information
+Use this exact structure:
 
-Rules for safety mode:
-- Be conservative.
-- Do not invent safety guidance.
-- Do not provide food preservation, canning, drying, freezing, smoking, or storage instructions unless clearly supported by the PDFs.
+Safety Guidance
+- Most important point first.
+
+Key Precautions
+- Supported precautions.
+
+What Not To Do
+- Unsafe practices if stated.
+
+When More Info Is Needed
+- What is unclear.
+
+Bottom Line
+- Conservative summary.
 `
   }
 
   return `
 Answer mode: General question.
 
-Use this structure:
-- Direct answer
-- Key details as bullets
-- Any limitations or missing information
+Use this exact structure:
+
+Direct Answer
+- 1–3 sentence answer.
+
+Key Takeaways
+- Bullet points.
+
+Details from the Publications
+- Supporting details.
+
+Limitations / What Is Not Clear
+- Missing information.
+
+Bottom Line
+- Short summary.
 `
 }
 
@@ -188,6 +222,7 @@ export async function POST(request: Request) {
           label: 'Not found',
           description: 'No active documents were available to search.',
         },
+        chatHistoryId: null,
       })
     }
 
@@ -214,7 +249,13 @@ export async function POST(request: Request) {
     }
 
     const activePageRows =
-      activePages?.filter((row: any) => row.documents?.is_active) ?? []
+      activePages?.filter((row: any) => {
+        const documentInfo = Array.isArray(row.documents)
+          ? row.documents[0]
+          : row.documents
+
+        return documentInfo?.is_active && row.openai_file_id
+      }) ?? []
 
     if (activePageRows.length === 0) {
       return NextResponse.json({
@@ -227,6 +268,7 @@ export async function POST(request: Request) {
           label: 'Not found',
           description: 'No processed pages were available to search.',
         },
+        chatHistoryId: null,
       })
     }
 
@@ -237,8 +279,6 @@ export async function POST(request: Request) {
     const openai = new OpenAI({
       apiKey: process.env.OPENAI_API_KEY!,
     })
-
-    const modeInstructions = getModeInstructions(answerMode)
 
     const response = await openai.responses.create({
       model: 'gpt-4.1-mini',
@@ -256,17 +296,23 @@ If the answer is not clearly supported by the active PDFs, say:
 Only use these active OpenAI file IDs:
 ${activeFileIds.join('\n')}
 
-${category && category !== 'all' ? `The user selected this category filter: ${category}. Only answer from active documents in this category.` : 'The user selected all active documents.'}
+${
+  category && category !== 'all'
+    ? `The user selected this category filter: ${category}. Only answer from active documents in this category.`
+    : 'The user selected all active documents.'
+}
 
-${modeInstructions}
+${getModeInstructions(answerMode)}
 
 Global formatting:
-- Use plain language.
+- Use clear section headings.
 - Use "-" for bullets, not markdown stars.
-- If steps are requested, use a numbered list.
+- Use numbered lists only for steps or procedures.
+- Keep answers readable for non-technical users.
 - Do NOT include sources in the answer text.
 - Do NOT list documents or page numbers in the answer text.
 - Sources are shown separately in the UI.
+- Do not use markdown tables unless the user explicitly asks for a table.
 
 Evidence rules:
 - If file search does not return relevant support, do not answer from memory.
@@ -299,20 +345,22 @@ Evidence rules:
       if (item.type === 'file_search_call') {
         const results = item.search_results ?? item.results ?? []
 
-        for (const r of results) {
-          if (!r.file_id) continue
+        for (const result of results) {
+          if (!result.file_id) continue
 
-          citedFileIds.add(r.file_id)
+          if (!activeFileIds.includes(result.file_id)) continue
 
-          const text = cleanExcerpt(getSearchResultText(r))
+          citedFileIds.add(result.file_id)
+
+          const text = cleanExcerpt(getSearchResultText(result))
           if (!text) continue
 
-          if (!excerptsByFileId[r.file_id]) {
-            excerptsByFileId[r.file_id] = []
+          if (!excerptsByFileId[result.file_id]) {
+            excerptsByFileId[result.file_id] = []
           }
 
-          if (!excerptsByFileId[r.file_id].includes(text)) {
-            excerptsByFileId[r.file_id].push(text)
+          if (!excerptsByFileId[result.file_id].includes(text)) {
+            excerptsByFileId[result.file_id].push(text)
           }
         }
       }
@@ -371,46 +419,64 @@ Evidence rules:
       excerpts: doc.excerpts.slice(0, 3),
     }))
 
-    const noEvidence =
-      sources.length === 0 ||
-      citedFileIds.size === 0 ||
-      response.output_text
-        .toLowerCase()
-        .includes("i can't find that in the provided documents")
+    const answerText = response.output_text ?? ''
+
+    const modelSaysNotFound = answerText
+      .toLowerCase()
+      .includes("i can't find that in the provided documents")
+
+    const noEvidence = sources.length === 0 || citedFileIds.size === 0 || modelSaysNotFound
 
     if (noEvidence) {
+      const evidenceStrength = {
+        label: 'Not found',
+        description: 'No supporting source evidence was found.',
+      }
+
+      const { data: historyRow } = await supabaseAdmin
+        .from('chat_history')
+        .insert({
+          user_id: user.id,
+          question,
+          answer: "I can't find that in the provided documents.",
+          category: category ?? null,
+          answer_mode: answerMode ?? 'general',
+          sources: [],
+          evidence_strength: evidenceStrength,
+        })
+        .select('id')
+        .single()
+
       return NextResponse.json({
         answer: "I can't find that in the provided documents.",
         sources: [],
-        evidenceStrength: {
-          label: 'Not found',
-          description: 'No supporting source evidence was found.',
-        },
+        evidenceStrength,
+        chatHistoryId: historyRow?.id ?? null,
       })
     }
 
     const evidenceStrength = getEvidenceStrength(sources)
 
-const { data: historyRow } = await supabaseAdmin
-  .from('chat_history')
-  .insert({
-    user_id: user.id,
-    question,
-    answer: response.output_text,
-    category: category ?? null,
-    answer_mode: answerMode ?? 'general',
-    sources,
-    evidence_strength: evidenceStrength,
-  })
-  .select('id')
-  .single()
+    const { data: historyRow } = await supabaseAdmin
+      .from('chat_history')
+      .insert({
+        user_id: user.id,
+        question,
+        answer: answerText,
+        category: category ?? null,
+        answer_mode: answerMode ?? 'general',
+        sources,
+        evidence_strength: evidenceStrength,
+      })
+      .select('id')
+      .single()
 
-return NextResponse.json({
-  answer: response.output_text,
-  sources,
-  evidenceStrength,
-  chatHistoryId: historyRow?.id ?? null,
-})
+    return NextResponse.json({
+      answer: answerText,
+      sources,
+      evidenceStrength,
+      chatHistoryId: historyRow?.id ?? null,
+    })
   } catch (error: any) {
     console.error('CHAT ERROR:', error)
 
