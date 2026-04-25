@@ -41,7 +41,7 @@ export default function LoginPage() {
         <div>
           <h1 className="text-2xl font-bold">Sign in</h1>
           <p className="text-sm text-gray-600 mt-1">
-            Access the PDF Agent
+            Access the MFP Publication Agent
           </p>
         </div>
 
