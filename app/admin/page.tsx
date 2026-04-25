@@ -2,6 +2,9 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '../../lib/supabase/client'
+export const metadata = {
+  title: 'MFP Admin',
+}
 
 type DocumentRow = {
   id: string

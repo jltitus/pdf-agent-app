@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '../../lib/supabase/client'
-
+export const metadata = {
+  title: 'MFP Chat',
+}
 type Source = {
   title: string
   filename: string
