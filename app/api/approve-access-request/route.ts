@@ -103,7 +103,7 @@ const { data: createdUser, error: createUserError } =
 return NextResponse.json({
   success: true,
   email: accessRequest.email,
-  invited: true,
+  temporaryPassword: 'Invitation email sent — user will set their own password.',
 })
   } catch (error: any) {
     return NextResponse.json(
