@@ -31,7 +31,7 @@ export default function LoginPage() {
     }
 
     // Redirect after login
-    router.push('/chat')
+    router.push('/dashboard')
   }
 
   return (
