@@ -86,7 +86,11 @@ export default function LoginPage() {
             {loading ? 'Signing in...' : 'Sign in'}
           </button>
         </form>
-
+<div className="text-center text-sm">
+  <a href="/forgot-password" className="underline">
+    Forgot password?
+  </a>
+</div>
         {/* Request access */}
         <div className="text-center text-sm">
           Need access?{' '}

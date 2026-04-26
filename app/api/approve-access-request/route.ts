@@ -1,12 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-function makeTempPassword() {
-  return `Temp-${Math.random().toString(36).slice(2, 10)}-${Math.random()
-    .toString(36)
-    .slice(2, 6)}!`
-}
-
 export async function POST(request: Request) {
   try {
     const { requestId } = await request.json()
@@ -29,9 +23,10 @@ export async function POST(request: Request) {
 
     const {
       data: { user: adminUser },
+      error: userError,
     } = await supabaseAdmin.auth.getUser(token)
 
-    if (!adminUser) {
+    if (userError || !adminUser) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     }
 
@@ -59,29 +54,38 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Request is already approved' }, { status: 400 })
     }
 
-    const temporaryPassword = makeTempPassword()
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
 
-// Create user WITHOUT password (invite flow)
-const { data: createdUser, error: createUserError } =
-  await supabaseAdmin.auth.admin.inviteUserByEmail(accessRequest.email, {
-    data: {
-      full_name: accessRequest.full_name,
-    },
-  })
-
-    if (createUserError || !createdUser.user) {
+    if (!siteUrl) {
       return NextResponse.json(
-        { error: createUserError?.message ?? 'Could not create user' },
+        { error: 'Missing NEXT_PUBLIC_SITE_URL environment variable' },
         { status: 500 }
       )
     }
 
-    const { error: profileError } = await supabaseAdmin.from('profiles').insert({
-      id: createdUser.user.id,
-      full_name: accessRequest.full_name,
-      role: 'member',
-      is_active: true,
-    })
+    const { data: invitedUser, error: inviteError } =
+      await supabaseAdmin.auth.admin.inviteUserByEmail(accessRequest.email, {
+        redirectTo: `${siteUrl}/update-password`,
+        data: {
+          full_name: accessRequest.full_name,
+        },
+      })
+
+    if (inviteError || !invitedUser.user) {
+      return NextResponse.json(
+        { error: inviteError?.message ?? 'Could not invite user' },
+        { status: 500 }
+      )
+    }
+
+    const { error: profileError } = await supabaseAdmin
+      .from('profiles')
+      .upsert({
+        id: invitedUser.user.id,
+        full_name: accessRequest.full_name,
+        role: 'member',
+        is_active: true,
+      })
 
     if (profileError) {
       return NextResponse.json({ error: profileError.message }, { status: 500 })
@@ -100,12 +104,15 @@ const { data: createdUser, error: createUserError } =
       return NextResponse.json({ error: updateError.message }, { status: 500 })
     }
 
-return NextResponse.json({
-  success: true,
-  email: accessRequest.email,
-  temporaryPassword: 'Invitation email sent — user will set their own password.',
-})
+    return NextResponse.json({
+      success: true,
+      email: accessRequest.email,
+      invited: true,
+      message: 'Invitation email sent. User will set their own password.',
+    })
   } catch (error: any) {
+    console.error('APPROVE ACCESS REQUEST ERROR:', error)
+
     return NextResponse.json(
       { error: error.message ?? 'Unknown approval error' },
       { status: 500 }
