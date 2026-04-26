@@ -45,10 +45,11 @@ export default function AdminPage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [approvingId, setApprovingId] = useState<string | null>(null)
+  const [decliningId, setDecliningId] = useState<string | null>(null)
 
   const [approvedUserInfo, setApprovedUserInfo] = useState<{
     email: string
-    temporaryPassword: string
+    message: string
   } | null>(null)
 
   useEffect(() => {
@@ -68,8 +69,7 @@ export default function AdminPage() {
 
       if (profile?.role === 'admin' && profile?.is_active) {
         setIsAdmin(true)
-        await loadDocuments()
-        await loadAccessRequests()
+        await loadData()
       }
 
       setLoading(false)
@@ -81,6 +81,11 @@ export default function AdminPage() {
   async function getToken() {
     const { data } = await supabase.auth.getSession()
     return data.session?.access_token
+  }
+
+  async function loadData() {
+    await loadDocuments()
+    await loadAccessRequests()
   }
 
   async function loadDocuments() {
@@ -353,10 +358,12 @@ export default function AdminPage() {
 
       setApprovedUserInfo({
         email: result.email,
-        temporaryPassword: result.temporaryPassword,
+        message:
+          result.message ??
+          'Invitation email sent. User will set their password from the email link.',
       })
 
-      setMessage('Access request approved. Copy the temporary password before leaving this page.')
+      setMessage('Access request approved. Invitation email sent.')
       setApprovingId(null)
       await loadAccessRequests()
     } catch (error: any) {
@@ -365,16 +372,70 @@ export default function AdminPage() {
     }
   }
 
+  async function declineRequest(requestId: string) {
+    const confirmDecline = window.confirm(
+      'Are you sure you want to decline this access request?'
+    )
+
+    if (!confirmDecline) return
+
+    setDecliningId(requestId)
+    setMessage('Declining request...')
+    setApprovedUserInfo(null)
+
+    try {
+      const token = await getToken()
+
+      if (!token) {
+        setMessage('You must be signed in.')
+        setDecliningId(null)
+        return
+      }
+
+      const res = await fetch('/api/decline-access-request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ requestId }),
+      })
+
+      const result = await res.json().catch(() => ({}))
+
+      if (!res.ok) {
+        setMessage(result.error ?? 'Decline failed.')
+        setDecliningId(null)
+        return
+      }
+
+      setMessage('Access request declined.')
+      setDecliningId(null)
+      await loadData()
+    } catch (error: any) {
+      setMessage(`Decline failed: ${error.message ?? 'Network or server error.'}`)
+      setDecliningId(null)
+    }
+  }
+
   if (loading) {
-    return <main className="min-h-screen p-8">Loading...</main>
+    return (
+      <>
+        <HeaderBar />
+        <main className="min-h-screen p-8">Loading...</main>
+      </>
+    )
   }
 
   if (!isAdmin) {
     return (
-      <main className="min-h-screen p-8">
-        <h1 className="text-2xl font-bold">Access denied</h1>
-        <p>You must be an admin to manage this app.</p>
-      </main>
+      <>
+        <HeaderBar />
+        <main className="min-h-screen p-8">
+          <h1 className="text-2xl font-bold">Access denied</h1>
+          <p>You must be an admin to manage this app.</p>
+        </main>
+      </>
     )
   }
 
@@ -385,267 +446,287 @@ export default function AdminPage() {
   const pendingRequests = accessRequests.filter((request) => request.status === 'pending')
 
   return (
-    <main className="min-h-screen p-8">
+    <>
       <HeaderBar />
-      <div className="max-w-5xl mx-auto space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold">Admin: Manage PDF Agent</h1>
-          <p className="text-gray-600">
-            Upload, process, archive, delete, and approve access requests.
-          </p>
-        </div>
 
-        {message && (
-          <div className="rounded-lg border p-3 text-sm">
-            {message}
-          </div>
-        )}
-
-        {approvedUserInfo && (
-          <section className="rounded-2xl border p-5 space-y-3">
-            <h2 className="text-xl font-bold">Approved User Login</h2>
-            <p className="text-sm text-gray-600">
-              Send this login information to the approved tester. Ask them to change their password later.
-            </p>
-            <div className="rounded-lg border p-3 text-sm space-y-1">
-              <p>
-                <strong>Email:</strong> {approvedUserInfo.email}
-              </p>
-              <p>
-                <strong>Temporary password:</strong> {approvedUserInfo.temporaryPassword}
-              </p>
-            </div>
-          </section>
-        )}
-
-        <section className="grid grid-cols-1 md:grid-cols-5 gap-3">
-          <div className="rounded-2xl border p-4">
-            <p className="text-sm text-gray-600">Total documents</p>
-            <p className="text-2xl font-bold">{totalDocs}</p>
-          </div>
-
-          <div className="rounded-2xl border p-4">
-            <p className="text-sm text-gray-600">Active</p>
-            <p className="text-2xl font-bold">{activeDocs}</p>
-          </div>
-
-          <div className="rounded-2xl border p-4">
-            <p className="text-sm text-gray-600">Archived</p>
-            <p className="text-2xl font-bold">{archivedDocs}</p>
-          </div>
-
-          <div className="rounded-2xl border p-4">
-            <p className="text-sm text-gray-600">Processed pages</p>
-            <p className="text-2xl font-bold">{totalPages}</p>
-          </div>
-
-          <div className="rounded-2xl border p-4">
-            <p className="text-sm text-gray-600">Pending requests</p>
-            <p className="text-2xl font-bold">{pendingRequests.length}</p>
-          </div>
-        </section>
-
-        <section className="rounded-2xl border p-6 space-y-4">
+      <main className="min-h-screen p-8">
+        <div className="max-w-5xl mx-auto space-y-8">
           <div>
-            <h2 className="text-2xl font-bold">Access Requests</h2>
-            <p className="text-sm text-gray-600">
-              Approve requesters to create a member account with a temporary password.
+            <h1 className="text-3xl font-bold">Admin: Manage PDF Agent</h1>
+            <p className="text-gray-600">
+              Upload, process, archive, delete, and approve or decline access requests.
             </p>
           </div>
 
-          {pendingRequests.length === 0 ? (
-            <p className="text-sm text-gray-600">No pending access requests.</p>
-          ) : (
-            <div className="space-y-3">
-              {pendingRequests.map((request) => (
-                <div key={request.id} className="rounded-lg border p-4">
-                  <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                    <div className="space-y-1">
-                      <p className="font-semibold">{request.full_name}</p>
-                      <p className="text-sm text-gray-600">{request.email}</p>
-                      <p className="text-sm">
-                        <strong>Reason:</strong> {request.reason || 'None provided'}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        Requested: {new Date(request.created_at).toLocaleString()}
-                      </p>
-                    </div>
-
-                    <button
-                      onClick={() => approveAccessRequest(request.id)}
-                      disabled={approvingId === request.id}
-                      className="rounded-lg border px-3 py-2 text-sm"
-                    >
-                      {approvingId === request.id ? 'Approving...' : 'Approve'}
-                    </button>
-                  </div>
-                </div>
-              ))}
+          {message && (
+            <div className="rounded-lg border p-3 text-sm">
+              {message}
             </div>
           )}
-        </section>
 
-        <form onSubmit={handleUpload} className="rounded-2xl border p-6 space-y-4">
-          <div>
-            <h2 className="text-xl font-bold mb-1">Upload a PDF</h2>
-            <p className="text-sm text-gray-600">
-              Upload first, then process it for page-aware AI search.
-            </p>
-          </div>
+          {approvedUserInfo && (
+            <section className="rounded-2xl border p-5 space-y-3">
+              <h2 className="text-xl font-bold">Approved User Invitation</h2>
+              <p className="text-sm text-gray-600">
+                The user has been approved and should receive an email invitation to set their password.
+              </p>
+              <div className="rounded-lg border p-3 text-sm space-y-1">
+                <p>
+                  <strong>Email:</strong> {approvedUserInfo.email}
+                </p>
+                <p>
+                  <strong>Status:</strong> {approvedUserInfo.message}
+                </p>
+              </div>
+            </section>
+          )}
 
-          <div>
-            <label className="block text-sm font-medium mb-1">Document title</label>
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="w-full rounded-lg border px-3 py-2"
-              required
-            />
-          </div>
+          <section className="grid grid-cols-1 md:grid-cols-5 gap-3">
+            <div className="rounded-2xl border p-4">
+              <p className="text-sm text-gray-600">Total documents</p>
+              <p className="text-2xl font-bold">{totalDocs}</p>
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1">Category</label>
-            <input
-              value={category}
-              onChange={(e) => setCategory(e.target.value)}
-              placeholder="Example: Food safety, Canning, Freezing, Recipes"
-              className="w-full rounded-lg border px-3 py-2"
-            />
-          </div>
+            <div className="rounded-2xl border p-4">
+              <p className="text-sm text-gray-600">Active</p>
+              <p className="text-2xl font-bold">{activeDocs}</p>
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1">Version</label>
-            <input
-              value={version}
-              onChange={(e) => setVersion(e.target.value)}
-              placeholder="Example: 2026, v1, current"
-              className="w-full rounded-lg border px-3 py-2"
-            />
-          </div>
+            <div className="rounded-2xl border p-4">
+              <p className="text-sm text-gray-600">Archived</p>
+              <p className="text-2xl font-bold">{archivedDocs}</p>
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium mb-1">PDF file</label>
-            <input
-              type="file"
-              accept="application/pdf"
-              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-              className="w-full"
-              required
-            />
-          </div>
+            <div className="rounded-2xl border p-4">
+              <p className="text-sm text-gray-600">Processed pages</p>
+              <p className="text-2xl font-bold">{totalPages}</p>
+            </div>
 
-          <button
-            type="submit"
-            className="rounded-lg bg-black text-white px-4 py-2"
-          >
-            Upload PDF
-          </button>
-        </form>
+            <div className="rounded-2xl border p-4">
+              <p className="text-sm text-gray-600">Pending requests</p>
+              <p className="text-2xl font-bold">{pendingRequests.length}</p>
+            </div>
+          </section>
 
-        <section className="space-y-3">
-          <div>
-            <h2 className="text-2xl font-bold">Uploaded documents</h2>
-            <p className="text-sm text-gray-600">
-              Processed documents are split into page-level files for better source citations.
-            </p>
-          </div>
+          <section className="rounded-2xl border p-6 space-y-4">
+            <div>
+              <h2 className="text-2xl font-bold">Access Requests</h2>
+              <p className="text-sm text-gray-600">
+                Approve requesters to send an invite email, or decline requests that should not receive access.
+              </p>
+            </div>
 
-          {documents.length === 0 ? (
-            <p>No documents uploaded yet.</p>
-          ) : (
-            <div className="space-y-3">
-              {documents.map((doc) => {
-                const isProcessed = (doc.page_count ?? 0) > 0
-                const uploadedDate = doc.uploaded_at
-                  ? new Date(doc.uploaded_at).toLocaleString()
-                  : 'Unknown'
-
-                return (
-                  <div
-                    key={doc.id}
-                    className={`rounded-2xl border p-5 ${
-                      doc.is_active ? '' : 'opacity-60'
-                    }`}
-                  >
+            {pendingRequests.length === 0 ? (
+              <p className="text-sm text-gray-600">No pending access requests.</p>
+            ) : (
+              <div className="space-y-3">
+                {pendingRequests.map((request) => (
+                  <div key={request.id} className="rounded-lg border p-4">
                     <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                      <div className="space-y-2">
-                        <div>
-                          <p className="font-semibold text-lg">{doc.title}</p>
-                          <p className="text-sm text-gray-600">{doc.filename}</p>
-                        </div>
-
-                        <div className="flex flex-wrap gap-2 text-xs">
-                          <span className="rounded-full border px-2 py-1">
-                            {doc.is_active ? 'Active' : 'Archived'}
-                          </span>
-
-                          <span className="rounded-full border px-2 py-1">
-                            {isProcessed ? 'Processed' : 'Not processed'}
-                          </span>
-
-                          <span className="rounded-full border px-2 py-1">
-                            Pages: {doc.page_count ?? 0}
-                          </span>
-                        </div>
-
-                        <div className="text-sm space-y-1">
-                          <p>
-                            <strong>Category:</strong> {doc.category || 'None'}
-                          </p>
-                          <p>
-                            <strong>Version:</strong> {doc.version || 'None'}
-                          </p>
-                          <p>
-                            <strong>Uploaded:</strong> {uploadedDate}
-                          </p>
-                          <p>
-                            <strong>Vector store:</strong>{' '}
-                            {doc.vector_store_id ? 'Connected' : 'Not connected'}
-                          </p>
-                        </div>
+                      <div className="space-y-1">
+                        <p className="font-semibold">{request.full_name}</p>
+                        <p className="text-sm text-gray-600">{request.email}</p>
+                        <p className="text-sm">
+                          <strong>Reason:</strong> {request.reason || 'None provided'}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Requested: {new Date(request.created_at).toLocaleString()}
+                        </p>
                       </div>
 
                       <div className="flex flex-wrap gap-2">
                         <button
-                          onClick={() => updateDocumentStatus(doc.id, !doc.is_active)}
-                          disabled={updatingId === doc.id || deletingId === doc.id}
+                          onClick={() => approveAccessRequest(request.id)}
+                          disabled={
+                            approvingId === request.id ||
+                            decliningId === request.id
+                          }
                           className="rounded-lg border px-3 py-2 text-sm"
                         >
-                          {updatingId === doc.id
-                            ? 'Updating...'
-                            : doc.is_active
-                              ? 'Archive'
-                              : 'Unarchive'}
+                          {approvingId === request.id ? 'Approving...' : 'Approve'}
                         </button>
 
                         <button
-                          onClick={() => processDocument(doc.id)}
-                          disabled={processingId === doc.id || deletingId === doc.id}
-                          className="rounded-lg border px-3 py-2 text-sm"
+                          type="button"
+                          onClick={() => declineRequest(request.id)}
+                          disabled={
+                            approvingId === request.id ||
+                            decliningId === request.id
+                          }
+                          className="rounded-lg border px-3 py-2 text-sm text-red-700 hover:bg-red-50"
                         >
-                          {processingId === doc.id
-                            ? 'Processing...'
-                            : isProcessed
-                              ? 'Reprocess'
-                              : 'Process for AI Search'}
-                        </button>
-
-                        <button
-                          onClick={() => deleteDocument(doc.id, doc.title)}
-                          disabled={deletingId === doc.id}
-                          className="rounded-lg border px-3 py-2 text-sm text-red-700"
-                        >
-                          {deletingId === doc.id ? 'Deleting...' : 'Delete'}
+                          {decliningId === request.id ? 'Declining...' : 'Decline'}
                         </button>
                       </div>
                     </div>
                   </div>
-                )
-              })}
+                ))}
+              </div>
+            )}
+          </section>
+
+          <form onSubmit={handleUpload} className="rounded-2xl border p-6 space-y-4">
+            <div>
+              <h2 className="text-xl font-bold mb-1">Upload a PDF</h2>
+              <p className="text-sm text-gray-600">
+                Upload first, then process it for page-aware AI search.
+              </p>
             </div>
-          )}
-        </section>
-      </div>
-    </main>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Document title</label>
+              <input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="w-full rounded-lg border px-3 py-2"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Category</label>
+              <input
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+                placeholder="Example: Food safety, Canning, Freezing, Recipes"
+                className="w-full rounded-lg border px-3 py-2"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">Version</label>
+              <input
+                value={version}
+                onChange={(e) => setVersion(e.target.value)}
+                placeholder="Example: 2026, v1, current"
+                className="w-full rounded-lg border px-3 py-2"
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium mb-1">PDF file</label>
+              <input
+                type="file"
+                accept="application/pdf"
+                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                className="w-full"
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="rounded-lg bg-black text-white px-4 py-2"
+            >
+              Upload PDF
+            </button>
+          </form>
+
+          <section className="space-y-3">
+            <div>
+              <h2 className="text-2xl font-bold">Uploaded documents</h2>
+              <p className="text-sm text-gray-600">
+                Processed documents are split into page-level files for better source citations.
+              </p>
+            </div>
+
+            {documents.length === 0 ? (
+              <p>No documents uploaded yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {documents.map((doc) => {
+                  const isProcessed = (doc.page_count ?? 0) > 0
+                  const uploadedDate = doc.uploaded_at
+                    ? new Date(doc.uploaded_at).toLocaleString()
+                    : 'Unknown'
+
+                  return (
+                    <div
+                      key={doc.id}
+                      className={`rounded-2xl border p-5 ${
+                        doc.is_active ? '' : 'opacity-60'
+                      }`}
+                    >
+                      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                        <div className="space-y-2">
+                          <div>
+                            <p className="font-semibold text-lg">{doc.title}</p>
+                            <p className="text-sm text-gray-600">{doc.filename}</p>
+                          </div>
+
+                          <div className="flex flex-wrap gap-2 text-xs">
+                            <span className="rounded-full border px-2 py-1">
+                              {doc.is_active ? 'Active' : 'Archived'}
+                            </span>
+
+                            <span className="rounded-full border px-2 py-1">
+                              {isProcessed ? 'Processed' : 'Not processed'}
+                            </span>
+
+                            <span className="rounded-full border px-2 py-1">
+                              Pages: {doc.page_count ?? 0}
+                            </span>
+                          </div>
+
+                          <div className="text-sm space-y-1">
+                            <p>
+                              <strong>Category:</strong> {doc.category || 'None'}
+                            </p>
+                            <p>
+                              <strong>Version:</strong> {doc.version || 'None'}
+                            </p>
+                            <p>
+                              <strong>Uploaded:</strong> {uploadedDate}
+                            </p>
+                            <p>
+                              <strong>Vector store:</strong>{' '}
+                              {doc.vector_store_id ? 'Connected' : 'Not connected'}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-wrap gap-2">
+                          <button
+                            onClick={() => updateDocumentStatus(doc.id, !doc.is_active)}
+                            disabled={updatingId === doc.id || deletingId === doc.id}
+                            className="rounded-lg border px-3 py-2 text-sm"
+                          >
+                            {updatingId === doc.id
+                              ? 'Updating...'
+                              : doc.is_active
+                                ? 'Archive'
+                                : 'Unarchive'}
+                          </button>
+
+                          <button
+                            onClick={() => processDocument(doc.id)}
+                            disabled={processingId === doc.id || deletingId === doc.id}
+                            className="rounded-lg border px-3 py-2 text-sm"
+                          >
+                            {processingId === doc.id
+                              ? 'Processing...'
+                              : isProcessed
+                                ? 'Reprocess'
+                                : 'Process for AI Search'}
+                          </button>
+
+                          <button
+                            onClick={() => deleteDocument(doc.id, doc.title)}
+                            disabled={deletingId === doc.id}
+                            className="rounded-lg border px-3 py-2 text-sm text-red-700"
+                          >
+                            {deletingId === doc.id ? 'Deleting...' : 'Delete'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </section>
+        </div>
+      </main>
+    </>
   )
 }
