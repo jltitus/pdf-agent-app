@@ -3,12 +3,8 @@ import { createClient } from '@supabase/supabase-js'
 
 export async function POST(request: Request) {
   try {
-    const { chatHistoryId, question, answer, sources, feedbackType } =
+    const { chatHistoryId, feedbackType, question, answer } =
       await request.json()
-
-    if (!feedbackType) {
-      return NextResponse.json({ error: 'Missing feedbackType' }, { status: 400 })
-    }
 
     const authHeader = request.headers.get('authorization')
     const token = authHeader?.replace('Bearer ', '')
@@ -33,11 +29,10 @@ export async function POST(request: Request) {
 
     const { error } = await supabaseAdmin.from('chat_feedback').insert({
       user_id: user.id,
-      chat_history_id: chatHistoryId ?? null,
+      chat_history_id: chatHistoryId || null,
+      feedback_type: feedbackType,
       question,
       answer,
-      sources,
-      feedback_type: feedbackType,
     })
 
     if (error) {
@@ -46,8 +41,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true })
   } catch (error: any) {
-    console.error('FEEDBACK ERROR:', error)
-
     return NextResponse.json(
       { error: error.message ?? 'Unknown feedback error' },
       { status: 500 }
