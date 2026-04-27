@@ -176,6 +176,17 @@ function normalizeQuestion(text: string) {
     .replace(/\s+/g, ' ')
     .trim()
 }
+function getQuestionSimilarity(a: string, b: string) {
+  const wordsA = new Set(normalizeQuestion(a).split(' ').filter(Boolean))
+  const wordsB = new Set(normalizeQuestion(b).split(' ').filter(Boolean))
+
+  if (wordsA.size === 0 || wordsB.size === 0) return 0
+
+  const sharedWords = [...wordsA].filter((word) => wordsB.has(word))
+  const totalUniqueWords = new Set([...wordsA, ...wordsB]).size
+
+  return sharedWords.length / totalUniqueWords
+}
 
 async function generateSuggestedFollowUps({
   openai,
@@ -311,31 +322,42 @@ const { data: trustedAnswers } = await supabaseAdmin
   .select('id, question, answer, category, answer_mode, sources')
   .eq('is_active', true)
 
-const trustedMatch = (trustedAnswers ?? []).find((trusted) => {
-  const trustedQuestion = normalizeQuestion(trusted.question)
+const trustedCandidates = (trustedAnswers ?? [])
+  .map((trusted) => {
+    const categoryMatches =
+      !trusted.category ||
+      category === 'all' ||
+      trusted.category === category
 
-  const categoryMatches =
-    !trusted.category ||
-    category === 'all' ||
-    trusted.category === category
+    const modeMatches =
+      !trusted.answer_mode ||
+      trusted.answer_mode === 'general' ||
+      trusted.answer_mode === answerMode
 
-  const modeMatches =
-    !trusted.answer_mode ||
-    trusted.answer_mode === 'general' ||
-    trusted.answer_mode === answerMode
+    const similarity = getQuestionSimilarity(question, trusted.question)
 
-  return (
-    trustedQuestion === normalizedUserQuestion &&
-    categoryMatches &&
-    modeMatches
-  )
-})
+    return {
+      ...trusted,
+      similarity,
+      categoryMatches,
+      modeMatches,
+    }
+  })
+  .filter((trusted) => trusted.categoryMatches && trusted.modeMatches)
+  .sort((a, b) => b.similarity - a.similarity)
 
-if (trustedMatch) {
+const trustedMatch = trustedCandidates[0]
+
+const trustedMatchThreshold = 0.55
+
+if (trustedMatch && trustedMatch.similarity >= trustedMatchThreshold) {
   const evidenceStrength = {
-    label: 'Strong',
-    description: 'This is a trusted answer saved by an administrator.',
-  }
+  label: 'Strong',
+  description:
+    'This is a trusted answer saved by an administrator. Match confidence: ' +
+    Math.round(trustedMatch.similarity * 100) +
+    '%.',
+}
 
   const suggestedFollowUps = await generateSuggestedFollowUps({
     openai: new OpenAI({ apiKey: process.env.OPENAI_API_KEY! }),

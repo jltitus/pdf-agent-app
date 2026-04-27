@@ -46,6 +46,17 @@ type NoAnswerItem = {
   } | null
   created_at: string
 }
+
+type TrustedAnswer = {
+  id: string
+  question: string
+  answer: string
+  category?: string | null
+  answer_mode?: string | null
+  is_active: boolean
+  created_at: string
+}
+
 type UserAnalytics = {
   totalQuestions: number
   uniqueUsers: number
@@ -86,6 +97,10 @@ const [contentGaps, setContentGaps] = useState<
   const [documents, setDocuments] = useState<DocumentRow[]>([])
   const [accessRequests, setAccessRequests] = useState<AccessRequest[]>([])
   const [feedback, setFeedback] = useState<FeedbackItem[]>([])
+  const [trustedAnswers, setTrustedAnswers] = useState<TrustedAnswer[]>([])
+const [editingTrustedId, setEditingTrustedId] = useState<string | null>(null)
+const [trustedEditQuestion, setTrustedEditQuestion] = useState('')
+const [trustedEditAnswer, setTrustedEditAnswer] = useState('')
 const [feedbackFilter, setFeedbackFilter] = useState<
   'all' | 'helpful' | 'not_helpful' | 'missing_source'
 >('all')
@@ -149,6 +164,7 @@ async function loadData() {
   await loadFeedback()
   await loadNoAnswerItems()
   await loadUserAnalytics()
+  await loadTrustedAnswers()
 }
 async function loadNoAnswerItems() {
   const { data } = await supabase
@@ -254,7 +270,19 @@ setContentGaps(sorted)
       })
       return
     }
+async function loadTrustedAnswers() {
+  const { data, error } = await supabase
+    .from('trusted_answers')
+    .select('id, question, answer, category, answer_mode, is_active, created_at')
+    .order('created_at', { ascending: false })
 
+  if (error || !data) {
+    setTrustedAnswers([])
+    return
+  }
+
+  setTrustedAnswers(data as TrustedAnswer[])
+}
     const feedbackItems = feedbackData as FeedbackItem[]
 
     setFeedback(feedbackItems)
@@ -265,6 +293,20 @@ setContentGaps(sorted)
       missing_source: feedbackItems.filter((item) => item.feedback_type === 'missing_source').length,
     })
   }
+
+  async function loadTrustedAnswers() {
+  const { data, error } = await supabase
+    .from('trusted_answers')
+    .select('id, question, answer, category, answer_mode, is_active, created_at')
+    .order('created_at', { ascending: false })
+
+  if (error || !data) {
+    setTrustedAnswers([])
+    return
+  }
+
+  setTrustedAnswers(data as TrustedAnswer[])
+}
 async function loadUserAnalytics() {
   const { data } = await supabase
     .from('chat_history')
@@ -609,6 +651,82 @@ async function saveTrustedAnswer(item: NoAnswerItem) {
   } catch (error: any) {
     setMessage(error.message ?? 'Failed to save trusted answer.')
   }
+}
+function startEditTrustedAnswer(item: TrustedAnswer) {
+  setEditingTrustedId(item.id)
+  setTrustedEditQuestion(item.question)
+  setTrustedEditAnswer(item.answer)
+}
+
+function cancelEditTrustedAnswer() {
+  setEditingTrustedId(null)
+  setTrustedEditQuestion('')
+  setTrustedEditAnswer('')
+}
+
+async function updateTrustedAnswer(item: TrustedAnswer) {
+  setMessage('Updating trusted answer...')
+
+  const { error } = await supabase
+    .from('trusted_answers')
+    .update({
+      question: trustedEditQuestion,
+      answer: trustedEditAnswer,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', item.id)
+
+  if (error) {
+    setMessage(`Update failed: ${error.message}`)
+    return
+  }
+
+  setMessage('Trusted answer updated.')
+  cancelEditTrustedAnswer()
+  await loadTrustedAnswers()
+}
+
+async function toggleTrustedAnswer(item: TrustedAnswer) {
+  setMessage(item.is_active ? 'Deactivating trusted answer...' : 'Activating trusted answer...')
+
+  const { error } = await supabase
+    .from('trusted_answers')
+    .update({
+      is_active: !item.is_active,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', item.id)
+
+  if (error) {
+    setMessage(`Status update failed: ${error.message}`)
+    return
+  }
+
+  setMessage(item.is_active ? 'Trusted answer deactivated.' : 'Trusted answer activated.')
+  await loadTrustedAnswers()
+}
+
+async function deleteTrustedAnswer(item: TrustedAnswer) {
+  const confirmed = window.confirm(
+    `Delete trusted answer for: "${item.question}"? This cannot be undone.`
+  )
+
+  if (!confirmed) return
+
+  setMessage('Deleting trusted answer...')
+
+  const { error } = await supabase
+    .from('trusted_answers')
+    .delete()
+    .eq('id', item.id)
+
+  if (error) {
+    setMessage(`Delete failed: ${error.message}`)
+    return
+  }
+
+  setMessage('Trusted answer deleted.')
+  await loadTrustedAnswers()
 }
   if (loading) {
     return (
@@ -1021,6 +1139,115 @@ function exportFeedbackCSV() {
       </div>
     )}
   </div>
+</section>
+<section className="rounded-2xl border p-6 space-y-4">
+  <div>
+    <h2 className="text-2xl font-bold">Trusted Answers</h2>
+    <p className="text-sm text-gray-600">
+      Manage administrator-approved answers that can be reused by chat before calling AI search.
+    </p>
+  </div>
+
+  {trustedAnswers.length === 0 ? (
+    <p className="text-sm text-gray-600">No trusted answers saved yet.</p>
+  ) : (
+    <div className="space-y-3">
+      {trustedAnswers.map((item) => (
+        <div key={item.id} className="rounded-lg border p-4 space-y-3">
+          {editingTrustedId === item.id ? (
+            <>
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Trusted question
+                </label>
+                <input
+                  value={trustedEditQuestion}
+                  onChange={(e) => setTrustedEditQuestion(e.target.value)}
+                  className="w-full rounded-lg border px-3 py-2 text-sm"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">
+                  Trusted answer
+                </label>
+                <textarea
+                  value={trustedEditAnswer}
+                  onChange={(e) => setTrustedEditAnswer(e.target.value)}
+                  className="min-h-[160px] w-full rounded-lg border px-3 py-2 text-sm"
+                />
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => updateTrustedAnswer(item)}
+                  className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50"
+                >
+                  Save changes
+                </button>
+
+                <button
+                  type="button"
+                  onClick={cancelEditTrustedAnswer}
+                  className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                <div>
+                  <p className="font-semibold text-sm">{item.question}</p>
+
+                  <p className="mt-1 text-xs text-gray-500">
+                    Mode: {item.answer_mode || 'general'}
+                    {item.category ? ` • Category: ${item.category}` : ''}
+                    {' • '}
+                    {item.is_active ? 'Active' : 'Inactive'}
+                    {' • '}
+                    {new Date(item.created_at).toLocaleString()}
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => toggleTrustedAnswer(item)}
+                    className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50"
+                  >
+                    {item.is_active ? 'Deactivate' : 'Activate'}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => startEditTrustedAnswer(item)}
+                    className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50"
+                  >
+                    Edit
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => deleteTrustedAnswer(item)}
+                    className="rounded-lg border px-3 py-2 text-sm text-red-700 hover:bg-red-50"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+
+              <p className="line-clamp-3 text-sm text-gray-600">
+                {item.answer}
+              </p>
+            </>
+          )}
+        </div>
+      ))}
+    </div>
+  )}
 </section>
           <form onSubmit={handleUpload} className="rounded-2xl border p-6 space-y-4">
             <div>
