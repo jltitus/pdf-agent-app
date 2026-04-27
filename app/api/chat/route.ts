@@ -541,9 +541,18 @@ Evidence rules:
 
     const answerText = response.output_text ?? ''
 
-    const modelSaysNotFound = answerText
-      .toLowerCase()
-      .includes("i can't find that in the provided documents")
+    const lowerAnswer = answerText.toLowerCase()
+
+const modelSaysNotFound =
+  lowerAnswer.includes("i can't find") ||
+  lowerAnswer.includes("i couldn’t find") ||
+  lowerAnswer.includes("i couldn't find") ||
+  lowerAnswer.includes("i can’t find") ||
+  lowerAnswer.includes("no supported") ||
+  lowerAnswer.includes("not found") ||
+  lowerAnswer.includes("could not find") ||
+  lowerAnswer.includes("can't find information") ||
+  lowerAnswer.includes("cannot find information")
 
     const noEvidence =
       sources.length === 0 || citedFileIds.size === 0 || modelSaysNotFound

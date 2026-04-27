@@ -572,7 +572,44 @@ async function loadUserAnalytics() {
       setDecliningId(null)
     }
   }
+async function saveTrustedAnswer(item: NoAnswerItem) {
+  setMessage('Saving trusted answer...')
 
+  try {
+    const token = await getToken()
+
+    if (!token) {
+      setMessage('You must be signed in.')
+      return
+    }
+
+    const res = await fetch('/api/trusted-answers', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        question: item.question,
+        answer: item.answer,
+        category: item.category,
+        answerMode: item.answer_mode,
+        sources: [],
+      }),
+    })
+
+    const result = await res.json()
+
+    if (!res.ok) {
+      setMessage(result.error ?? 'Failed to save trusted answer.')
+      return
+    }
+
+    setMessage('Trusted answer saved.')
+  } catch (error: any) {
+    setMessage(error.message ?? 'Failed to save trusted answer.')
+  }
+}
   if (loading) {
     return (
       <>
@@ -862,7 +899,17 @@ function exportFeedbackCSV() {
           <p className="mt-2 text-xs text-gray-500">
             {new Date(item.created_at).toLocaleString()}
           </p>
+          <div className="mt-3">
+  <button
+    type="button"
+    onClick={() => saveTrustedAnswer(item)}
+    className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50"
+  >
+    Save as trusted
+  </button>
+</div>
         </div>
+        
       ))}
     </div>
   )}
