@@ -222,7 +222,87 @@ suggestedFollowUps: result.suggestedFollowUps ?? [],
       setLoading(false)
     }
   }
+async function tryBroaderSearch(index: number) {
+  const turn = conversationTurns[index]
+  if (!turn) return
 
+  setLoading(true)
+  setMessage('Trying a broader search across all publications...')
+
+  const previousCategory = category
+  const previousDocumentId = documentId
+
+  setCategory('all')
+  setDocumentId('all')
+
+  const priorTurns = conversationTurns.slice(0, index)
+
+  try {
+    const { data } = await supabase.auth.getSession()
+    const token = data.session?.access_token
+
+    if (!token) {
+      setMessage('You must be signed in.')
+      setLoading(false)
+      setCategory(previousCategory)
+      setDocumentId(previousDocumentId)
+      return
+    }
+
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        question: turn.question,
+        category: 'all',
+        documentId: 'all',
+        answerMode,
+        conversationTurns: priorTurns.map((priorTurn) => ({
+          question: priorTurn.question,
+          answer: priorTurn.answer,
+        })),
+      }),
+    })
+
+    const result = await res.json()
+
+    if (!res.ok) {
+      setMessage(result.error ?? 'Broader search failed.')
+      setLoading(false)
+      setCategory(previousCategory)
+      setDocumentId(previousDocumentId)
+      return
+    }
+
+    setConversationTurns((prev) =>
+      prev.map((existingTurn, turnIndex) =>
+        turnIndex === index
+          ? {
+              ...existingTurn,
+              answer: result.answer,
+              sources: result.sources ?? [],
+              evidenceStrength: result.evidenceStrength ?? null,
+              chatHistoryId: result.chatHistoryId ?? null,
+              feedbackSubmitted: null,
+              suggestedFollowUps: result.suggestedFollowUps ?? [],
+            }
+          : existingTurn
+      )
+    )
+
+    setMessage('')
+    setLoading(false)
+    await refreshHistory()
+  } catch (error: any) {
+    setMessage(error.message ?? 'Broader search failed.')
+    setLoading(false)
+    setCategory(previousCategory)
+    setDocumentId(previousDocumentId)
+  }
+}
   async function submitFeedback(index: number, feedbackType: string) {
     const turn = conversationTurns[index]
     if (!turn) return
@@ -574,6 +654,23 @@ return (
                             >
                               Regenerate
                             </button>
+                           {(turn.evidenceStrength?.label === 'Not found' ||
+  !turn.sources ||
+  turn.sources.length === 0 ||
+  turn.answer.toLowerCase().includes("couldn't find") ||
+  turn.answer.toLowerCase().includes("couldn’t find") ||
+  turn.answer.toLowerCase().includes("can't find") ||
+  turn.answer.toLowerCase().includes("can’t find") ||
+  turn.answer.toLowerCase().includes('no supported')) && (
+  <button
+    type="button"
+    onClick={() => tryBroaderSearch(index)}
+    disabled={loading}
+    className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50 disabled:opacity-50"
+  >
+    Try broader search
+  </button>
+)}
                           </div>
 
                           {turn.feedbackSubmitted && (

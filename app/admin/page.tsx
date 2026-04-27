@@ -46,10 +46,39 @@ type NoAnswerItem = {
   } | null
   created_at: string
 }
+type UserAnalytics = {
+  totalQuestions: number
+  uniqueUsers: number
+  modeCounts: Record<string, number>
+  categoryCounts: Record<string, number>
+  recentActivity: {
+    id: string
+    user_id: string
+    question: string
+    answer_mode?: string | null
+    category?: string | null
+    created_at: string
+  }[]
+}
 
 export default function AdminPage() {
+  const [userAnalytics, setUserAnalytics] = useState<UserAnalytics>({
+  totalQuestions: 0,
+  uniqueUsers: 0,
+  modeCounts: {},
+  categoryCounts: {},
+  recentActivity: [],
+})
   const supabase = createClient()
 const [noAnswerItems, setNoAnswerItems] = useState<NoAnswerItem[]>([])
+const [contentGaps, setContentGaps] = useState<
+  {
+    question: string
+    count: number
+    category?: string | null
+    answer_mode?: string | null
+  }[]
+>([])
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
   const [message, setMessage] = useState('')
@@ -119,6 +148,7 @@ async function loadData() {
   await loadAccessRequests()
   await loadFeedback()
   await loadNoAnswerItems()
+  await loadUserAnalytics()
 }
 async function loadNoAnswerItems() {
   const { data } = await supabase
@@ -129,8 +159,31 @@ async function loadNoAnswerItems() {
 
   const items = ((data ?? []) as NoAnswerItem[]).filter(
     (item) => item.evidence_strength?.label === 'Not found'
-  )
 
+  
+  )
+const grouped: Record<string, any> = {}
+
+items.forEach((item) => {
+  const key = item.question.trim().toLowerCase()
+
+  if (!grouped[key]) {
+    grouped[key] = {
+      question: item.question,
+      count: 0,
+      category: item.category,
+      answer_mode: item.answer_mode,
+    }
+  }
+
+  grouped[key].count += 1
+})
+
+const sorted = Object.values(grouped)
+  .sort((a, b) => b.count - a.count)
+  .slice(0, 10)
+
+setContentGaps(sorted)
   setNoAnswerItems(items)
 }
   async function loadDocuments() {
@@ -212,7 +265,36 @@ async function loadNoAnswerItems() {
       missing_source: feedbackItems.filter((item) => item.feedback_type === 'missing_source').length,
     })
   }
+async function loadUserAnalytics() {
+  const { data } = await supabase
+    .from('chat_history')
+    .select('id, user_id, question, answer_mode, category, created_at')
+    .order('created_at', { ascending: false })
+    .limit(200)
 
+  const rows = data ?? []
+
+  const uniqueUserIds = new Set(rows.map((row) => row.user_id).filter(Boolean))
+
+  const modeCounts: Record<string, number> = {}
+  const categoryCounts: Record<string, number> = {}
+
+  rows.forEach((row) => {
+    const mode = row.answer_mode || 'general'
+    const cat = row.category || 'Uncategorized'
+
+    modeCounts[mode] = (modeCounts[mode] ?? 0) + 1
+    categoryCounts[cat] = (categoryCounts[cat] ?? 0) + 1
+  })
+
+  setUserAnalytics({
+    totalQuestions: rows.length,
+    uniqueUsers: uniqueUserIds.size,
+    modeCounts,
+    categoryCounts,
+    recentActivity: rows.slice(0, 10),
+  })
+}
   async function handleUpload(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setMessage('Uploading...')
@@ -784,6 +866,114 @@ function exportFeedbackCSV() {
       ))}
     </div>
   )}
+</section>
+
+<section className="rounded-2xl border p-6 space-y-4">
+  <div>
+    <h2 className="text-2xl font-bold">Top Content Gaps</h2>
+    <p className="text-sm text-gray-600">
+      Most frequently asked questions that could not be answered.
+    </p>
+  </div>
+
+  {contentGaps.length === 0 ? (
+    <p className="text-sm text-gray-600">No content gaps yet.</p>
+  ) : (
+    <div className="space-y-3">
+      {contentGaps.map((gap, index) => (
+        <div key={index} className="rounded-lg border p-4">
+          <p className="font-semibold text-sm">{gap.question}</p>
+
+          <p className="mt-1 text-sm text-gray-600">
+            Asked {gap.count} time{gap.count > 1 ? 's' : ''}
+          </p>
+
+          <p className="mt-1 text-xs text-gray-500">
+            Mode: {gap.answer_mode || 'general'}
+            {gap.category ? ` • Category: ${gap.category}` : ''}
+          </p>
+        </div>
+      ))}
+    </div>
+  )}
+</section>
+<section className="rounded-2xl border p-6 space-y-4">
+  <div>
+    <h2 className="text-2xl font-bold">User Analytics</h2>
+    <p className="text-sm text-gray-600">
+      See how testers are using the app and what kinds of questions they ask.
+    </p>
+  </div>
+
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+    <div className="rounded-2xl border p-4">
+      <p className="text-sm text-gray-600">Questions asked</p>
+      <p className="text-2xl font-bold">{userAnalytics.totalQuestions}</p>
+    </div>
+
+    <div className="rounded-2xl border p-4">
+      <p className="text-sm text-gray-600">Unique users</p>
+      <p className="text-2xl font-bold">{userAnalytics.uniqueUsers}</p>
+    </div>
+  </div>
+
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="rounded-2xl border p-4">
+      <h3 className="font-bold">Answer modes</h3>
+
+      {Object.keys(userAnalytics.modeCounts).length === 0 ? (
+        <p className="mt-2 text-sm text-gray-600">No mode usage yet.</p>
+      ) : (
+        <div className="mt-3 space-y-2">
+          {Object.entries(userAnalytics.modeCounts).map(([mode, count]) => (
+            <div key={mode} className="flex justify-between text-sm">
+              <span>{mode}</span>
+              <span className="font-semibold">{count}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+
+    <div className="rounded-2xl border p-4">
+      <h3 className="font-bold">Categories</h3>
+
+      {Object.keys(userAnalytics.categoryCounts).length === 0 ? (
+        <p className="mt-2 text-sm text-gray-600">No category usage yet.</p>
+      ) : (
+        <div className="mt-3 space-y-2">
+          {Object.entries(userAnalytics.categoryCounts).map(([cat, count]) => (
+            <div key={cat} className="flex justify-between text-sm">
+              <span>{cat}</span>
+              <span className="font-semibold">{count}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  </div>
+
+  <div className="rounded-2xl border p-4">
+    <h3 className="font-bold">Recent Activity</h3>
+
+    {userAnalytics.recentActivity.length === 0 ? (
+      <p className="mt-2 text-sm text-gray-600">No recent activity yet.</p>
+    ) : (
+      <div className="mt-3 space-y-3">
+        {userAnalytics.recentActivity.map((item) => (
+          <div key={item.id} className="rounded-lg border p-3">
+            <p className="text-sm font-semibold">{item.question}</p>
+            <p className="mt-1 text-xs text-gray-500">
+              Mode: {item.answer_mode || 'general'}
+              {item.category ? ` • Category: ${item.category}` : ''}
+              {' • '}
+              {new Date(item.created_at).toLocaleString()}
+            </p>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
 </section>
           <form onSubmit={handleUpload} className="rounded-2xl border p-6 space-y-4">
             <div>
