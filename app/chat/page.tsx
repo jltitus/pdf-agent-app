@@ -288,9 +288,41 @@ export default function ChatPage() {
     setMessage('')
   }
 
-  return (
-    <>
-      <HeaderBar />
+  function getSuggestedFollowUps() {
+  if (answerMode === 'recipe') {
+    return [
+      'What are the storage instructions?',
+      'What safety notes should I know?',
+      'What processing time is listed?',
+    ]
+  }
+
+  if (answerMode === 'safety') {
+    return [
+      'What should I avoid doing?',
+      'What are the biggest safety risks?',
+      'What does the publication say about storage?',
+    ]
+  }
+
+  if (answerMode === 'compare') {
+    return [
+      'Where do the publications agree?',
+      'Where do they differ?',
+      'Are there any conflicts or gaps?',
+    ]
+  }
+
+  return [
+    'What about storage?',
+    'What are the safety notes?',
+    'What does the source say not to do?',
+  ]
+}
+
+return (
+  <>
+    <HeaderBar />
 
       <main className="min-h-screen bg-white">
         <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-6 md:px-8">
@@ -377,6 +409,36 @@ export default function ChatPage() {
                     : 'Start with a question about a publication, process, recipe, or safety guidance.'}
                 </p>
               </div>
+
+              <form onSubmit={askQuestion} className="space-y-3 border-b p-4">
+                {message && (
+                  <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                    {message}
+                  </div>
+                )}
+
+                <div className="flex flex-col gap-3 md:flex-row">
+                  <textarea
+                    value={question}
+                    onChange={(e) => setQuestion(e.target.value)}
+                    className="min-h-[70px] flex-1 rounded-xl border p-3"
+                    placeholder={
+                      conversationTurns.length > 0
+                        ? 'Ask a follow-up question...'
+                        : 'Ask a question, such as “How do I safely dry herbs?”'
+                    }
+                    required
+                  />
+
+                  <button
+                    type="submit"
+                    className="rounded-xl bg-black px-5 py-3 text-white disabled:opacity-50"
+                    disabled={loading}
+                  >
+                    {loading ? 'Searching...' : 'Send'}
+                  </button>
+                </div>
+              </form>
 
               <div className="flex-1 space-y-6 overflow-y-auto p-4 md:p-6">
                 {conversationTurns.length === 0 ? (
@@ -517,6 +579,26 @@ export default function ChatPage() {
                               Feedback saved: {turn.feedbackSubmitted}
                             </p>
                           )}
+                          {index === conversationTurns.length - 1 && (
+  <div className="mt-4 border-t pt-4">
+    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+      Suggested follow-ups
+    </p>
+
+    <div className="flex flex-wrap gap-2">
+      {getSuggestedFollowUps().map((suggestion) => (
+        <button
+          key={suggestion}
+          type="button"
+          onClick={() => setQuestion(suggestion)}
+          className="rounded-full border px-3 py-2 text-sm hover:bg-gray-50"
+        >
+          {suggestion}
+        </button>
+      ))}
+    </div>
+  </div>
+)}
                         </div>
                       </div>
                     </div>
@@ -533,36 +615,6 @@ export default function ChatPage() {
                   </div>
                 )}
               </div>
-
-              <form onSubmit={askQuestion} className="border-t p-4">
-                {message && (
-                  <div className="mb-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
-                    {message}
-                  </div>
-                )}
-
-                <div className="flex flex-col gap-3 md:flex-row">
-                  <textarea
-                    value={question}
-                    onChange={(e) => setQuestion(e.target.value)}
-                    className="min-h-[70px] flex-1 rounded-xl border p-3"
-                    placeholder={
-                      conversationTurns.length > 0
-                        ? 'Ask a follow-up question...'
-                        : 'Ask a question, such as “How do I safely dry herbs?”'
-                    }
-                    required
-                  />
-
-                  <button
-                    type="submit"
-                    className="rounded-xl bg-black px-5 py-3 text-white disabled:opacity-50"
-                    disabled={loading}
-                  >
-                    {loading ? 'Searching...' : 'Send'}
-                  </button>
-                </div>
-              </form>
             </section>
 
             <aside className="space-y-4">

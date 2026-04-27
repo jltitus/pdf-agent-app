@@ -26,15 +26,43 @@ type AccessRequest = {
   created_at: string
 }
 
+type FeedbackItem = {
+  id: string
+  feedback_type: string
+  question: string | null
+  answer: string | null
+  created_at: string
+}
+
+type NoAnswerItem = {
+  id: string
+  question: string
+  answer: string
+  category?: string | null
+  answer_mode?: string | null
+  evidence_strength?: {
+    label?: string
+    description?: string
+  } | null
+  created_at: string
+}
+
 export default function AdminPage() {
   const supabase = createClient()
-
+const [noAnswerItems, setNoAnswerItems] = useState<NoAnswerItem[]>([])
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
   const [message, setMessage] = useState('')
 
   const [documents, setDocuments] = useState<DocumentRow[]>([])
   const [accessRequests, setAccessRequests] = useState<AccessRequest[]>([])
+  const [feedback, setFeedback] = useState<FeedbackItem[]>([])
+
+  const [feedbackCounts, setFeedbackCounts] = useState({
+    helpful: 0,
+    not_helpful: 0,
+    missing_source: 0,
+  })
 
   const [title, setTitle] = useState('')
   const [category, setCategory] = useState('')
@@ -83,11 +111,25 @@ export default function AdminPage() {
     return data.session?.access_token
   }
 
-  async function loadData() {
-    await loadDocuments()
-    await loadAccessRequests()
-  }
+async function loadData() {
+  await loadDocuments()
+  await loadAccessRequests()
+  await loadFeedback()
+  await loadNoAnswerItems()
+}
+async function loadNoAnswerItems() {
+  const { data } = await supabase
+    .from('chat_history')
+    .select('id, question, answer, category, answer_mode, evidence_strength, created_at')
+    .order('created_at', { ascending: false })
+    .limit(50)
 
+  const items = ((data ?? []) as NoAnswerItem[]).filter(
+    (item) => item.evidence_strength?.label === 'Not found'
+  )
+
+  setNoAnswerItems(items)
+}
   async function loadDocuments() {
     const { data: docs, error: docsError } = await supabase
       .from('documents')
@@ -138,6 +180,34 @@ export default function AdminPage() {
     }
 
     setAccessRequests(result.requests ?? [])
+  }
+
+  async function loadFeedback() {
+    const { data: feedbackData, error } = await supabase
+      .from('chat_feedback')
+      .select('id, feedback_type, question, answer, created_at')
+      .order('created_at', { ascending: false })
+      .limit(20)
+
+    if (error || !feedbackData) {
+      setFeedback([])
+      setFeedbackCounts({
+        helpful: 0,
+        not_helpful: 0,
+        missing_source: 0,
+      })
+      return
+    }
+
+    const feedbackItems = feedbackData as FeedbackItem[]
+
+    setFeedback(feedbackItems)
+
+    setFeedbackCounts({
+      helpful: feedbackItems.filter((item) => item.feedback_type === 'helpful').length,
+      not_helpful: feedbackItems.filter((item) => item.feedback_type === 'not_helpful').length,
+      missing_source: feedbackItems.filter((item) => item.feedback_type === 'missing_source').length,
+    })
   }
 
   async function handleUpload(e: React.FormEvent<HTMLFormElement>) {
@@ -454,7 +524,7 @@ export default function AdminPage() {
           <div>
             <h1 className="text-3xl font-bold">Admin: Manage PDF Agent</h1>
             <p className="text-gray-600">
-              Upload, process, archive, delete, and approve or decline access requests.
+              Upload, process, archive, delete, approve or decline access requests, and review tester feedback.
             </p>
           </div>
 
@@ -565,6 +635,92 @@ export default function AdminPage() {
             )}
           </section>
 
+          <section className="rounded-2xl border p-6 space-y-4">
+            <div>
+              <h2 className="text-2xl font-bold">Feedback Dashboard</h2>
+              <p className="text-sm text-gray-600">
+                Review tester feedback to identify helpful answers, weak answers, and source issues.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="rounded-2xl border p-4">
+                <p className="text-sm text-gray-600">Helpful</p>
+                <p className="text-2xl font-bold">{feedbackCounts.helpful}</p>
+              </div>
+
+              <div className="rounded-2xl border p-4">
+                <p className="text-sm text-gray-600">Not helpful</p>
+                <p className="text-2xl font-bold">{feedbackCounts.not_helpful}</p>
+              </div>
+
+              <div className="rounded-2xl border p-4">
+                <p className="text-sm text-gray-600">Missing source</p>
+                <p className="text-2xl font-bold">{feedbackCounts.missing_source}</p>
+              </div>
+            </div>
+
+            {feedback.length === 0 ? (
+              <p className="text-sm text-gray-600">No feedback submitted yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {feedback.map((item) => (
+                  <div key={item.id} className="rounded-lg border p-4">
+                    <p className="text-sm font-semibold uppercase">
+                      {item.feedback_type.replaceAll('_', ' ')}
+                    </p>
+
+                    <p className="mt-2 text-sm">
+                      <strong>Question:</strong> {item.question || 'No question saved'}
+                    </p>
+
+                    <p className="mt-1 line-clamp-2 text-sm text-gray-600">
+                      <strong>Answer:</strong> {item.answer || 'No answer saved'}
+                    </p>
+
+                    <p className="mt-2 text-xs text-gray-500">
+                      {new Date(item.created_at).toLocaleString()}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+<section className="rounded-2xl border p-6 space-y-4">
+  <div>
+    <h2 className="text-2xl font-bold">No Answer / Not Found Questions</h2>
+    <p className="text-sm text-gray-600">
+      These are questions where the agent could not find supported content in the selected publications.
+    </p>
+  </div>
+
+  {noAnswerItems.length === 0 ? (
+    <p className="text-sm text-gray-600">No not-found questions yet.</p>
+  ) : (
+    <div className="space-y-3">
+      {noAnswerItems.map((item) => (
+        <div key={item.id} className="rounded-lg border p-4">
+          <p className="text-sm font-semibold">
+            {item.question}
+          </p>
+
+          <p className="mt-1 text-sm text-gray-600">
+            Mode: {item.answer_mode || 'general'} 
+            {item.category ? ` • Category: ${item.category}` : ''}
+          </p>
+
+          <p className="mt-2 line-clamp-3 text-sm text-gray-600">
+            {item.answer}
+          </p>
+
+          <p className="mt-2 text-xs text-gray-500">
+            {new Date(item.created_at).toLocaleString()}
+          </p>
+        </div>
+      ))}
+    </div>
+  )}
+</section>
           <form onSubmit={handleUpload} className="rounded-2xl border p-6 space-y-4">
             <div>
               <h2 className="text-xl font-bold mb-1">Upload a PDF</h2>

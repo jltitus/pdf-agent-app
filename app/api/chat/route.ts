@@ -22,13 +22,13 @@ function getSearchResultText(result: any): string {
 
 function getModeInstructions(answerMode: string) {
   if (answerMode === 'recipe') {
-    return `
+return `
 Answer mode: Find a recipe.
 
 Use this exact structure:
-Recipe
+Recipe Found
 - Name:
-- What the publication says:
+- Publication guidance:
 
 Ingredients
 - Only list ingredients explicitly found in the documents.
@@ -36,15 +36,21 @@ Ingredients
 Steps
 1. Only include steps found in the documents.
 
-Processing / Storage Notes
-- Include time, temperature, storage, or preservation notes only if stated.
+Processing or Storage Notes
+- Include time, temperature, pressure, storage, or preservation notes only if stated in the publications.
 
-Important Safety Notes
-- Include safety warnings if present.
+Safety Notes
+- Include any safety warnings, required processing methods, or caution statements.
+
+What’s Not Clear
+- List missing details such as yield, jar size, processing time, altitude adjustment, storage time, or ingredients if not stated.
+
+Bottom Line
+- End with one practical takeaway.
 
 Rules:
-- Do not invent ingredients, processing times, temperatures, yields, substitutions, or storage instructions.
-- If no recipe exists, say: "I can't find a recipe for that in the provided documents."
+- Do not invent ingredients, processing times, temperatures, yields, substitutions, storage instructions, or safety guidance.
+- If no recipe exists, say: "I couldn’t find a supported recipe in the selected publications."
 `
   }
 
@@ -54,62 +60,73 @@ Answer mode: Compare documents.
 
 Use this exact structure:
 Comparison Summary
-- Short summary.
+- Briefly state what the publications agree on or how they differ.
 
 Similarities
-- List agreements.
+- List points that are consistent across the publications.
 
 Differences
-- List differences.
+- List differences in guidance, scope, method, timing, temperature, storage, or safety cautions.
 
 Conflicts or Gaps
-- Note contradictions or missing information.
+- Note contradictions, missing details, or areas where the publications do not fully answer the question.
 
 Bottom Line
-- Conclusion based only on documents.
+- End with one practical takeaway based only on the publications.
 `
   }
 
   if (answerMode === 'safety') {
-    return `
+  return `
 Answer mode: Safety guidance.
 
 Use this exact structure:
 Safety Guidance
-- Most important point first.
+- State the most important safety guidance first.
 
 Key Precautions
-- Supported precautions.
+- List supported precautions from the publications.
 
 What Not To Do
-- Unsafe practices if stated.
+- List unsafe practices only if they are stated or clearly warned against in the publications.
 
-When More Info Is Needed
-- What is unclear.
+When More Information Is Needed
+- Explain what is unclear, missing, or requires checking another approved source.
 
 Bottom Line
-- Conservative summary.
+- End with the most conservative practical takeaway.
+
+Rules:
+- Do not soften safety warnings.
+- Do not add safety guidance that is not supported by the selected publications.
 `
   }
 
-  return `
+return `
 Answer mode: General question.
 
 Use this exact structure:
-Direct Answer
-- 1–3 sentence answer.
+Short Answer
+- Give a clear 1–3 sentence answer.
 
-Key Takeaways
-- Bullet points.
+Key Points
+- List the most important points as short bullets.
+- Keep each bullet focused and practical.
 
-Details from the Publications
-- Supporting details.
+Details
+- Explain what the publications say in plain language.
+- Include important conditions, limitations, or context.
 
-Limitations / What Is Not Clear
-- Missing information.
+Safety Notes
+- Include this section only when the topic involves food safety, canning, freezing, drying, pickling, smoking, storage, or recipes.
+- If there are no safety notes in the publications, say: "No specific safety notes were found in the selected publications."
+
+What’s Not Clear
+- Include this section only when the publications do not fully answer the question.
+- Be specific about what is missing or unclear.
 
 Bottom Line
-- Short summary.
+- End with one practical takeaway.
 `
 }
 
@@ -458,11 +475,21 @@ Evidence rules:
       sources.length === 0 || citedFileIds.size === 0 || modelSaysNotFound
 
     if (noEvidence) {
-      const fallbackAnswer = "I can't find that in the provided documents."
+      const fallbackAnswer = `I couldn’t find a supported answer in the selected publications.
+
+Try:
+- Rephrasing your question
+- Selecting “All categories”
+- Selecting “All publications”
+- Asking about a specific publication title
+- Checking whether the publication has been uploaded and processed
+
+Because this app is source-grounded, it will only answer when it can find support in the uploaded documents.`
 
       const evidenceStrength = {
         label: 'Not found',
-        description: 'No supporting source evidence was found.',
+        description:
+          'No relevant supporting content was found in the selected publications.',
       }
 
       const { data: historyRow } = await supabaseAdmin
