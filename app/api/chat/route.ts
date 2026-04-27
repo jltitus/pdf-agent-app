@@ -22,7 +22,7 @@ function getSearchResultText(result: any): string {
 
 function getModeInstructions(answerMode: string) {
   if (answerMode === 'recipe') {
-return `
+    return `
 Answer mode: Find a recipe.
 
 Use this exact structure:
@@ -77,7 +77,7 @@ Bottom Line
   }
 
   if (answerMode === 'safety') {
-  return `
+    return `
 Answer mode: Safety guidance.
 
 Use this exact structure:
@@ -102,7 +102,7 @@ Rules:
 `
   }
 
-return `
+  return `
 Answer mode: General question.
 
 Use this exact structure:
@@ -167,6 +167,70 @@ function getEvidenceStrength(sources: any[]) {
   return {
     label: 'Not found',
     description: 'No supporting source evidence was found.',
+  }
+}
+
+async function generateSuggestedFollowUps({
+  openai,
+  question,
+  answer,
+  answerMode,
+}: {
+  openai: OpenAI
+  question: string
+  answer: string
+  answerMode: string
+}) {
+  try {
+    const response = await openai.responses.create({
+      model: 'gpt-4.1-mini',
+      instructions: `
+You create short suggested follow-up questions for a document-grounded food preservation assistant.
+
+Rules:
+- Return exactly 3 follow-up questions.
+- Each question must be short and practical.
+- Do not include numbering.
+- Do not include explanations.
+- Do not ask about anything unrelated to the user's original question or the answer.
+- Prefer questions about storage, safety, processing, ingredients, risks, limits, or what not to do.
+- If the answer says no supported answer was found, suggest ways to refine the search.
+`,
+      input: `
+Original question:
+${question}
+
+Answer mode:
+${answerMode}
+
+Answer:
+${answer}
+
+Return only 3 follow-up questions, one per line.
+`,
+    })
+
+    const text = response.output_text ?? ''
+
+    const suggestions = text
+      .split('\n')
+      .map((line) => line.replace(/^[-*\d.)\s]+/, '').trim())
+      .filter(Boolean)
+      .slice(0, 3)
+
+    return suggestions.length > 0
+      ? suggestions
+      : [
+          'What does the publication say about storage?',
+          'Are there any safety notes?',
+          'What should I avoid doing?',
+        ]
+  } catch {
+    return [
+      'What does the publication say about storage?',
+      'Are there any safety notes?',
+      'What should I avoid doing?',
+    ]
   }
 }
 
@@ -244,6 +308,11 @@ export async function POST(request: Request) {
           description: 'No active documents were available to search.',
         },
         chatHistoryId: null,
+        suggestedFollowUps: [
+          'Can you search all publications?',
+          'What publication should I select?',
+          'How should I rephrase this question?',
+        ],
       })
     }
 
@@ -288,6 +357,11 @@ export async function POST(request: Request) {
           description: 'No processed pages were available to search.',
         },
         chatHistoryId: null,
+        suggestedFollowUps: [
+          'Can you search all publications?',
+          'What publication should I select?',
+          'How should I rephrase this question?',
+        ],
       })
     }
 
@@ -511,6 +585,11 @@ Because this app is source-grounded, it will only answer when it can find suppor
         sources: [],
         evidenceStrength,
         chatHistoryId: historyRow?.id ?? null,
+        suggestedFollowUps: [
+          'Can you search all publications?',
+          'What publication should I select?',
+          'How should I rephrase this question?',
+        ],
       })
     }
 
@@ -530,11 +609,19 @@ Because this app is source-grounded, it will only answer when it can find suppor
       .select('id')
       .single()
 
+    const suggestedFollowUps = await generateSuggestedFollowUps({
+      openai,
+      question,
+      answer: answerText,
+      answerMode,
+    })
+
     return NextResponse.json({
       answer: answerText,
       sources,
       evidenceStrength,
       chatHistoryId: historyRow?.id ?? null,
+      suggestedFollowUps,
     })
   } catch (error: any) {
     console.error('CHAT ERROR:', error)

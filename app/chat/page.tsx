@@ -40,6 +40,7 @@ type ConversationTurn = {
   evidenceStrength?: EvidenceStrength | null
   chatHistoryId?: string | null
   feedbackSubmitted?: string | null
+  suggestedFollowUps?: string[]
 }
 
 export default function ChatPage() {
@@ -167,13 +168,14 @@ export default function ChatPage() {
         [
           ...prev,
           {
-            question: currentQuestion,
-            answer: result.answer,
-            sources: result.sources ?? [],
-            evidenceStrength: result.evidenceStrength ?? null,
-            chatHistoryId: result.chatHistoryId ?? null,
-            feedbackSubmitted: null,
-          },
+  question: currentQuestion,
+  answer: result.answer,
+  sources: result.sources ?? [],
+  evidenceStrength: result.evidenceStrength ?? null,
+chatHistoryId: result.chatHistoryId ?? null,
+feedbackSubmitted: null,
+suggestedFollowUps: result.suggestedFollowUps ?? [],
+},
         ].slice(-6)
       )
 
@@ -579,26 +581,28 @@ return (
                               Feedback saved: {turn.feedbackSubmitted}
                             </p>
                           )}
-                          {index === conversationTurns.length - 1 && (
-  <div className="mt-4 border-t pt-4">
-    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
-      Suggested follow-ups
-    </p>
+                         {index === conversationTurns.length - 1 &&
+  turn.suggestedFollowUps &&
+  turn.suggestedFollowUps.length > 0 && (
+    <div className="mt-4 border-t pt-4">
+      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-gray-500">
+        Suggested follow-ups
+      </p>
 
-    <div className="flex flex-wrap gap-2">
-      {getSuggestedFollowUps().map((suggestion) => (
-        <button
-          key={suggestion}
-          type="button"
-          onClick={() => setQuestion(suggestion)}
-          className="rounded-full border px-3 py-2 text-sm hover:bg-gray-50"
-        >
-          {suggestion}
-        </button>
-      ))}
+      <div className="flex flex-wrap gap-2">
+        {turn.suggestedFollowUps.map((suggestion) => (
+          <button
+            key={suggestion}
+            type="button"
+            onClick={() => setQuestion(suggestion)}
+            className="rounded-full border px-3 py-2 text-sm hover:bg-gray-50"
+          >
+            {suggestion}
+          </button>
+        ))}
+      </div>
     </div>
-  </div>
-)}
+  )}
                         </div>
                       </div>
                     </div>
