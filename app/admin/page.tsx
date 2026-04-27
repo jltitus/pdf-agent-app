@@ -57,12 +57,15 @@ const [noAnswerItems, setNoAnswerItems] = useState<NoAnswerItem[]>([])
   const [documents, setDocuments] = useState<DocumentRow[]>([])
   const [accessRequests, setAccessRequests] = useState<AccessRequest[]>([])
   const [feedback, setFeedback] = useState<FeedbackItem[]>([])
+const [feedbackFilter, setFeedbackFilter] = useState<
+  'all' | 'helpful' | 'not_helpful' | 'missing_source'
+>('all')
 
-  const [feedbackCounts, setFeedbackCounts] = useState({
-    helpful: 0,
-    not_helpful: 0,
-    missing_source: 0,
-  })
+const [feedbackCounts, setFeedbackCounts] = useState({
+  helpful: 0,
+  not_helpful: 0,
+  missing_source: 0,
+})
 
   const [title, setTitle] = useState('')
   const [category, setCategory] = useState('')
@@ -514,7 +517,41 @@ async function loadNoAnswerItems() {
   const archivedDocs = documents.filter((doc) => !doc.is_active).length
   const totalPages = documents.reduce((sum, doc) => sum + (doc.page_count ?? 0), 0)
   const pendingRequests = accessRequests.filter((request) => request.status === 'pending')
+const filteredFeedback =
+  feedbackFilter === 'all'
+    ? feedback
+    : feedback.filter((item) => item.feedback_type === feedbackFilter)
 
+function exportFeedbackCSV() {
+  if (feedback.length === 0) return
+
+  const headers = ['Question', 'Answer', 'Feedback Type', 'Date']
+
+  const rows = feedback.map((item) => [
+    item.question ?? '',
+    item.answer ?? '',
+    item.feedback_type,
+    new Date(item.created_at).toLocaleString(),
+  ])
+
+  const csvContent = [headers, ...rows]
+    .map((row) =>
+      row
+        .map((cell) => `"${String(cell).replace(/"/g, '""')}"`)
+        .join(',')
+    )
+    .join('\n')
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+
+  const link = document.createElement('a')
+  link.href = url
+  link.setAttribute('download', 'feedback.csv')
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+}
   return (
     <>
       <HeaderBar />
@@ -635,13 +672,40 @@ async function loadNoAnswerItems() {
             )}
           </section>
 
-          <section className="rounded-2xl border p-6 space-y-4">
-            <div>
-              <h2 className="text-2xl font-bold">Feedback Dashboard</h2>
-              <p className="text-sm text-gray-600">
-                Review tester feedback to identify helpful answers, weak answers, and source issues.
-              </p>
-            </div>
+<section className="rounded-2xl border p-6 space-y-4">
+  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+    <div>
+      <h2 className="text-2xl font-bold">Feedback Dashboard</h2>
+      <p className="text-sm text-gray-600">
+        Review tester feedback to identify helpful answers, weak answers, and source issues.
+      </p>
+    </div>
+
+    <div className="flex gap-2 flex-wrap">
+      <select
+        value={feedbackFilter}
+        onChange={(e) =>
+          setFeedbackFilter(
+            e.target.value as 'all' | 'helpful' | 'not_helpful' | 'missing_source'
+          )
+        }
+        className="rounded-lg border px-3 py-2 text-sm"
+      >
+        <option value="all">All</option>
+        <option value="helpful">Helpful</option>
+        <option value="not_helpful">Not helpful</option>
+        <option value="missing_source">Missing source</option>
+      </select>
+
+      <button
+        type="button"
+        onClick={exportFeedbackCSV}
+        className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50"
+      >
+        Export CSV
+      </button>
+    </div>
+  </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div className="rounded-2xl border p-4">
@@ -660,11 +724,11 @@ async function loadNoAnswerItems() {
               </div>
             </div>
 
-            {feedback.length === 0 ? (
+            {filteredFeedback.length === 0 ? (
               <p className="text-sm text-gray-600">No feedback submitted yet.</p>
             ) : (
               <div className="space-y-3">
-                {feedback.map((item) => (
+                {filteredFeedback.map((item) => (
                   <div key={item.id} className="rounded-lg border p-4">
                     <p className="text-sm font-semibold uppercase">
                       {item.feedback_type.replaceAll('_', ' ')}
