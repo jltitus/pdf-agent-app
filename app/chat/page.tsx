@@ -346,7 +346,44 @@ async function tryBroaderSearch(index: number) {
       )
     )
   }
+async function saveTrustedFromChat(index: number) {
+  const turn = conversationTurns[index]
+  if (!turn) return
 
+  setMessage('Saving trusted answer...')
+
+  const { data } = await supabase.auth.getSession()
+  const token = data.session?.access_token
+
+  if (!token) {
+    setMessage('You must be signed in.')
+    return
+  }
+
+  const res = await fetch('/api/trusted-answers', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      question: turn.question,
+      answer: turn.answer,
+      category,
+      answerMode,
+      sources: turn.sources ?? [],
+    }),
+  })
+
+  const result = await res.json()
+
+  if (!res.ok) {
+    setMessage(result.error ?? 'Trusted answer could not be saved.')
+    return
+  }
+
+  setMessage('Trusted answer saved.')
+}
   function startNewChat() {
     setQuestion('')
     setConversationTurns([])
@@ -654,6 +691,14 @@ return (
                             >
                               Regenerate
                             </button>
+                            <button
+  type="button"
+  onClick={() => saveTrustedFromChat(index)}
+  disabled={loading}
+  className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50 disabled:opacity-50"
+>
+  Save as trusted
+</button>
                            {(turn.evidenceStrength?.label === 'Not found' ||
   !turn.sources ||
   turn.sources.length === 0 ||
