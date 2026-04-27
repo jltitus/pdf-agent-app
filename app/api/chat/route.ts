@@ -169,6 +169,13 @@ function getEvidenceStrength(sources: any[]) {
     description: 'No supporting source evidence was found.',
   }
 }
+function normalizeQuestion(text: string) {
+  return text
+    .toLowerCase()
+    .replace(/[^\w\s]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
 
 async function generateSuggestedFollowUps({
   openai,
@@ -297,7 +304,69 @@ export async function POST(request: Request) {
     if (docsError) {
       return NextResponse.json({ error: docsError.message }, { status: 500 })
     }
+const normalizedUserQuestion = normalizeQuestion(question)
 
+const { data: trustedAnswers } = await supabaseAdmin
+  .from('trusted_answers')
+  .select('id, question, answer, category, answer_mode, sources')
+  .eq('is_active', true)
+
+const trustedMatch = (trustedAnswers ?? []).find((trusted) => {
+  const trustedQuestion = normalizeQuestion(trusted.question)
+
+  const categoryMatches =
+    !trusted.category ||
+    category === 'all' ||
+    trusted.category === category
+
+  const modeMatches =
+    !trusted.answer_mode ||
+    trusted.answer_mode === 'general' ||
+    trusted.answer_mode === answerMode
+
+  return (
+    trustedQuestion === normalizedUserQuestion &&
+    categoryMatches &&
+    modeMatches
+  )
+})
+
+if (trustedMatch) {
+  const evidenceStrength = {
+    label: 'Strong',
+    description: 'This is a trusted answer saved by an administrator.',
+  }
+
+  const suggestedFollowUps = await generateSuggestedFollowUps({
+    openai: new OpenAI({ apiKey: process.env.OPENAI_API_KEY! }),
+    question,
+    answer: trustedMatch.answer,
+    answerMode,
+  })
+
+  const { data: historyRow } = await supabaseAdmin
+    .from('chat_history')
+    .insert({
+      user_id: user.id,
+      question,
+      answer: trustedMatch.answer,
+      category: category ?? null,
+      answer_mode: answerMode ?? 'general',
+      sources: trustedMatch.sources ?? [],
+      evidence_strength: evidenceStrength,
+    })
+    .select('id')
+    .single()
+
+  return NextResponse.json({
+    answer: trustedMatch.answer,
+    sources: trustedMatch.sources ?? [],
+    evidenceStrength,
+    chatHistoryId: historyRow?.id ?? null,
+    suggestedFollowUps,
+    trustedAnswer: true,
+  })
+}
     if (!activeDocs || activeDocs.length === 0) {
       return NextResponse.json({
         answer:
