@@ -73,51 +73,65 @@ type UserAnalytics = {
 }
 
 export default function AdminPage() {
-  const [userAnalytics, setUserAnalytics] = useState<UserAnalytics>({
-  totalQuestions: 0,
-  uniqueUsers: 0,
-  modeCounts: {},
-  categoryCounts: {},
-  recentActivity: [],
-})
   const supabase = createClient()
-const [noAnswerItems, setNoAnswerItems] = useState<NoAnswerItem[]>([])
-const [contentGaps, setContentGaps] = useState<
-  {
-    question: string
-    count: number
-    category?: string | null
-    answer_mode?: string | null
-  }[]
->([])
+
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
   const [message, setMessage] = useState('')
 
   const [documents, setDocuments] = useState<DocumentRow[]>([])
+  const [documentSearch, setDocumentSearch] = useState('')
+  const [documentStatusFilter, setDocumentStatusFilter] = useState<
+    'all' | 'active' | 'archived' | 'processed' | 'not_processed'
+  >('all')
+
+  const [documentHealthView, setDocumentHealthView] = useState<
+    'recent' | 'not_processed' | 'zero_pages'
+  >('recent')
+
   const [documentHealth, setDocumentHealth] = useState({
-  total: 0,
-  active: 0,
-  archived: 0,
-  notProcessed: 0,
-  zeroPages: 0,
-  recent: [] as DocumentRow[],
-})
+    total: 0,
+    active: 0,
+    archived: 0,
+    notProcessed: 0,
+    zeroPages: 0,
+    recent: [] as DocumentRow[],
+  })
+
   const [accessRequests, setAccessRequests] = useState<AccessRequest[]>([])
   const [feedback, setFeedback] = useState<FeedbackItem[]>([])
-  const [trustedAnswers, setTrustedAnswers] = useState<TrustedAnswer[]>([])
-const [editingTrustedId, setEditingTrustedId] = useState<string | null>(null)
-const [trustedEditQuestion, setTrustedEditQuestion] = useState('')
-const [trustedEditAnswer, setTrustedEditAnswer] = useState('')
-const [feedbackFilter, setFeedbackFilter] = useState<
-  'all' | 'helpful' | 'not_helpful' | 'missing_source'
->('all')
+  const [feedbackFilter, setFeedbackFilter] = useState<
+    'all' | 'helpful' | 'not_helpful' | 'missing_source'
+  >('all')
 
-const [feedbackCounts, setFeedbackCounts] = useState({
-  helpful: 0,
-  not_helpful: 0,
-  missing_source: 0,
-})
+  const [feedbackCounts, setFeedbackCounts] = useState({
+    helpful: 0,
+    not_helpful: 0,
+    missing_source: 0,
+  })
+
+  const [noAnswerItems, setNoAnswerItems] = useState<NoAnswerItem[]>([])
+  const [contentGaps, setContentGaps] = useState<
+    {
+      question: string
+      count: number
+      category?: string | null
+      answer_mode?: string | null
+    }[]
+  >([])
+
+  const [trustedAnswers, setTrustedAnswers] = useState<TrustedAnswer[]>([])
+  const [editingTrustedId, setEditingTrustedId] = useState<string | null>(null)
+  const [trustedEditQuestion, setTrustedEditQuestion] = useState('')
+  const [trustedEditAnswer, setTrustedEditAnswer] = useState('')
+
+  const [userAnalytics, setUserAnalytics] = useState<UserAnalytics>({
+    totalQuestions: 0,
+    uniqueUsers: 0,
+    modeCounts: {},
+    categoryCounts: {},
+    recentActivity: [],
+  })
 
   const [title, setTitle] = useState('')
   const [category, setCategory] = useState('')
@@ -166,50 +180,15 @@ const [feedbackCounts, setFeedbackCounts] = useState({
     return data.session?.access_token
   }
 
-async function loadData() {
-  await loadDocuments()
-  await loadAccessRequests()
-  await loadFeedback()
-  await loadNoAnswerItems()
-  await loadUserAnalytics()
-  await loadTrustedAnswers()
-}
-async function loadNoAnswerItems() {
-  const { data } = await supabase
-    .from('chat_history')
-    .select('id, question, answer, category, answer_mode, evidence_strength, created_at')
-    .order('created_at', { ascending: false })
-    .limit(50)
-
-  const items = ((data ?? []) as NoAnswerItem[]).filter(
-    (item) => item.evidence_strength?.label === 'Not found'
-
-  
-  )
-const grouped: Record<string, any> = {}
-
-items.forEach((item) => {
-  const key = item.question.trim().toLowerCase()
-
-  if (!grouped[key]) {
-    grouped[key] = {
-      question: item.question,
-      count: 0,
-      category: item.category,
-      answer_mode: item.answer_mode,
-    }
+  async function loadData() {
+    await loadDocuments()
+    await loadAccessRequests()
+    await loadFeedback()
+    await loadNoAnswerItems()
+    await loadUserAnalytics()
+    await loadTrustedAnswers()
   }
 
-  grouped[key].count += 1
-})
-
-const sorted = Object.values(grouped)
-  .sort((a, b) => b.count - a.count)
-  .slice(0, 10)
-
-setContentGaps(sorted)
-  setNoAnswerItems(items)
-}
   async function loadDocuments() {
     const { data: docs, error: docsError } = await supabase
       .from('documents')
@@ -218,6 +197,14 @@ setContentGaps(sorted)
 
     if (docsError || !docs) {
       setDocuments([])
+      setDocumentHealth({
+        total: 0,
+        active: 0,
+        archived: 0,
+        notProcessed: 0,
+        zeroPages: 0,
+        recent: [],
+      })
       return
     }
 
@@ -238,35 +225,35 @@ setContentGaps(sorted)
     }))
 
     setDocuments(enrichedDocs)
-if (enrichedDocs.length > 0) {
-  const total = enrichedDocs.length
-  const active = enrichedDocs.filter((d) => d.is_active).length
-  const archived = enrichedDocs.filter((d) => !d.is_active).length
-  const notProcessed = enrichedDocs.filter((d) => !d.page_count || d.page_count === 0).length
-  const zeroPages = enrichedDocs.filter((d) => !d.page_count || d.page_count === 0).length
 
-  const recent = [...enrichedDocs]
-    .sort(
-      (a, b) =>
-        new Date(b.uploaded_at ?? 0).getTime() -
-        new Date(a.uploaded_at ?? 0).getTime()
-    )
-    .slice(0, 5)
+    const total = enrichedDocs.length
+    const active = enrichedDocs.filter((d) => d.is_active).length
+    const archived = enrichedDocs.filter((d) => !d.is_active).length
+    const notProcessed = enrichedDocs.filter(
+      (d) => !d.page_count || d.page_count === 0
+    ).length
+    const zeroPages = notProcessed
 
-  setDocumentHealth({
-    total,
-    active,
-    archived,
-    notProcessed,
-    zeroPages,
-    recent,
-  })
-}
+    const recent = [...enrichedDocs]
+      .sort(
+        (a, b) =>
+          new Date(b.uploaded_at ?? 0).getTime() -
+          new Date(a.uploaded_at ?? 0).getTime()
+      )
+      .slice(0, 5)
+
+    setDocumentHealth({
+      total,
+      active,
+      archived,
+      notProcessed,
+      zeroPages,
+      recent,
+    })
   }
 
   async function loadAccessRequests() {
     const token = await getToken()
-
     if (!token) return
 
     const response = await fetch('/api/access-requests', {
@@ -291,7 +278,7 @@ if (enrichedDocs.length > 0) {
       .from('chat_feedback')
       .select('id, feedback_type, question, answer, created_at')
       .order('created_at', { ascending: false })
-      .limit(20)
+      .limit(50)
 
     if (error || !feedbackData) {
       setFeedback([])
@@ -302,19 +289,7 @@ if (enrichedDocs.length > 0) {
       })
       return
     }
-async function loadTrustedAnswers() {
-  const { data, error } = await supabase
-    .from('trusted_answers')
-    .select('id, question, answer, category, answer_mode, is_active, created_at')
-    .order('created_at', { ascending: false })
 
-  if (error || !data) {
-    setTrustedAnswers([])
-    return
-  }
-
-  setTrustedAnswers(data as TrustedAnswer[])
-}
     const feedbackItems = feedbackData as FeedbackItem[]
 
     setFeedback(feedbackItems)
@@ -326,49 +301,86 @@ async function loadTrustedAnswers() {
     })
   }
 
-  async function loadTrustedAnswers() {
-  const { data, error } = await supabase
-    .from('trusted_answers')
-    .select('id, question, answer, category, answer_mode, is_active, created_at')
-    .order('created_at', { ascending: false })
+  async function loadNoAnswerItems() {
+    const { data } = await supabase
+      .from('chat_history')
+      .select('id, question, answer, category, answer_mode, evidence_strength, created_at')
+      .order('created_at', { ascending: false })
+      .limit(100)
 
-  if (error || !data) {
-    setTrustedAnswers([])
-    return
+    const items = ((data ?? []) as NoAnswerItem[]).filter(
+      (item) => item.evidence_strength?.label === 'Not found'
+    )
+
+    const grouped: Record<string, any> = {}
+
+    items.forEach((item) => {
+      const key = item.question.trim().toLowerCase()
+
+      if (!grouped[key]) {
+        grouped[key] = {
+          question: item.question,
+          count: 0,
+          category: item.category,
+          answer_mode: item.answer_mode,
+        }
+      }
+
+      grouped[key].count += 1
+    })
+
+    const sorted = Object.values(grouped)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10)
+
+    setContentGaps(sorted)
+    setNoAnswerItems(items)
   }
 
-  setTrustedAnswers(data as TrustedAnswer[])
-}
-async function loadUserAnalytics() {
-  const { data } = await supabase
-    .from('chat_history')
-    .select('id, user_id, question, answer_mode, category, created_at')
-    .order('created_at', { ascending: false })
-    .limit(200)
+  async function loadTrustedAnswers() {
+    const { data, error } = await supabase
+      .from('trusted_answers')
+      .select('id, question, answer, category, answer_mode, is_active, created_at')
+      .order('created_at', { ascending: false })
 
-  const rows = data ?? []
+    if (error || !data) {
+      setTrustedAnswers([])
+      return
+    }
 
-  const uniqueUserIds = new Set(rows.map((row) => row.user_id).filter(Boolean))
+    setTrustedAnswers(data as TrustedAnswer[])
+  }
 
-  const modeCounts: Record<string, number> = {}
-  const categoryCounts: Record<string, number> = {}
+  async function loadUserAnalytics() {
+    const { data } = await supabase
+      .from('chat_history')
+      .select('id, user_id, question, answer_mode, category, created_at')
+      .order('created_at', { ascending: false })
+      .limit(200)
 
-  rows.forEach((row) => {
-    const mode = row.answer_mode || 'general'
-    const cat = row.category || 'Uncategorized'
+    const rows = data ?? []
+    const uniqueUserIds = new Set(rows.map((row) => row.user_id).filter(Boolean))
 
-    modeCounts[mode] = (modeCounts[mode] ?? 0) + 1
-    categoryCounts[cat] = (categoryCounts[cat] ?? 0) + 1
-  })
+    const modeCounts: Record<string, number> = {}
+    const categoryCounts: Record<string, number> = {}
 
-  setUserAnalytics({
-    totalQuestions: rows.length,
-    uniqueUsers: uniqueUserIds.size,
-    modeCounts,
-    categoryCounts,
-    recentActivity: rows.slice(0, 10),
-  })
-}
+    rows.forEach((row) => {
+      const mode = row.answer_mode || 'general'
+      const cat = row.category || 'Uncategorized'
+
+      modeCounts[mode] = (modeCounts[mode] ?? 0) + 1
+      categoryCounts[cat] = (categoryCounts[cat] ?? 0) + 1
+    })
+
+    setUserAnalytics({
+      totalQuestions: rows.length,
+      uniqueUsers: uniqueUserIds.size,
+      modeCounts,
+      categoryCounts,
+      recentActivity: rows.slice(0, 10),
+    })
+  }
+
   async function handleUpload(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setMessage('Uploading...')
@@ -646,125 +658,209 @@ async function loadUserAnalytics() {
       setDecliningId(null)
     }
   }
-async function saveTrustedAnswer(item: NoAnswerItem) {
-  setMessage('Saving trusted answer...')
 
-  try {
-    const token = await getToken()
+  async function saveTrustedAnswer(item: NoAnswerItem) {
+    setMessage('Saving trusted answer...')
 
-    if (!token) {
-      setMessage('You must be signed in.')
+    try {
+      const token = await getToken()
+
+      if (!token) {
+        setMessage('You must be signed in.')
+        return
+      }
+
+      const res = await fetch('/api/trusted-answers', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          question: item.question,
+          answer: item.answer,
+          category: item.category,
+          answerMode: item.answer_mode,
+          sources: [],
+        }),
+      })
+
+      const result = await res.json()
+
+      if (!res.ok) {
+        setMessage(result.error ?? 'Failed to save trusted answer.')
+        return
+      }
+
+      setMessage('Trusted answer saved.')
+      await loadTrustedAnswers()
+    } catch (error: any) {
+      setMessage(error.message ?? 'Failed to save trusted answer.')
+    }
+  }
+
+  function startEditTrustedAnswer(item: TrustedAnswer) {
+    setEditingTrustedId(item.id)
+    setTrustedEditQuestion(item.question)
+    setTrustedEditAnswer(item.answer)
+  }
+
+  function cancelEditTrustedAnswer() {
+    setEditingTrustedId(null)
+    setTrustedEditQuestion('')
+    setTrustedEditAnswer('')
+  }
+
+  async function updateTrustedAnswer(item: TrustedAnswer) {
+    setMessage('Updating trusted answer...')
+
+    const { error } = await supabase
+      .from('trusted_answers')
+      .update({
+        question: trustedEditQuestion,
+        answer: trustedEditAnswer,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', item.id)
+
+    if (error) {
+      setMessage(`Update failed: ${error.message}`)
       return
     }
 
-    const res = await fetch('/api/trusted-answers', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        question: item.question,
-        answer: item.answer,
-        category: item.category,
-        answerMode: item.answer_mode,
-        sources: [],
-      }),
-    })
+    setMessage('Trusted answer updated.')
+    cancelEditTrustedAnswer()
+    await loadTrustedAnswers()
+  }
 
-    const result = await res.json()
+  async function toggleTrustedAnswer(item: TrustedAnswer) {
+    setMessage(item.is_active ? 'Deactivating trusted answer...' : 'Activating trusted answer...')
 
-    if (!res.ok) {
-      setMessage(result.error ?? 'Failed to save trusted answer.')
+    const { error } = await supabase
+      .from('trusted_answers')
+      .update({
+        is_active: !item.is_active,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', item.id)
+
+    if (error) {
+      setMessage(`Status update failed: ${error.message}`)
       return
     }
 
-    setMessage('Trusted answer saved.')
-  } catch (error: any) {
-    setMessage(error.message ?? 'Failed to save trusted answer.')
-  }
-}
-function startEditTrustedAnswer(item: TrustedAnswer) {
-  setEditingTrustedId(item.id)
-  setTrustedEditQuestion(item.question)
-  setTrustedEditAnswer(item.answer)
-}
-
-function cancelEditTrustedAnswer() {
-  setEditingTrustedId(null)
-  setTrustedEditQuestion('')
-  setTrustedEditAnswer('')
-}
-
-async function updateTrustedAnswer(item: TrustedAnswer) {
-  setMessage('Updating trusted answer...')
-
-  const { error } = await supabase
-    .from('trusted_answers')
-    .update({
-      question: trustedEditQuestion,
-      answer: trustedEditAnswer,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', item.id)
-
-  if (error) {
-    setMessage(`Update failed: ${error.message}`)
-    return
+    setMessage(item.is_active ? 'Trusted answer deactivated.' : 'Trusted answer activated.')
+    await loadTrustedAnswers()
   }
 
-  setMessage('Trusted answer updated.')
-  cancelEditTrustedAnswer()
-  await loadTrustedAnswers()
-}
+  async function deleteTrustedAnswer(item: TrustedAnswer) {
+    const confirmed = window.confirm(
+      `Delete trusted answer for: "${item.question}"? This cannot be undone.`
+    )
 
-async function toggleTrustedAnswer(item: TrustedAnswer) {
-  setMessage(item.is_active ? 'Deactivating trusted answer...' : 'Activating trusted answer...')
+    if (!confirmed) return
 
-  const { error } = await supabase
-    .from('trusted_answers')
-    .update({
-      is_active: !item.is_active,
-      updated_at: new Date().toISOString(),
-    })
-    .eq('id', item.id)
+    setMessage('Deleting trusted answer...')
 
-  if (error) {
-    setMessage(`Status update failed: ${error.message}`)
-    return
+    const { error } = await supabase
+      .from('trusted_answers')
+      .delete()
+      .eq('id', item.id)
+
+    if (error) {
+      setMessage(`Delete failed: ${error.message}`)
+      return
+    }
+
+    setMessage('Trusted answer deleted.')
+    await loadTrustedAnswers()
   }
 
-  setMessage(item.is_active ? 'Trusted answer deactivated.' : 'Trusted answer activated.')
-  await loadTrustedAnswers()
-}
+  const filteredFeedback =
+    feedbackFilter === 'all'
+      ? feedback
+      : feedback.filter((item) => item.feedback_type === feedbackFilter)
 
-async function deleteTrustedAnswer(item: TrustedAnswer) {
-  const confirmed = window.confirm(
-    `Delete trusted answer for: "${item.question}"? This cannot be undone.`
-  )
+  const pendingRequests = accessRequests.filter((request) => request.status === 'pending')
+  const totalPages = documents.reduce((sum, doc) => sum + (doc.page_count ?? 0), 0)
 
-  if (!confirmed) return
+  const filteredDocumentsForAdmin = documents.filter((doc) => {
+    const search = documentSearch.trim().toLowerCase()
+    const isProcessed = (doc.page_count ?? 0) > 0
 
-  setMessage('Deleting trusted answer...')
+    const matchesSearch =
+      !search ||
+      doc.title.toLowerCase().includes(search) ||
+      doc.filename.toLowerCase().includes(search) ||
+      (doc.category ?? '').toLowerCase().includes(search) ||
+      (doc.version ?? '').toLowerCase().includes(search)
 
-  const { error } = await supabase
-    .from('trusted_answers')
-    .delete()
-    .eq('id', item.id)
+    const matchesStatus =
+      documentStatusFilter === 'all' ||
+      (documentStatusFilter === 'active' && doc.is_active) ||
+      (documentStatusFilter === 'archived' && !doc.is_active) ||
+      (documentStatusFilter === 'processed' && isProcessed) ||
+      (documentStatusFilter === 'not_processed' && !isProcessed)
 
-  if (error) {
-    setMessage(`Delete failed: ${error.message}`)
-    return
+    return matchesSearch && matchesStatus
+  })
+
+  const documentHealthDocs = (() => {
+    const sorted = [...documents].sort(
+      (a, b) =>
+        new Date(b.uploaded_at ?? 0).getTime() -
+        new Date(a.uploaded_at ?? 0).getTime()
+    )
+
+    if (documentHealthView === 'not_processed') {
+      return sorted.filter((doc) => !doc.page_count || doc.page_count === 0)
+    }
+
+    if (documentHealthView === 'zero_pages') {
+      return sorted.filter((doc) => !doc.page_count || doc.page_count === 0)
+    }
+
+    return sorted.slice(0, 15)
+  })()
+
+  function exportFeedbackCSV() {
+    if (feedback.length === 0) return
+
+    const headers = ['Question', 'Answer', 'Feedback Type', 'Date']
+
+    const rows = feedback.map((item) => [
+      item.question ?? '',
+      item.answer ?? '',
+      item.feedback_type,
+      new Date(item.created_at).toLocaleString(),
+    ])
+
+    const csvContent = [headers, ...rows]
+      .map((row) =>
+        row
+          .map((cell) => `"${String(cell).replace(/"/g, '""')}"`)
+          .join(',')
+      )
+      .join('\n')
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', 'feedback.csv')
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
   }
 
-  setMessage('Trusted answer deleted.')
-  await loadTrustedAnswers()
-}
   if (loading) {
     return (
       <>
         <HeaderBar />
-        <main className="min-h-screen p-8">Loading...</main>
+        <main className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 p-8">
+          Loading...
+        </main>
       </>
     )
   }
@@ -773,7 +869,7 @@ async function deleteTrustedAnswer(item: TrustedAnswer) {
     return (
       <>
         <HeaderBar />
-        <main className="min-h-screen p-8">
+        <main className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 p-8">
           <h1 className="text-2xl font-bold">Access denied</h1>
           <p>You must be an admin to manage this app.</p>
         </main>
@@ -781,52 +877,12 @@ async function deleteTrustedAnswer(item: TrustedAnswer) {
     )
   }
 
-  const totalDocs = documents.length
-  const activeDocs = documents.filter((doc) => doc.is_active).length
-  const archivedDocs = documents.filter((doc) => !doc.is_active).length
-  const totalPages = documents.reduce((sum, doc) => sum + (doc.page_count ?? 0), 0)
-  const pendingRequests = accessRequests.filter((request) => request.status === 'pending')
-const filteredFeedback =
-  feedbackFilter === 'all'
-    ? feedback
-    : feedback.filter((item) => item.feedback_type === feedbackFilter)
-
-function exportFeedbackCSV() {
-  if (feedback.length === 0) return
-
-  const headers = ['Question', 'Answer', 'Feedback Type', 'Date']
-
-  const rows = feedback.map((item) => [
-    item.question ?? '',
-    item.answer ?? '',
-    item.feedback_type,
-    new Date(item.created_at).toLocaleString(),
-  ])
-
-  const csvContent = [headers, ...rows]
-    .map((row) =>
-      row
-        .map((cell) => `"${String(cell).replace(/"/g, '""')}"`)
-        .join(',')
-    )
-    .join('\n')
-
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-  const url = URL.createObjectURL(blob)
-
-  const link = document.createElement('a')
-  link.href = url
-  link.setAttribute('download', 'feedback.csv')
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-}
   return (
     <>
       <HeaderBar />
 
-      <main className="min-h-screen p-8">
-        <div className="max-w-5xl mx-auto space-y-8">
+      <main className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50">
+        <div className="mx-auto max-w-6xl px-6 py-8 space-y-8">
           <div>
             <h1 className="text-3xl font-bold">Admin: Manage PDF Agent</h1>
             <p className="text-gray-600">
@@ -835,56 +891,40 @@ function exportFeedbackCSV() {
           </div>
 
           {message && (
-            <div className="rounded-lg border p-3 text-sm">
+            <div className="rounded-xl border bg-white p-3 text-sm shadow-sm">
               {message}
             </div>
           )}
 
           {approvedUserInfo && (
-            <section className="rounded-2xl border p-5 space-y-3">
+            <section className="rounded-2xl border bg-white p-5 space-y-3 shadow-sm">
               <h2 className="text-xl font-bold">Approved User Invitation</h2>
               <p className="text-sm text-gray-600">
                 The user has been approved and should receive an email invitation to set their password.
               </p>
               <div className="rounded-lg border p-3 text-sm space-y-1">
-                <p>
-                  <strong>Email:</strong> {approvedUserInfo.email}
-                </p>
-                <p>
-                  <strong>Status:</strong> {approvedUserInfo.message}
-                </p>
+                <p><strong>Email:</strong> {approvedUserInfo.email}</p>
+                <p><strong>Status:</strong> {approvedUserInfo.message}</p>
               </div>
             </section>
           )}
 
-          <section className="grid grid-cols-1 md:grid-cols-5 gap-3">
-            <div className="rounded-2xl border p-4">
-              <p className="text-sm text-gray-600">Total documents</p>
-              <p className="text-2xl font-bold">{totalDocs}</p>
-            </div>
-
-            <div className="rounded-2xl border p-4">
-              <p className="text-sm text-gray-600">Active</p>
-              <p className="text-2xl font-bold">{activeDocs}</p>
-            </div>
-
-            <div className="rounded-2xl border p-4">
-              <p className="text-sm text-gray-600">Archived</p>
-              <p className="text-2xl font-bold">{archivedDocs}</p>
-            </div>
-
-            <div className="rounded-2xl border p-4">
-              <p className="text-sm text-gray-600">Processed pages</p>
-              <p className="text-2xl font-bold">{totalPages}</p>
-            </div>
-
-            <div className="rounded-2xl border p-4">
-              <p className="text-sm text-gray-600">Pending requests</p>
-              <p className="text-2xl font-bold">{pendingRequests.length}</p>
-            </div>
+          <section className="grid grid-cols-1 gap-3 md:grid-cols-5">
+            {[
+              ['Total documents', documentHealth.total],
+              ['Active', documentHealth.active],
+              ['Archived', documentHealth.archived],
+              ['Processed pages', totalPages],
+              ['Pending requests', pendingRequests.length],
+            ].map(([label, value]) => (
+              <div key={label} className="rounded-2xl border bg-white p-4 shadow-sm">
+                <p className="text-sm text-gray-600">{label}</p>
+                <p className="text-2xl font-bold">{value}</p>
+              </div>
+            ))}
           </section>
 
-          <section className="rounded-2xl border p-6 space-y-4">
+          <section className="rounded-2xl border bg-white p-6 space-y-4 shadow-sm">
             <div>
               <h2 className="text-2xl font-bold">Access Requests</h2>
               <p className="text-sm text-gray-600">
@@ -895,98 +935,95 @@ function exportFeedbackCSV() {
             {pendingRequests.length === 0 ? (
               <p className="text-sm text-gray-600">No pending access requests.</p>
             ) : (
-              <div className="space-y-3">
-                {pendingRequests.map((request) => (
-                  <div key={request.id} className="rounded-lg border p-4">
-                    <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                      <div className="space-y-1">
-                        <p className="font-semibold">{request.full_name}</p>
-                        <p className="text-sm text-gray-600">{request.email}</p>
-                        <p className="text-sm">
-                          <strong>Reason:</strong> {request.reason || 'None provided'}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          Requested: {new Date(request.created_at).toLocaleString()}
-                        </p>
-                      </div>
-
-                      <div className="flex flex-wrap gap-2">
-                        <button
-                          onClick={() => approveAccessRequest(request.id)}
-                          disabled={
-                            approvingId === request.id ||
-                            decliningId === request.id
-                          }
-                          className="rounded-lg border px-3 py-2 text-sm"
-                        >
-                          {approvingId === request.id ? 'Approving...' : 'Approve'}
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => declineRequest(request.id)}
-                          disabled={
-                            approvingId === request.id ||
-                            decliningId === request.id
-                          }
-                          className="rounded-lg border px-3 py-2 text-sm text-red-700 hover:bg-red-50"
-                        >
-                          {decliningId === request.id ? 'Declining...' : 'Decline'}
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+              <div className="overflow-x-auto rounded-lg border">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="p-3 text-left">Name</th>
+                      <th className="p-3 text-left">Email</th>
+                      <th className="p-3 text-left">Date</th>
+                      <th className="p-3 text-left">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pendingRequests.map((request) => (
+                      <tr key={request.id} className="border-t">
+                        <td className="p-3">{request.full_name}</td>
+                        <td className="p-3">{request.email}</td>
+                        <td className="p-3 text-xs">
+                          {new Date(request.created_at).toLocaleString()}
+                        </td>
+                        <td className="p-3">
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => approveAccessRequest(request.id)}
+                              disabled={approvingId === request.id || decliningId === request.id}
+                              className="rounded bg-blue-600 px-3 py-1 text-xs text-white disabled:opacity-50"
+                            >
+                              {approvingId === request.id ? 'Approving...' : 'Approve'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => declineRequest(request.id)}
+                              disabled={approvingId === request.id || decliningId === request.id}
+                              className="rounded border px-3 py-1 text-xs disabled:opacity-50"
+                            >
+                              {decliningId === request.id ? 'Declining...' : 'Decline'}
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </section>
 
-<section className="rounded-2xl border p-6 space-y-4">
-  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-    <div>
-      <h2 className="text-2xl font-bold">Feedback Dashboard</h2>
-      <p className="text-sm text-gray-600">
-        Review tester feedback to identify helpful answers, weak answers, and source issues.
-      </p>
-    </div>
+          <section className="rounded-2xl border bg-white p-6 space-y-4 shadow-sm">
+            <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+              <div>
+                <h2 className="text-2xl font-bold">Feedback Dashboard</h2>
+                <p className="text-sm text-gray-600">
+                  Review tester feedback to identify helpful answers, weak answers, and source issues.
+                </p>
+              </div>
 
-    <div className="flex gap-2 flex-wrap">
-      <select
-        value={feedbackFilter}
-        onChange={(e) =>
-          setFeedbackFilter(
-            e.target.value as 'all' | 'helpful' | 'not_helpful' | 'missing_source'
-          )
-        }
-        className="rounded-lg border px-3 py-2 text-sm"
-      >
-        <option value="all">All</option>
-        <option value="helpful">Helpful</option>
-        <option value="not_helpful">Not helpful</option>
-        <option value="missing_source">Missing source</option>
-      </select>
+              <div className="flex flex-wrap gap-2">
+                <select
+                  value={feedbackFilter}
+                  onChange={(e) =>
+                    setFeedbackFilter(
+                      e.target.value as 'all' | 'helpful' | 'not_helpful' | 'missing_source'
+                    )
+                  }
+                  className="rounded-lg border px-3 py-2 text-sm"
+                >
+                  <option value="all">All</option>
+                  <option value="helpful">Helpful</option>
+                  <option value="not_helpful">Not helpful</option>
+                  <option value="missing_source">Missing source</option>
+                </select>
 
-      <button
-        type="button"
-        onClick={exportFeedbackCSV}
-        className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50"
-      >
-        Export CSV
-      </button>
-    </div>
-  </div>
+                <button
+                  type="button"
+                  onClick={exportFeedbackCSV}
+                  className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50"
+                >
+                  Export CSV
+                </button>
+              </div>
+            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
               <div className="rounded-2xl border p-4">
                 <p className="text-sm text-gray-600">Helpful</p>
                 <p className="text-2xl font-bold">{feedbackCounts.helpful}</p>
               </div>
-
               <div className="rounded-2xl border p-4">
                 <p className="text-sm text-gray-600">Not helpful</p>
                 <p className="text-2xl font-bold">{feedbackCounts.not_helpful}</p>
               </div>
-
               <div className="rounded-2xl border p-4">
                 <p className="text-sm text-gray-600">Missing source</p>
                 <p className="text-2xl font-bold">{feedbackCounts.missing_source}</p>
@@ -996,506 +1033,571 @@ function exportFeedbackCSV() {
             {filteredFeedback.length === 0 ? (
               <p className="text-sm text-gray-600">No feedback submitted yet.</p>
             ) : (
-              <div className="space-y-3">
+              <div className="rounded-lg border divide-y">
                 {filteredFeedback.map((item) => (
-                  <div key={item.id} className="rounded-lg border p-4">
-                    <p className="text-sm font-semibold uppercase">
+                  <div key={item.id} className="flex items-start justify-between gap-4 p-3">
+                    <div>
+                      <p className="text-sm font-medium">
+                        {item.question || 'No question saved'}
+                      </p>
+                      <p className="mt-1 text-xs text-gray-500">
+                        {new Date(item.created_at).toLocaleString()}
+                      </p>
+                    </div>
+                    <span className="rounded bg-gray-100 px-2 py-1 text-xs">
                       {item.feedback_type.replaceAll('_', ' ')}
-                    </p>
-
-                    <p className="mt-2 text-sm">
-                      <strong>Question:</strong> {item.question || 'No question saved'}
-                    </p>
-
-                    <p className="mt-1 line-clamp-2 text-sm text-gray-600">
-                      <strong>Answer:</strong> {item.answer || 'No answer saved'}
-                    </p>
-
-                    <p className="mt-2 text-xs text-gray-500">
-                      {new Date(item.created_at).toLocaleString()}
-                    </p>
+                    </span>
                   </div>
                 ))}
               </div>
             )}
           </section>
-<section className="rounded-2xl border p-6 space-y-4">
-  <div>
-    <h2 className="text-2xl font-bold">No Answer / Not Found Questions</h2>
-    <p className="text-sm text-gray-600">
-      These are questions where the agent could not find supported content in the selected publications.
-    </p>
-  </div>
 
-  {noAnswerItems.length === 0 ? (
-    <p className="text-sm text-gray-600">No not-found questions yet.</p>
-  ) : (
-    <div className="space-y-3">
-      {noAnswerItems.map((item) => (
-        <div key={item.id} className="rounded-lg border p-4">
-          <p className="text-sm font-semibold">
-            {item.question}
-          </p>
-
-          <p className="mt-1 text-sm text-gray-600">
-            Mode: {item.answer_mode || 'general'} 
-            {item.category ? ` • Category: ${item.category}` : ''}
-          </p>
-
-          <p className="mt-2 line-clamp-3 text-sm text-gray-600">
-            {item.answer}
-          </p>
-
-          <p className="mt-2 text-xs text-gray-500">
-            {new Date(item.created_at).toLocaleString()}
-          </p>
-          <div className="mt-3">
-  <button
-    type="button"
-    onClick={() => saveTrustedAnswer(item)}
-    className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50"
-  >
-    Save as trusted
-  </button>
-</div>
-        </div>
-        
-      ))}
-    </div>
-  )}
-</section>
-
-<section className="rounded-2xl border p-6 space-y-4">
-  <div>
-    <h2 className="text-2xl font-bold">Top Content Gaps</h2>
-    <p className="text-sm text-gray-600">
-      Most frequently asked questions that could not be answered.
-    </p>
-  </div>
-
-  {contentGaps.length === 0 ? (
-    <p className="text-sm text-gray-600">No content gaps yet.</p>
-  ) : (
-    <div className="space-y-3">
-      {contentGaps.map((gap, index) => (
-        <div key={index} className="rounded-lg border p-4">
-          <p className="font-semibold text-sm">{gap.question}</p>
-
-          <p className="mt-1 text-sm text-gray-600">
-            Asked {gap.count} time{gap.count > 1 ? 's' : ''}
-          </p>
-
-          <p className="mt-1 text-xs text-gray-500">
-            Mode: {gap.answer_mode || 'general'}
-            {gap.category ? ` • Category: ${gap.category}` : ''}
-          </p>
-        </div>
-      ))}
-    </div>
-  )}
-</section>
-<section className="rounded-2xl border p-6 space-y-4">
-  <div>
-    <h2 className="text-2xl font-bold">User Analytics</h2>
-    <p className="text-sm text-gray-600">
-      See how testers are using the app and what kinds of questions they ask.
-    </p>
-  </div>
-
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-    <div className="rounded-2xl border p-4">
-      <p className="text-sm text-gray-600">Questions asked</p>
-      <p className="text-2xl font-bold">{userAnalytics.totalQuestions}</p>
-    </div>
-
-    <div className="rounded-2xl border p-4">
-      <p className="text-sm text-gray-600">Unique users</p>
-      <p className="text-2xl font-bold">{userAnalytics.uniqueUsers}</p>
-    </div>
-  </div>
-
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-    <div className="rounded-2xl border p-4">
-      <h3 className="font-bold">Answer modes</h3>
-
-      {Object.keys(userAnalytics.modeCounts).length === 0 ? (
-        <p className="mt-2 text-sm text-gray-600">No mode usage yet.</p>
-      ) : (
-        <div className="mt-3 space-y-2">
-          {Object.entries(userAnalytics.modeCounts).map(([mode, count]) => (
-            <div key={mode} className="flex justify-between text-sm">
-              <span>{mode}</span>
-              <span className="font-semibold">{count}</span>
+          <section className="rounded-2xl border bg-white p-6 space-y-4 shadow-sm">
+            <div>
+              <h2 className="text-2xl font-bold">Content Gaps</h2>
+              <p className="text-sm text-gray-600">
+                Questions the agent could not answer and frequently requested topics.
+              </p>
             </div>
-          ))}
-        </div>
-      )}
-    </div>
 
-    <div className="rounded-2xl border p-4">
-      <h3 className="font-bold">Categories</h3>
-
-      {Object.keys(userAnalytics.categoryCounts).length === 0 ? (
-        <p className="mt-2 text-sm text-gray-600">No category usage yet.</p>
-      ) : (
-        <div className="mt-3 space-y-2">
-          {Object.entries(userAnalytics.categoryCounts).map(([cat, count]) => (
-            <div key={cat} className="flex justify-between text-sm">
-              <span>{cat}</span>
-              <span className="font-semibold">{count}</span>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  </div>
-
-  <div className="rounded-2xl border p-4">
-    <h3 className="font-bold">Recent Activity</h3>
-
-    {userAnalytics.recentActivity.length === 0 ? (
-      <p className="mt-2 text-sm text-gray-600">No recent activity yet.</p>
-    ) : (
-      <div className="mt-3 space-y-3">
-        {userAnalytics.recentActivity.map((item) => (
-          <div key={item.id} className="rounded-lg border p-3">
-            <p className="text-sm font-semibold">{item.question}</p>
-            <p className="mt-1 text-xs text-gray-500">
-              Mode: {item.answer_mode || 'general'}
-              {item.category ? ` • Category: ${item.category}` : ''}
-              {' • '}
-              {new Date(item.created_at).toLocaleString()}
-            </p>
-          </div>
-        ))}
-      </div>
-    )}
-  </div>
-</section>
-<section className="rounded-2xl border p-6 space-y-4">
-  <div>
-    <h2 className="text-2xl font-bold">Document Health</h2>
-    <p className="text-sm text-gray-600">
-      Overview of document processing and readiness.
-    </p>
-  </div>
-
-  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-    <div className="rounded-lg border p-4">
-      <p className="text-xs text-gray-500">Total</p>
-      <p className="text-xl font-bold">{documentHealth.total}</p>
-    </div>
-
-    <div className="rounded-lg border p-4">
-      <p className="text-xs text-gray-500">Active</p>
-      <p className="text-xl font-bold">{documentHealth.active}</p>
-    </div>
-
-    <div className="rounded-lg border p-4">
-      <p className="text-xs text-gray-500">Archived</p>
-      <p className="text-xl font-bold">{documentHealth.archived}</p>
-    </div>
-
-    <div className="rounded-lg border p-4">
-      <p className="text-xs text-gray-500">Not processed</p>
-      <p className="text-xl font-bold text-red-600">{documentHealth.notProcessed}</p>
-    </div>
-
-    <div className="rounded-lg border p-4">
-      <p className="text-xs text-gray-500">Zero pages</p>
-      <p className="text-xl font-bold text-red-600">{documentHealth.zeroPages}</p>
-    </div>
-  </div>
-
-  <div>
-    <h3 className="text-sm font-semibold mt-4">Recent uploads</h3>
-
-    {documentHealth.recent.length === 0 ? (
-      <p className="text-sm text-gray-500 mt-2">No recent documents.</p>
-    ) : (
-      <div className="mt-2 space-y-2">
-        {documentHealth.recent.map((doc) => (
-          <div key={doc.id} className="rounded-lg border p-3">
-            <p className="text-sm font-medium">{doc.title || doc.filename}</p>
-<p className="text-xs text-gray-500">
-  Pages: {doc.page_count || 0} •{' '}
-  {doc.uploaded_at ? new Date(doc.uploaded_at).toLocaleString() : 'Unknown upload date'}
-</p>
-          </div>
-        ))}
-      </div>
-    )}
-  </div>
-</section>
-<section className="rounded-2xl border p-6 space-y-4">
-  <div>
-    <h2 className="text-2xl font-bold">Trusted Answers</h2>
-    <p className="text-sm text-gray-600">
-      Manage administrator-approved answers that can be reused by chat before calling AI search.
-    </p>
-  </div>
-
-  {trustedAnswers.length === 0 ? (
-    <p className="text-sm text-gray-600">No trusted answers saved yet.</p>
-  ) : (
-    <div className="space-y-3">
-      {trustedAnswers.map((item) => (
-        <div key={item.id} className="rounded-lg border p-4 space-y-3">
-          {editingTrustedId === item.id ? (
-            <>
+            <div className="grid gap-4 lg:grid-cols-2">
               <div>
-                <label className="block text-sm font-medium mb-1">
-                  Trusted question
-                </label>
-                <input
-                  value={trustedEditQuestion}
-                  onChange={(e) => setTrustedEditQuestion(e.target.value)}
-                  className="w-full rounded-lg border px-3 py-2 text-sm"
-                />
+                <h3 className="font-semibold">Top repeated gaps</h3>
+                {contentGaps.length === 0 ? (
+                  <p className="mt-2 text-sm text-gray-600">No gaps yet.</p>
+                ) : (
+                  <div className="mt-3 space-y-2">
+                    {contentGaps.map((gap, index) => (
+                      <div key={index} className="rounded-lg border p-3">
+                        <div className="flex justify-between gap-3">
+                          <p className="text-sm font-semibold">{gap.question}</p>
+                          <span className="text-xs text-gray-500">{gap.count}x</span>
+                        </div>
+                        <p className="mt-1 text-xs text-gray-500">
+                          Mode: {gap.answer_mode || 'general'}
+                          {gap.category ? ` • Category: ${gap.category}` : ''}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium mb-1">
-                  Trusted answer
-                </label>
-                <textarea
-                  value={trustedEditAnswer}
-                  onChange={(e) => setTrustedEditAnswer(e.target.value)}
-                  className="min-h-[160px] w-full rounded-lg border px-3 py-2 text-sm"
-                />
+                <h3 className="font-semibold">Latest not found</h3>
+                {noAnswerItems.length === 0 ? (
+                  <p className="mt-2 text-sm text-gray-600">No not-found questions yet.</p>
+                ) : (
+                  <div className="mt-3 space-y-2">
+                    {noAnswerItems.slice(0, 8).map((item) => (
+                      <div key={item.id} className="rounded-lg border p-3">
+                        <p className="text-sm font-semibold">{item.question}</p>
+                        <p className="mt-1 text-xs text-gray-500">
+                          Mode: {item.answer_mode || 'general'}
+                          {item.category ? ` • Category: ${item.category}` : ''}
+                          {' • '}
+                          {new Date(item.created_at).toLocaleString()}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => saveTrustedAnswer(item)}
+                          className="mt-2 rounded-lg border px-3 py-1 text-xs hover:bg-gray-50"
+                        >
+                          Save as trusted
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+
+          <section className="grid gap-4 lg:grid-cols-2">
+            <section className="rounded-2xl border bg-white p-6 space-y-4 shadow-sm">
+              <div>
+                <h2 className="text-2xl font-bold">User Analytics</h2>
+                <p className="text-sm text-gray-600">
+                  See how testers are using the app.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-2xl border p-4">
+                  <p className="text-sm text-gray-600">Questions asked</p>
+                  <p className="text-2xl font-bold">{userAnalytics.totalQuestions}</p>
+                </div>
+                <div className="rounded-2xl border p-4">
+                  <p className="text-sm text-gray-600">Unique users</p>
+                  <p className="text-2xl font-bold">{userAnalytics.uniqueUsers}</p>
+                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="rounded-2xl border p-4">
+                  <h3 className="font-bold">Answer modes</h3>
+                  <div className="mt-3 space-y-2">
+                    {Object.entries(userAnalytics.modeCounts).map(([mode, count]) => (
+                      <div key={mode} className="flex justify-between text-sm">
+                        <span>{mode}</span>
+                        <span className="font-semibold">{count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border p-4">
+                  <h3 className="font-bold">Categories</h3>
+                  <div className="mt-3 space-y-2">
+                    {Object.entries(userAnalytics.categoryCounts).map(([cat, count]) => (
+                      <div key={cat} className="flex justify-between text-sm">
+                        <span>{cat}</span>
+                        <span className="font-semibold">{count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <section className="rounded-2xl border bg-white p-6 space-y-4 shadow-sm">
+              <div>
+                <h2 className="text-2xl font-bold">Document Health</h2>
+                <p className="text-sm text-gray-600">
+                  Overview of document processing and readiness.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="rounded-lg border p-4">
+                  <p className="text-xs text-gray-500">Not processed</p>
+                  <p className="text-xl font-bold text-red-600">
+                    {documentHealth.notProcessed}
+                  </p>
+                </div>
+                <div className="rounded-lg border p-4">
+                  <p className="text-xs text-gray-500">Zero pages</p>
+                  <p className="text-xl font-bold text-red-600">
+                    {documentHealth.zeroPages}
+                  </p>
+                </div>
               </div>
 
               <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
-                  onClick={() => updateTrustedAnswer(item)}
-                  className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50"
+                  onClick={() => setDocumentHealthView('recent')}
+                  className={`rounded-lg border px-3 py-2 text-sm ${
+                    documentHealthView === 'recent'
+                      ? 'bg-black text-white'
+                      : 'hover:bg-gray-50'
+                  }`}
                 >
-                  Save changes
+                  Recent uploads
                 </button>
 
                 <button
                   type="button"
-                  onClick={cancelEditTrustedAnswer}
-                  className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50"
+                  onClick={() => setDocumentHealthView('not_processed')}
+                  className={`rounded-lg border px-3 py-2 text-sm ${
+                    documentHealthView === 'not_processed'
+                      ? 'bg-black text-white'
+                      : 'hover:bg-gray-50'
+                  }`}
                 >
-                  Cancel
+                  Not processed
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setDocumentHealthView('zero_pages')}
+                  className={`rounded-lg border px-3 py-2 text-sm ${
+                    documentHealthView === 'zero_pages'
+                      ? 'bg-black text-white'
+                      : 'hover:bg-gray-50'
+                  }`}
+                >
+                  Zero pages
                 </button>
               </div>
-            </>
-          ) : (
-            <>
-              <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                <div>
-                  <p className="font-semibold text-sm">{item.question}</p>
 
-                  <p className="mt-1 text-xs text-gray-500">
-                    Mode: {item.answer_mode || 'general'}
-                    {item.category ? ` • Category: ${item.category}` : ''}
-                    {' • '}
-                    {item.is_active ? 'Active' : 'Inactive'}
-                    {' • '}
-                    {new Date(item.created_at).toLocaleString()}
+              <div>
+                <div className="mb-2 flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+                  <h3 className="text-sm font-semibold">
+                    {documentHealthView === 'recent'
+                      ? 'Recent uploads'
+                      : documentHealthView === 'not_processed'
+                        ? 'Not processed documents'
+                        : 'Zero-page documents'}
+                  </h3>
+
+                  <p className="text-xs text-gray-500">
+                    Showing {documentHealthDocs.length} document
+                    {documentHealthDocs.length === 1 ? '' : 's'}
                   </p>
                 </div>
 
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => toggleTrustedAnswer(item)}
-                    className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50"
-                  >
-                    {item.is_active ? 'Deactivate' : 'Activate'}
-                  </button>
+                {documentHealthDocs.length === 0 ? (
+                  <p className="rounded-lg border p-3 text-sm text-gray-500">
+                    No documents found for this view.
+                  </p>
+                ) : (
+                  <div className="max-h-[420px] space-y-2 overflow-y-auto pr-1">
+                    {documentHealthDocs.map((doc) => {
+                      const isProcessed = (doc.page_count ?? 0) > 0
 
-                  <button
-                    type="button"
-                    onClick={() => startEditTrustedAnswer(item)}
-                    className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50"
-                  >
-                    Edit
-                  </button>
+                      return (
+                        <div key={doc.id} className="rounded-lg border p-3">
+                          <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                            <div>
+                              <p className="text-sm font-medium">{doc.title || doc.filename}</p>
+                              <p className="text-xs text-gray-500">{doc.filename}</p>
+                              <p className="mt-1 text-xs text-gray-500">
+                                Pages: {doc.page_count || 0} •{' '}
+                                {isProcessed ? 'Processed' : 'Not processed'} •{' '}
+                                {doc.is_active ? 'Active' : 'Archived'}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {doc.uploaded_at
+                                  ? new Date(doc.uploaded_at).toLocaleString()
+                                  : 'Unknown upload date'}
+                              </p>
+                            </div>
 
-                  <button
-                    type="button"
-                    onClick={() => deleteTrustedAnswer(item)}
-                    className="rounded-lg border px-3 py-2 text-sm text-red-700 hover:bg-red-50"
-                  >
-                    Delete
-                  </button>
-                </div>
+                            {!isProcessed && (
+                              <button
+                                type="button"
+                                onClick={() => processDocument(doc.id)}
+                                disabled={processingId === doc.id || deletingId === doc.id}
+                                className="w-fit rounded-lg border px-3 py-2 text-xs hover:bg-gray-50 disabled:opacity-50"
+                              >
+                                {processingId === doc.id ? 'Processing...' : 'Process'}
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+
+                <p className="mt-3 text-xs text-gray-500">
+                  Use the Uploaded documents search below to manage all documents.
+                </p>
               </div>
+            </section>
+          </section>
 
-              <p className="line-clamp-3 text-sm text-gray-600">
-                {item.answer}
-              </p>
-            </>
-          )}
-        </div>
-      ))}
-    </div>
-  )}
-</section>
-
-          <form onSubmit={handleUpload} className="rounded-2xl border p-6 space-y-4">
+          <section className="rounded-2xl border bg-white p-6 space-y-4 shadow-sm">
             <div>
-              <h2 className="text-xl font-bold mb-1">Upload a PDF</h2>
+              <h2 className="text-2xl font-bold">Trusted Answers</h2>
               <p className="text-sm text-gray-600">
-                Upload first, then process it for page-aware AI search.
+                Manage administrator-approved answers reused by chat before calling AI search.
               </p>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">Document title</label>
-              <input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="w-full rounded-lg border px-3 py-2"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">Category</label>
-              <input
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                placeholder="Example: Food safety, Canning, Freezing, Recipes"
-                className="w-full rounded-lg border px-3 py-2"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">Version</label>
-              <input
-                value={version}
-                onChange={(e) => setVersion(e.target.value)}
-                placeholder="Example: 2026, v1, current"
-                className="w-full rounded-lg border px-3 py-2"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium mb-1">PDF file</label>
-              <input
-                type="file"
-                accept="application/pdf"
-                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                className="w-full"
-                required
-              />
-            </div>
-
-            <button
-              type="submit"
-              className="rounded-lg bg-black text-white px-4 py-2"
-            >
-              Upload PDF
-            </button>
-          </form>
-
-          <section className="space-y-3">
-            <div>
-              <h2 className="text-2xl font-bold">Uploaded documents</h2>
-              <p className="text-sm text-gray-600">
-                Processed documents are split into page-level files for better source citations.
-              </p>
-            </div>
-
-            {documents.length === 0 ? (
-              <p>No documents uploaded yet.</p>
+            {trustedAnswers.length === 0 ? (
+              <p className="text-sm text-gray-600">No trusted answers saved yet.</p>
             ) : (
               <div className="space-y-3">
-                {documents.map((doc) => {
-                  const isProcessed = (doc.page_count ?? 0) > 0
-                  const uploadedDate = doc.uploaded_at
-                    ? new Date(doc.uploaded_at).toLocaleString()
-                    : 'Unknown'
+                {trustedAnswers.map((item) => (
+                  <div key={item.id} className="rounded-lg border p-4 space-y-3">
+                    {editingTrustedId === item.id ? (
+                      <>
+                        <div>
+                          <label className="mb-1 block text-sm font-medium">
+                            Trusted question
+                          </label>
+                          <input
+                            value={trustedEditQuestion}
+                            onChange={(e) => setTrustedEditQuestion(e.target.value)}
+                            className="w-full rounded-lg border px-3 py-2 text-sm"
+                          />
+                        </div>
 
-                  return (
-                    <div
-                      key={doc.id}
-                      className={`rounded-2xl border p-5 ${
-                        doc.is_active ? '' : 'opacity-60'
-                      }`}
-                    >
-                      <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
-                        <div className="space-y-2">
-                          <div>
-                            <p className="font-semibold text-lg">{doc.title}</p>
-                            <p className="text-sm text-gray-600">{doc.filename}</p>
-                          </div>
-
-                          <div className="flex flex-wrap gap-2 text-xs">
-                            <span className="rounded-full border px-2 py-1">
-                              {doc.is_active ? 'Active' : 'Archived'}
-                            </span>
-
-                            <span className="rounded-full border px-2 py-1">
-                              {isProcessed ? 'Processed' : 'Not processed'}
-                            </span>
-
-                            <span className="rounded-full border px-2 py-1">
-                              Pages: {doc.page_count ?? 0}
-                            </span>
-                          </div>
-
-                          <div className="text-sm space-y-1">
-                            <p>
-                              <strong>Category:</strong> {doc.category || 'None'}
-                            </p>
-                            <p>
-                              <strong>Version:</strong> {doc.version || 'None'}
-                            </p>
-                            <p>
-                              <strong>Uploaded:</strong> {uploadedDate}
-                            </p>
-                            <p>
-                              <strong>Vector store:</strong>{' '}
-                              {doc.vector_store_id ? 'Connected' : 'Not connected'}
-                            </p>
-                          </div>
+                        <div>
+                          <label className="mb-1 block text-sm font-medium">
+                            Trusted answer
+                          </label>
+                          <textarea
+                            value={trustedEditAnswer}
+                            onChange={(e) => setTrustedEditAnswer(e.target.value)}
+                            className="min-h-[160px] w-full rounded-lg border px-3 py-2 text-sm"
+                          />
                         </div>
 
                         <div className="flex flex-wrap gap-2">
                           <button
-                            onClick={() => updateDocumentStatus(doc.id, !doc.is_active)}
-                            disabled={updatingId === doc.id || deletingId === doc.id}
-                            className="rounded-lg border px-3 py-2 text-sm"
+                            type="button"
+                            onClick={() => updateTrustedAnswer(item)}
+                            className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50"
                           >
-                            {updatingId === doc.id
-                              ? 'Updating...'
-                              : doc.is_active
-                                ? 'Archive'
-                                : 'Unarchive'}
+                            Save changes
                           </button>
-
                           <button
-                            onClick={() => processDocument(doc.id)}
-                            disabled={processingId === doc.id || deletingId === doc.id}
-                            className="rounded-lg border px-3 py-2 text-sm"
+                            type="button"
+                            onClick={cancelEditTrustedAnswer}
+                            className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50"
                           >
-                            {processingId === doc.id
-                              ? 'Processing...'
-                              : isProcessed
-                                ? 'Reprocess'
-                                : 'Process for AI Search'}
-                          </button>
-
-                          <button
-                            onClick={() => deleteDocument(doc.id, doc.title)}
-                            disabled={deletingId === doc.id}
-                            className="rounded-lg border px-3 py-2 text-sm text-red-700"
-                          >
-                            {deletingId === doc.id ? 'Deleting...' : 'Delete'}
+                            Cancel
                           </button>
                         </div>
-                      </div>
-                    </div>
-                  )
-                })}
+                      </>
+                    ) : (
+                      <>
+                        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                          <div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="font-semibold text-sm">{item.question}</p>
+                              <span
+                                className={`rounded px-2 py-1 text-xs ${
+                                  item.is_active
+                                    ? 'bg-green-100 text-green-700'
+                                    : 'bg-gray-100 text-gray-600'
+                                }`}
+                              >
+                                {item.is_active ? 'Active' : 'Inactive'}
+                              </span>
+                            </div>
+
+                            <p className="mt-1 text-xs text-gray-500">
+                              Mode: {item.answer_mode || 'general'}
+                              {item.category ? ` • Category: ${item.category}` : ''}
+                              {' • '}
+                              {new Date(item.created_at).toLocaleString()}
+                            </p>
+                          </div>
+
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              onClick={() => toggleTrustedAnswer(item)}
+                              className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50"
+                            >
+                              {item.is_active ? 'Deactivate' : 'Activate'}
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => startEditTrustedAnswer(item)}
+                              className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50"
+                            >
+                              Edit
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => deleteTrustedAnswer(item)}
+                              className="rounded-lg border px-3 py-2 text-sm text-red-700 hover:bg-red-50"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </div>
+
+                        <p className="line-clamp-3 text-sm text-gray-600">
+                          {item.answer}
+                        </p>
+                      </>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
+          </section>
+
+          <section className="grid gap-6 lg:grid-cols-[380px_1fr]">
+            <form onSubmit={handleUpload} className="rounded-2xl border bg-white p-6 space-y-4 shadow-sm">
+              <div>
+                <h2 className="text-xl font-bold mb-1">Upload a PDF</h2>
+                <p className="text-sm text-gray-600">
+                  Upload first, then process it for page-aware AI search.
+                </p>
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium">Document title</label>
+                <input
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full rounded-lg border px-3 py-2"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium">Category</label>
+                <input
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                  placeholder="Example: Food safety, Canning, Freezing"
+                  className="w-full rounded-lg border px-3 py-2"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium">Version</label>
+                <input
+                  value={version}
+                  onChange={(e) => setVersion(e.target.value)}
+                  placeholder="Example: 2026, v1, current"
+                  className="w-full rounded-lg border px-3 py-2"
+                />
+              </div>
+
+              <div>
+                <label className="mb-1 block text-sm font-medium">PDF file</label>
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                  className="w-full"
+                  required
+                />
+              </div>
+
+              <button type="submit" className="rounded-lg bg-black px-4 py-2 text-white">
+                Upload PDF
+              </button>
+            </form>
+
+            <section className="rounded-2xl border bg-white p-6 space-y-4 shadow-sm">
+              <div>
+                <h2 className="text-2xl font-bold">Uploaded documents</h2>
+                <p className="text-sm text-gray-600">
+                  Processed documents are split into page-level files for better source citations.
+                </p>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-[1fr_220px]">
+                <input
+                  value={documentSearch}
+                  onChange={(e) => setDocumentSearch(e.target.value)}
+                  placeholder="Search title, filename, category, or version..."
+                  className="w-full rounded-lg border px-3 py-2 text-sm"
+                />
+
+                <select
+                  value={documentStatusFilter}
+                  onChange={(e) =>
+                    setDocumentStatusFilter(
+                      e.target.value as 'all' | 'active' | 'archived' | 'processed' | 'not_processed'
+                    )
+                  }
+                  className="w-full rounded-lg border px-3 py-2 text-sm"
+                >
+                  <option value="all">All documents</option>
+                  <option value="active">Active only</option>
+                  <option value="archived">Archived only</option>
+                  <option value="processed">Processed only</option>
+                  <option value="not_processed">Not processed only</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col gap-2 text-sm text-gray-600 md:flex-row md:items-center md:justify-between">
+                <p>
+                  Showing <strong>{filteredDocumentsForAdmin.length}</strong> of{' '}
+                  <strong>{documents.length}</strong> uploaded documents
+                </p>
+
+                {(documentSearch || documentStatusFilter !== 'all') && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDocumentSearch('')
+                      setDocumentStatusFilter('all')
+                    }}
+                    className="w-fit rounded-lg border px-3 py-1 text-xs hover:bg-gray-50"
+                  >
+                    Clear filters
+                  </button>
+                )}
+              </div>
+
+              {documents.length === 0 ? (
+                <p>No documents uploaded yet.</p>
+              ) : filteredDocumentsForAdmin.length === 0 ? (
+                <p className="rounded-lg border p-4 text-sm text-gray-600">
+                  No documents match your current search or filter.
+                </p>
+              ) : (
+                <div className="max-h-[650px] space-y-3 overflow-y-auto pr-1">
+                  {filteredDocumentsForAdmin.map((doc) => {
+                    const isProcessed = (doc.page_count ?? 0) > 0
+                    const uploadedDate = doc.uploaded_at
+                      ? new Date(doc.uploaded_at).toLocaleString()
+                      : 'Unknown'
+
+                    return (
+                      <div
+                        key={doc.id}
+                        className={`rounded-2xl border p-4 ${doc.is_active ? '' : 'opacity-60'}`}
+                      >
+                        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                          <div className="space-y-2">
+                            <div>
+                              <p className="font-semibold">{doc.title}</p>
+                              <p className="text-sm text-gray-600">{doc.filename}</p>
+                            </div>
+
+                            <div className="flex flex-wrap gap-2 text-xs">
+                              <span className="rounded-full border px-2 py-1">
+                                {doc.is_active ? 'Active' : 'Archived'}
+                              </span>
+                              <span className="rounded-full border px-2 py-1">
+                                {isProcessed ? 'Processed' : 'Not processed'}
+                              </span>
+                              <span className="rounded-full border px-2 py-1">
+                                Pages: {doc.page_count ?? 0}
+                              </span>
+                            </div>
+
+                            <p className="text-xs text-gray-500">
+                              Category: {doc.category || 'None'} • Version: {doc.version || 'None'} • Uploaded: {uploadedDate}
+                            </p>
+                          </div>
+
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              onClick={() => updateDocumentStatus(doc.id, !doc.is_active)}
+                              disabled={updatingId === doc.id || deletingId === doc.id}
+                              className="rounded-lg border px-3 py-2 text-sm"
+                            >
+                              {updatingId === doc.id
+                                ? 'Updating...'
+                                : doc.is_active
+                                  ? 'Archive'
+                                  : 'Unarchive'}
+                            </button>
+
+                            <button
+                              onClick={() => processDocument(doc.id)}
+                              disabled={processingId === doc.id || deletingId === doc.id}
+                              className="rounded-lg border px-3 py-2 text-sm"
+                            >
+                              {processingId === doc.id
+                                ? 'Processing...'
+                                : isProcessed
+                                  ? 'Reprocess'
+                                  : 'Process'}
+                            </button>
+
+                            <button
+                              onClick={() => deleteDocument(doc.id, doc.title)}
+                              disabled={deletingId === doc.id}
+                              className="rounded-lg border px-3 py-2 text-sm text-red-700"
+                            >
+                              {deletingId === doc.id ? 'Deleting...' : 'Delete'}
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </section>
           </section>
         </div>
       </main>
