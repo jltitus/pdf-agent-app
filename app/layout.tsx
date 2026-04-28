@@ -12,10 +12,14 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "MFP Publication Agent",
-  description: "Master Food Preservers Publication Assistant",
-};
+export const metadata = {
+  title: 'MFP Publication Agent',
+  description: 'Master Food Preservers tool',
+  icons: {
+    icon: '/icon.png',
+    apple: '/apple-touch-icon.png',
+  },
+}
 
 export default function RootLayout({
   children,
