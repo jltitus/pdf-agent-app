@@ -95,6 +95,14 @@ const [contentGaps, setContentGaps] = useState<
   const [message, setMessage] = useState('')
 
   const [documents, setDocuments] = useState<DocumentRow[]>([])
+  const [documentHealth, setDocumentHealth] = useState({
+  total: 0,
+  active: 0,
+  archived: 0,
+  notProcessed: 0,
+  zeroPages: 0,
+  recent: [] as DocumentRow[],
+})
   const [accessRequests, setAccessRequests] = useState<AccessRequest[]>([])
   const [feedback, setFeedback] = useState<FeedbackItem[]>([])
   const [trustedAnswers, setTrustedAnswers] = useState<TrustedAnswer[]>([])
@@ -230,6 +238,30 @@ setContentGaps(sorted)
     }))
 
     setDocuments(enrichedDocs)
+if (enrichedDocs.length > 0) {
+  const total = enrichedDocs.length
+  const active = enrichedDocs.filter((d) => d.is_active).length
+  const archived = enrichedDocs.filter((d) => !d.is_active).length
+  const notProcessed = enrichedDocs.filter((d) => !d.page_count || d.page_count === 0).length
+  const zeroPages = enrichedDocs.filter((d) => !d.page_count || d.page_count === 0).length
+
+  const recent = [...enrichedDocs]
+    .sort(
+      (a, b) =>
+        new Date(b.uploaded_at ?? 0).getTime() -
+        new Date(a.uploaded_at ?? 0).getTime()
+    )
+    .slice(0, 5)
+
+  setDocumentHealth({
+    total,
+    active,
+    archived,
+    notProcessed,
+    zeroPages,
+    recent,
+  })
+}
   }
 
   async function loadAccessRequests() {
@@ -1142,6 +1174,61 @@ function exportFeedbackCSV() {
 </section>
 <section className="rounded-2xl border p-6 space-y-4">
   <div>
+    <h2 className="text-2xl font-bold">Document Health</h2>
+    <p className="text-sm text-gray-600">
+      Overview of document processing and readiness.
+    </p>
+  </div>
+
+  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+    <div className="rounded-lg border p-4">
+      <p className="text-xs text-gray-500">Total</p>
+      <p className="text-xl font-bold">{documentHealth.total}</p>
+    </div>
+
+    <div className="rounded-lg border p-4">
+      <p className="text-xs text-gray-500">Active</p>
+      <p className="text-xl font-bold">{documentHealth.active}</p>
+    </div>
+
+    <div className="rounded-lg border p-4">
+      <p className="text-xs text-gray-500">Archived</p>
+      <p className="text-xl font-bold">{documentHealth.archived}</p>
+    </div>
+
+    <div className="rounded-lg border p-4">
+      <p className="text-xs text-gray-500">Not processed</p>
+      <p className="text-xl font-bold text-red-600">{documentHealth.notProcessed}</p>
+    </div>
+
+    <div className="rounded-lg border p-4">
+      <p className="text-xs text-gray-500">Zero pages</p>
+      <p className="text-xl font-bold text-red-600">{documentHealth.zeroPages}</p>
+    </div>
+  </div>
+
+  <div>
+    <h3 className="text-sm font-semibold mt-4">Recent uploads</h3>
+
+    {documentHealth.recent.length === 0 ? (
+      <p className="text-sm text-gray-500 mt-2">No recent documents.</p>
+    ) : (
+      <div className="mt-2 space-y-2">
+        {documentHealth.recent.map((doc) => (
+          <div key={doc.id} className="rounded-lg border p-3">
+            <p className="text-sm font-medium">{doc.title || doc.filename}</p>
+<p className="text-xs text-gray-500">
+  Pages: {doc.page_count || 0} •{' '}
+  {doc.uploaded_at ? new Date(doc.uploaded_at).toLocaleString() : 'Unknown upload date'}
+</p>
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+</section>
+<section className="rounded-2xl border p-6 space-y-4">
+  <div>
     <h2 className="text-2xl font-bold">Trusted Answers</h2>
     <p className="text-sm text-gray-600">
       Manage administrator-approved answers that can be reused by chat before calling AI search.
@@ -1249,6 +1336,7 @@ function exportFeedbackCSV() {
     </div>
   )}
 </section>
+
           <form onSubmit={handleUpload} className="rounded-2xl border p-6 space-y-4">
             <div>
               <h2 className="text-xl font-bold mb-1">Upload a PDF</h2>
