@@ -43,6 +43,30 @@ export default function ReportIssuePage() {
       return
     }
 
+    const notificationResponse = await fetch('/api/send-issue-notification', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        issueType,
+        description,
+        relatedQuestion,
+        userEmail: user.email,
+      }),
+    })
+
+    if (!notificationResponse.ok) {
+      const notificationResult = await notificationResponse.json().catch(() => ({}))
+      setMessage(
+        `Issue saved, but email notification failed: ${
+          notificationResult.error || 'Unknown email error'
+        }`
+      )
+      setLoading(false)
+      return
+    }
+
     setIssueType('Incorrect answer')
     setDescription('')
     setRelatedQuestion('')
