@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { createClient } from '../../lib/supabase/client'
 import HeaderBar from '../components/HeaderBar'
+import Link from 'next/link'
 
 type Source = {
   title: string
@@ -444,20 +445,7 @@ return (
     <HeaderBar />
 
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50">
-      <div className="w-full border-b bg-gradient-to-r from-blue-100 via-blue-50 to-green-100">
-        <div className="mx-auto flex max-w-6xl items-center gap-4 px-6 py-8">
-          <img
-            src="/jar-logosm.png"
-            alt="MFP Publication Agent logo"
-            className="h-12 w-12 object-contain"
-          />
 
-          <div>
-            <h1 className="text-3xl font-bold">MFP Publication Agent</h1>
-            <p className="text-sm text-gray-600">MASTER FOOD PRESERVERS</p>
-          </div>
-        </div>
-      </div>
 
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-6 md:px-8">
         <section className="rounded-2xl border bg-white p-4 shadow-sm">
@@ -537,6 +525,12 @@ return (
             </div>
 
             <form onSubmit={askQuestion} className="space-y-3 border-b bg-gray-50 p-4">
+
+  <div className="flex justify-end">
+    <Link href="/help" className="text-xs text-gray-500 underline">
+      Need help using this tool?
+    </Link>
+  </div>
               {message && (
                 <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
                   {message}
@@ -544,6 +538,7 @@ return (
               )}
 
               <div className="flex flex-col gap-3 md:flex-row">
+                
                 <textarea
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}
@@ -618,45 +613,68 @@ return (
                           </div>
                         )}
 
-                        <div className="mt-4">
-                          <h3 className="text-sm font-bold">Sources</h3>
+                        <div className="mt-5 rounded-xl border bg-gray-50 p-4">
+  <div className="flex items-center justify-between gap-3">
+    <h3 className="text-sm font-bold">Sources</h3>
 
-                          {!turn.sources || turn.sources.length === 0 ? (
-                            <p className="mt-1 text-sm text-gray-600">No sources found.</p>
-                          ) : (
-                            <div className="mt-2 space-y-2">
-                              {turn.sources.map((source, sourceIndex) => {
-                                const firstPage = source.pages?.[0]
-                                const url = `/api/view-source?file=${encodeURIComponent(
-                                  source.filename
-                                )}${firstPage ? `&page=${firstPage}` : ''}`
+    {turn.sources && turn.sources.length > 0 && (
+      <span className="rounded-full bg-white px-2 py-1 text-xs text-gray-600">
+        {turn.sources.length} source{turn.sources.length === 1 ? '' : 's'}
+      </span>
+    )}
+  </div>
 
-                                return (
-                                  <a
-                                    key={`${source.filename}-${sourceIndex}`}
-                                    href={url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="block rounded-xl border p-3 text-sm hover:bg-gray-50"
-                                  >
-                                    <div className="flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
-                                      <p className="font-semibold">{source.title}</p>
+  {!turn.sources || turn.sources.length === 0 ? (
+    <p className="mt-2 text-sm text-gray-600">No sources found.</p>
+  ) : (
+    <div className="mt-3 space-y-3">
+      {turn.sources.map((source, sourceIndex) => {
+        const firstPage = source.pages?.[0]
+        const url = `/api/view-source?file=${encodeURIComponent(
+          source.filename
+        )}${firstPage ? `&page=${firstPage}` : ''}`
 
-                                      {sourceIndex === 0 && (
-                                        <span className="w-fit rounded-full border px-2 py-1 text-xs font-medium">
-                                          Primary source
-                                        </span>
-                                      )}
-                                    </div>
+        return (
+          <div
+            key={`${source.filename}-${sourceIndex}`}
+            className="rounded-xl border bg-white p-4"
+          >
+            <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="font-semibold text-sm">{source.title}</p>
 
-                                    <p className="text-gray-600">{source.filename}</p>
-                                    <p>Pages: {source.pages?.join(', ') || 'Unknown'}</p>
-                                  </a>
-                                )
-                              })}
-                            </div>
-                          )}
-                        </div>
+                  {sourceIndex === 0 && (
+                    <span className="rounded-full border px-2 py-1 text-xs font-medium">
+                      Primary source
+                    </span>
+                  )}
+                </div>
+
+                <p className="mt-1 text-xs text-gray-500">
+                  {source.filename}
+                </p>
+
+                <p className="mt-1 text-xs text-gray-600">
+                  Pages: {source.pages?.join(', ') || 'Unknown'}
+                </p>
+              </div>
+
+              <a
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-fit rounded-lg border px-3 py-2 text-xs hover:bg-gray-50"
+              >
+                Open source
+              </a>
+            </div>
+          </div>
+        )
+      })}
+    </div>
+  )}
+</div>
 
                         <div className="mt-4 flex flex-wrap gap-2 border-t pt-4">
                           <button

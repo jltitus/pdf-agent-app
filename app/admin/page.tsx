@@ -57,6 +57,16 @@ type TrustedAnswer = {
   created_at: string
 }
 
+type IssueReport = {
+  id: string
+  user_email?: string | null
+  issue_type: string
+  description: string
+  related_question?: string | null
+  status: string
+  created_at: string
+}
+
 type UserAnalytics = {
   totalQuestions: number
   uniqueUsers: number
@@ -121,6 +131,8 @@ export default function AdminPage() {
   >([])
 
   const [trustedAnswers, setTrustedAnswers] = useState<TrustedAnswer[]>([])
+  const [issueReports, setIssueReports] = useState<IssueReport[]>([])
+  const [updatingIssueId, setUpdatingIssueId] = useState<string | null>(null)
   const [editingTrustedId, setEditingTrustedId] = useState<string | null>(null)
   const [trustedEditQuestion, setTrustedEditQuestion] = useState('')
   const [trustedEditAnswer, setTrustedEditAnswer] = useState('')
@@ -187,6 +199,7 @@ export default function AdminPage() {
     await loadNoAnswerItems()
     await loadUserAnalytics()
     await loadTrustedAnswers()
+    await loadIssueReports()
   }
 
   async function loadDocuments() {
@@ -349,6 +362,21 @@ export default function AdminPage() {
     }
 
     setTrustedAnswers(data as TrustedAnswer[])
+  }
+
+  async function loadIssueReports() {
+    const { data, error } = await supabase
+      .from('issue_reports')
+      .select('id, user_email, issue_type, description, related_question, status, created_at')
+      .order('created_at', { ascending: false })
+      .limit(50)
+
+    if (error || !data) {
+      setIssueReports([])
+      return
+    }
+
+    setIssueReports(data as IssueReport[])
   }
 
   async function loadUserAnalytics() {
@@ -755,7 +783,7 @@ export default function AdminPage() {
 
   async function deleteTrustedAnswer(item: TrustedAnswer) {
     const confirmed = window.confirm(
-      `Delete trusted answer for: "${item.question}"? This cannot be undone.`
+      `Delete trusted answer for: \"${item.question}\"? This cannot be undone.`
     )
 
     if (!confirmed) return
@@ -776,12 +804,36 @@ export default function AdminPage() {
     await loadTrustedAnswers()
   }
 
+  async function updateIssueStatus(item: IssueReport, status: 'open' | 'reviewed' | 'resolved') {
+    setUpdatingIssueId(item.id)
+    setMessage(`Updating issue to ${status}...`)
+
+    const { error } = await supabase
+      .from('issue_reports')
+      .update({
+        status,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', item.id)
+
+    if (error) {
+      setMessage(`Issue update failed: ${error.message}`)
+      setUpdatingIssueId(null)
+      return
+    }
+
+    setMessage(`Issue marked ${status}.`)
+    setUpdatingIssueId(null)
+    await loadIssueReports()
+  }
+
   const filteredFeedback =
     feedbackFilter === 'all'
       ? feedback
       : feedback.filter((item) => item.feedback_type === feedbackFilter)
 
   const pendingRequests = accessRequests.filter((request) => request.status === 'pending')
+  const openIssues = issueReports.filter((issue) => issue.status === 'open')
   const totalPages = documents.reduce((sum, doc) => sum + (doc.page_count ?? 0), 0)
 
   const filteredDocumentsForAdmin = documents.filter((doc) => {
@@ -916,6 +968,7 @@ export default function AdminPage() {
               ['Archived', documentHealth.archived],
               ['Processed pages', totalPages],
               ['Pending requests', pendingRequests.length],
+              ['Open issues', openIssues.length],
             ].map(([label, value]) => (
               <div key={label} className="rounded-2xl border bg-white p-4 shadow-sm">
                 <p className="text-sm text-gray-600">{label}</p>
@@ -1047,6 +1100,100 @@ export default function AdminPage() {
                     <span className="rounded bg-gray-100 px-2 py-1 text-xs">
                       {item.feedback_type.replaceAll('_', ' ')}
                     </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section className="rounded-2xl border bg-white p-6 space-y-4 shadow-sm">
+            <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+              <div>
+                <h2 className="text-2xl font-bold">Issue Reports</h2>
+                <p className="text-sm text-gray-600">
+                  Review tester-reported problems, questions, and source concerns.
+                </p>
+              </div>
+
+              <span className="w-fit rounded-full border bg-gray-50 px-3 py-1 text-xs text-gray-600">
+                {openIssues.length} open
+              </span>
+            </div>
+
+            {issueReports.length === 0 ? (
+              <p className="text-sm text-gray-600">No issue reports submitted yet.</p>
+            ) : (
+              <div className="space-y-3">
+                {issueReports.map((item) => (
+                  <div key={item.id} className="rounded-lg border p-4">
+                    <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="text-sm font-semibold">{item.issue_type}</p>
+                          <span
+                            className={`rounded-full px-2 py-1 text-xs ${
+                              item.status === 'open'
+                                ? 'bg-red-100 text-red-700'
+                                : item.status === 'reviewed'
+                                  ? 'bg-yellow-100 text-yellow-800'
+                                  : 'bg-green-100 text-green-700'
+                            }`}
+                          >
+                            {item.status}
+                          </span>
+                        </div>
+
+                        <p className="mt-1 text-xs text-gray-500">
+                          {item.user_email || 'Unknown user'} •{' '}
+                          {new Date(item.created_at).toLocaleString()}
+                        </p>
+
+                        {item.related_question && (
+                          <p className="mt-3 text-sm">
+                            <strong>Related question:</strong> {item.related_question}
+                          </p>
+                        )}
+
+                        <p className="mt-2 whitespace-pre-wrap text-sm text-gray-700">
+                          {item.description}
+                        </p>
+                      </div>
+
+                      <div className="flex shrink-0 flex-wrap gap-2">
+                        {item.status !== 'reviewed' && (
+                          <button
+                            type="button"
+                            onClick={() => updateIssueStatus(item, 'reviewed')}
+                            disabled={updatingIssueId === item.id}
+                            className="rounded-lg border px-3 py-2 text-xs hover:bg-gray-50 disabled:opacity-50"
+                          >
+                            Mark reviewed
+                          </button>
+                        )}
+
+                        {item.status !== 'resolved' && (
+                          <button
+                            type="button"
+                            onClick={() => updateIssueStatus(item, 'resolved')}
+                            disabled={updatingIssueId === item.id}
+                            className="rounded-lg border px-3 py-2 text-xs hover:bg-gray-50 disabled:opacity-50"
+                          >
+                            Mark resolved
+                          </button>
+                        )}
+
+                        {item.status !== 'open' && (
+                          <button
+                            type="button"
+                            onClick={() => updateIssueStatus(item, 'open')}
+                            disabled={updatingIssueId === item.id}
+                            className="rounded-lg border px-3 py-2 text-xs hover:bg-gray-50 disabled:opacity-50"
+                          >
+                            Reopen
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 ))}
               </div>

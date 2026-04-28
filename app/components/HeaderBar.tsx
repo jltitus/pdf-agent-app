@@ -2,102 +2,94 @@
 
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
-import { createClient } from '../../lib/supabase/client'
 
-type Profile = {
-  role: string | null
-  full_name: string | null
-}
-
-export default function HeaderBar() {
+export default function HeaderBar({
+  user,
+  isAdmin,
+}: {
+  user?: any
+  isAdmin?: boolean
+}) {
   const pathname = usePathname()
   const router = useRouter()
-  const supabase = createClient()
-
-  const [email, setEmail] = useState<string | null>(null)
-  const [profile, setProfile] = useState<Profile | null>(null)
-
-  useEffect(() => {
-    async function loadUser() {
-      const { data } = await supabase.auth.getSession()
-      const user = data.session?.user
-
-      if (!user) return
-
-      setEmail(user.email ?? null)
-
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('role, full_name')
-        .eq('id', user.id)
-        .single()
-
-      setProfile(profileData)
-    }
-
-    loadUser()
-  }, [supabase])
-
-  const linkStyle = (path: string) =>
-    `rounded-lg px-3 py-2 text-sm ${
-      pathname === path
-        ? 'bg-black text-white'
-        : 'text-gray-700 hover:bg-gray-100'
-    }`
 
   async function handleSignOut() {
+    const { createClient } = await import('../../lib/supabase/client')
+    const supabase = createClient()
     await supabase.auth.signOut()
     router.push('/login')
   }
 
+  function navClass(path: string) {
+    const active = pathname === path
+
+    return active
+      ? 'rounded-lg bg-black px-3 py-2 text-sm font-medium text-white'
+      : 'rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-white/60'
+  }
+
   return (
-    <header className="border-b bg-white">
-      <div className="mx-auto flex max-w-6xl flex-col gap-3 px-6 py-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <Link href="/dashboard" className="text-xl font-bold">
-            MFP Publication Agent
-          </Link>
-          <p className="text-xs uppercase tracking-wide text-gray-500">
-            Master Food Preservers
-          </p>
-        </div>
+    <header className="sticky top-0 z-50 border-b bg-gradient-to-r from-blue-100 via-blue-50 to-green-100 shadow-sm">
+      <div className="mx-auto max-w-6xl px-6 py-4">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <Link href="/dashboard" className="flex items-center gap-3">
+            <img
+              src="/jar-logosm.png"
+              alt="MFP Publication Agent logo"
+              className="h-11 w-11 object-contain"
+            />
 
-        <nav className="flex flex-wrap items-center gap-2">
-          <Link href="/dashboard" className={linkStyle('/dashboard')}>
-            Dashboard
-          </Link>
-
-          <Link href="/chat" className={linkStyle('/chat')}>
-            Chat
-          </Link>
-
-          {profile?.role === 'admin' && (
-            <Link href="/admin" className={linkStyle('/admin')}>
-              Admin
-            </Link>
-          )}
-        </nav>
-
-        <div className="flex flex-col items-start gap-1 text-sm md:items-end">
-          {email && (
-            <div className="text-gray-600">
-              {profile?.full_name || email}
-              {profile?.role && (
-                <span className="ml-2 rounded-full border px-2 py-0.5 text-xs">
-                  {profile.role}
-                </span>
-              )}
+            <div>
+              <h1 className="text-xl font-bold">MFP Publication Agent</h1>
+              <p className="text-xs tracking-wide text-gray-600">
+                MASTER FOOD PRESERVERS
+              </p>
             </div>
-          )}
+          </Link>
 
-          <button
-            type="button"
-            onClick={handleSignOut}
-            className="text-sm underline"
-          >
-            Sign out
-          </button>
+          <div className="flex flex-col gap-3 md:items-end">
+            <nav className="flex flex-wrap items-center gap-2">
+              <Link href="/dashboard" className={navClass('/dashboard')}>
+                🏠 Dashboard
+              </Link>
+
+              <Link href="/chat" className={navClass('/chat')}>
+                💬 Chat
+              </Link>
+
+              <Link href="/help" className={navClass('/help')}>
+                ❔ Help
+              </Link>
+
+              {isAdmin && (
+                <Link href="/admin" className={navClass('/admin')}>
+                  ⚙️ Admin
+                </Link>
+              )}
+            </nav>
+
+            {user && (
+              <div className="flex items-center gap-3 text-sm">
+                <span className="text-gray-700">
+                  {user.email}
+                </span>
+
+                {isAdmin && (
+                  <span className="rounded-full border bg-white/60 px-2 py-0.5 text-xs">
+                    admin
+                  </span>
+                )}
+
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className="underline hover:text-black"
+                >
+                  Sign out
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </header>

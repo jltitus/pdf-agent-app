@@ -179,4 +179,6 @@ export default function LoginPage() {
       </div>
     </main>
   )
-}
+}<Link href="/help" className="underline text-sm">
+  Tester guide
+</Link>

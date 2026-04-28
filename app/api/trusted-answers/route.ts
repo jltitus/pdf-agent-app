@@ -1,6 +1,17 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
+function normalize(text: string) {
+  return text.toLowerCase().trim()
+}
+
+function similarity(a: string, b: string) {
+  const aWords = new Set(a.split(' '))
+  const bWords = new Set(b.split(' '))
+  const intersection = [...aWords].filter((word) => bWords.has(word))
+  return intersection.length / Math.max(aWords.size, bWords.size)
+}
+
 export async function POST(request: Request) {
   try {
     const { question, answer, category, answerMode, sources } =
@@ -41,9 +52,45 @@ export async function POST(request: Request) {
       .single()
 
     if (profile?.role !== 'admin' || !profile?.is_active) {
-      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
+      return NextResponse.json(
+        { error: 'Admin access required' },
+        { status: 403 }
+      )
     }
 
+    // 🔍 DUPLICATE CHECK
+    const { data: existing } = await supabaseAdmin
+      .from('trusted_answers')
+      .select('question')
+      .eq('is_active', true)
+
+    const newQ = normalize(question)
+
+    if (existing && existing.length > 0) {
+      for (const item of existing) {
+        const existingQ = normalize(item.question)
+
+        // Exact match
+        if (existingQ === newQ) {
+          return NextResponse.json(
+            { error: 'This trusted answer already exists.' },
+            { status: 409 }
+          )
+        }
+
+        // Similarity match
+        const score = similarity(newQ, existingQ)
+
+        if (score > 0.7) {
+          return NextResponse.json(
+            { error: 'A similar trusted answer already exists.' },
+            { status: 409 }
+          )
+        }
+      }
+    }
+
+    // ✅ INSERT
     const { error } = await supabaseAdmin.from('trusted_answers').insert({
       question,
       answer,

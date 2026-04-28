@@ -85,21 +85,6 @@ return (
   <main className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50">
     <HeaderBar />
 
-    {/* HERO HEADER */}
-<div className="w-full border-b bg-gradient-to-r from-blue-100 via-blue-50 to-green-100">
-  <div className="mx-auto max-w-6xl px-6 py-8 flex items-center gap-4">
-    <img
-      src="/jar-logosm.png"
-      alt="MFP Publication Agent logo"
-      className="w-12 h-12 object-contain"
-    />
-        <div>
-          <h1 className="text-3xl font-bold">MFP Publication Agent</h1>
-          <p className="text-sm text-gray-600">MASTER FOOD PRESERVERS</p>
-        </div>
-      </div>
-    </div>
-
     <div className="mx-auto max-w-6xl p-6 space-y-8">
       
       {/* ACTION CARDS */}
