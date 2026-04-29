@@ -55,12 +55,12 @@ export default function HeaderBar() {
     const active = pathname === path
 
     return active
-  ? 'rounded-lg bg-black px-3 py-2 text-sm font-medium text-white shadow'
-  : 'rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100'
+      ? 'rounded-lg bg-black px-3 py-2 text-sm font-semibold text-white shadow'
+      : 'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-primary shadow-sm hover:bg-gray-100'
   }
 
   return (
-    <header className="sticky top-0 z-50 border-b bg-gradient-to-r from-blue-100 via-blue-50 to-green-100 shadow-sm">
+    <header className="sticky top-0 z-50 border-b border-gray-300 bg-gradient-to-r from-blue-100 via-blue-50 to-green-100 text-primary shadow-sm">
       <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6">
         <div className="flex flex-col gap-3">
           <Link href="/dashboard" className="flex items-center gap-3">
@@ -71,10 +71,10 @@ export default function HeaderBar() {
             />
 
             <div>
-              <h1 className="text-lg font-bold leading-tight sm:text-xl">
+              <h1 className="text-lg font-bold leading-tight text-primary sm:text-xl">
                 MFP Publication Agent
               </h1>
-              <p className="text-xs tracking-wide text-gray-600">
+              <p className="text-xs font-semibold tracking-wide text-secondary">
                 MASTER FOOD PRESERVERS
               </p>
             </div>
@@ -120,14 +120,14 @@ export default function HeaderBar() {
           </nav>
 
           {userInfo && (
-            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-black/10 pt-2 text-xs sm:text-sm">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-gray-300 pt-2 text-xs text-primary sm:text-sm">
               <div className="flex min-w-0 items-center gap-2">
-                <span className="truncate text-gray-700">
+                <span className="truncate font-medium text-primary">
                   {userInfo.name}
                 </span>
 
                 {isAdmin && (
-                  <span className="shrink-0 rounded-full border bg-white/60 px-2 py-0.5 text-xs">
+                  <span className="shrink-0 rounded-full border border-gray-300 bg-white px-2 py-0.5 text-xs font-semibold text-secondary">
                     admin
                   </span>
                 )}
@@ -136,7 +136,7 @@ export default function HeaderBar() {
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="shrink-0 underline hover:text-black"
+                className="shrink-0 font-semibold text-primary underline hover:text-black"
               >
                 Sign out
               </button>

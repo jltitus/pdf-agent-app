@@ -181,6 +181,18 @@ export default function AdminPage() {
     message: string
   } | null>(null)
 
+  const inputClass =
+    'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-primary'
+  const labelClass = 'mb-1 block text-sm font-semibold text-primary'
+  const secondaryButton =
+    'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-gray-100 disabled:opacity-60'
+  const smallSecondaryButton =
+    'rounded-lg border border-gray-300 bg-white px-3 py-1 text-xs font-semibold text-primary hover:bg-gray-100 disabled:opacity-60'
+  const primaryButton =
+    'rounded-lg bg-black px-4 py-2 text-sm font-semibold text-white shadow-sm disabled:opacity-60'
+  const cardClass = 'rounded-2xl border border-gray-300 bg-white p-6 shadow-sm'
+  const subCardClass = 'rounded-xl border border-gray-300 bg-gray-50 p-4'
+
   useEffect(() => {
     async function init() {
       const { data } = await supabase.auth.getSession()
@@ -265,7 +277,6 @@ export default function AdminPage() {
     const notProcessed = enrichedDocs.filter(
       (d) => !d.page_count || d.page_count === 0
     ).length
-    const zeroPages = notProcessed
 
     const recent = [...enrichedDocs]
       .sort(
@@ -280,7 +291,7 @@ export default function AdminPage() {
       active,
       archived,
       notProcessed,
-      zeroPages,
+      zeroPages: notProcessed,
       recent,
     })
   }
@@ -291,9 +302,7 @@ export default function AdminPage() {
 
     const response = await fetch('/api/access-requests', {
       method: 'GET',
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { Authorization: `Bearer ${token}` },
     })
 
     const result = await response.json()
@@ -345,7 +354,15 @@ export default function AdminPage() {
       (item) => item.evidence_strength?.label === 'Not found'
     )
 
-    const grouped: Record<string, any> = {}
+    const grouped: Record<
+      string,
+      {
+        question: string
+        count: number
+        category?: string | null
+        answer_mode?: string | null
+      }
+    > = {}
 
     items.forEach((item) => {
       const key = item.question.trim().toLowerCase()
@@ -799,9 +816,7 @@ export default function AdminPage() {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          requestId: request.id,
-        }),
+        body: JSON.stringify({ requestId: request.id }),
       })
 
       const result = await res.json().catch(() => ({}))
@@ -970,7 +985,7 @@ export default function AdminPage() {
 
   async function deleteTrustedAnswer(item: TrustedAnswer) {
     const confirmed = window.confirm(
-      `Delete trusted answer for: \"${item.question}\"? This cannot be undone.`
+      `Delete trusted answer for: "${item.question}"? This cannot be undone.`
     )
 
     if (!confirmed) return
@@ -991,7 +1006,10 @@ export default function AdminPage() {
     await loadTrustedAnswers()
   }
 
-  async function updateIssueStatus(item: IssueReport, status: 'open' | 'reviewed' | 'resolved') {
+  async function updateIssueStatus(
+    item: IssueReport,
+    status: 'open' | 'reviewed' | 'resolved'
+  ) {
     setUpdatingIssueId(item.id)
     setMessage(`Updating issue to ${status}...`)
 
@@ -1021,16 +1039,6 @@ export default function AdminPage() {
 
   const pendingRequests = accessRequests.filter((request) => request.status === 'pending')
   const approvedRequests = accessRequests.filter((request) => request.status === 'approved')
-  const filteredApprovedRequests = approvedRequests.filter((request) => {
-    const search = userInviteSearch.trim().toLowerCase()
-
-    if (!search) return true
-
-    return (
-      request.full_name.toLowerCase().includes(search) ||
-      request.email.toLowerCase().includes(search)
-    )
-  })
 
   const filteredInviteDirectory = accessRequests.filter((request) => {
     const search = userInviteSearch.trim().toLowerCase()
@@ -1046,6 +1054,7 @@ export default function AdminPage() {
 
     return matchesSearch && matchesStatus
   })
+
   const openIssues = issueReports.filter((issue) => issue.status === 'open')
   const reviewedIssues = issueReports.filter((issue) => issue.status === 'reviewed')
   const resolvedIssues = issueReports.filter((issue) => issue.status === 'resolved')
@@ -1055,22 +1064,28 @@ export default function AdminPage() {
   )
 
   const topProblemQuestions = Object.values(
-    problemFeedback.reduce((acc: Record<string, { question: string; count: number; types: Set<string> }>, item) => {
-      const questionText = item.question || 'No question saved'
-      const key = questionText.trim().toLowerCase()
+    problemFeedback.reduce(
+      (
+        acc: Record<string, { question: string; count: number; types: Set<string> }>,
+        item
+      ) => {
+        const questionText = item.question || 'No question saved'
+        const key = questionText.trim().toLowerCase()
 
-      if (!acc[key]) {
-        acc[key] = {
-          question: questionText,
-          count: 0,
-          types: new Set<string>(),
+        if (!acc[key]) {
+          acc[key] = {
+            question: questionText,
+            count: 0,
+            types: new Set<string>(),
+          }
         }
-      }
 
-      acc[key].count += 1
-      acc[key].types.add(item.feedback_type.replaceAll('_', ' '))
-      return acc
-    }, {})
+        acc[key].count += 1
+        acc[key].types.add(item.feedback_type.replaceAll('_', ' '))
+        return acc
+      },
+      {}
+    )
   )
     .sort((a, b) => b.count - a.count)
     .slice(0, 5)
@@ -1158,7 +1173,7 @@ export default function AdminPage() {
     return (
       <>
         <HeaderBar />
-        <main className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 p-8">
+        <main className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 p-8 text-primary">
           Loading...
         </main>
       </>
@@ -1169,9 +1184,9 @@ export default function AdminPage() {
     return (
       <>
         <HeaderBar />
-        <main className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 p-8">
-          <h1 className="text-2xl font-bold">Access denied</h1>
-          <p>You must be an admin to manage this app.</p>
+        <main className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 p-8 text-primary">
+          <h1 className="text-2xl font-bold text-primary">Access denied</h1>
+          <p className="mt-2 text-secondary">You must be an admin to manage this app.</p>
         </main>
       </>
     )
@@ -1181,35 +1196,35 @@ export default function AdminPage() {
     <>
       <HeaderBar />
 
-      <main className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50">
-        <div className="mx-auto max-w-6xl px-6 py-8 space-y-8">
+      <main className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 text-primary">
+        <div className="mx-auto max-w-6xl space-y-8 px-6 py-8">
           <div>
-            <h1 className="text-3xl font-bold">Admin: Manage PDF Agent</h1>
-            <p className="text-gray-600">
+            <h1 className="text-3xl font-bold text-primary">Admin: Manage PDF Agent</h1>
+            <p className="mt-1 text-secondary">
               Upload, process, archive, delete, approve or decline access requests, and review tester feedback.
             </p>
           </div>
 
           {message && (
-            <div className="rounded-xl border bg-white p-3 text-sm shadow-sm">
+            <div className="rounded-xl border border-gray-300 bg-white p-3 text-sm text-primary shadow-sm">
               {message}
             </div>
           )}
 
           {approvedUserInfo && (
-            <section className="rounded-2xl border bg-white p-5 space-y-3 shadow-sm">
-              <h2 className="text-xl font-bold">Approved User Invitation</h2>
-              <p className="text-sm text-gray-600">
+            <section className={`${cardClass} space-y-3`}>
+              <h2 className="text-xl font-bold text-primary">Approved User Invitation</h2>
+              <p className="text-sm text-secondary">
                 The user has been approved and should receive an email invitation to set their password.
               </p>
-              <div className="rounded-lg border p-3 text-sm space-y-1">
+              <div className="space-y-1 rounded-lg border border-gray-300 bg-gray-50 p-3 text-sm text-primary">
                 <p><strong>Email:</strong> {approvedUserInfo.email}</p>
                 <p><strong>Status:</strong> {approvedUserInfo.message}</p>
               </div>
             </section>
           )}
 
-          <div className="sticky top-[150px] z-40 rounded-2xl border bg-white/95 p-2 shadow-sm backdrop-blur">
+          <div className="sticky top-[150px] z-40 rounded-2xl border border-gray-300 bg-white/95 p-2 shadow-sm backdrop-blur">
             <div className="flex gap-2 overflow-x-auto">
               {[
                 { key: 'overview', label: 'Overview' },
@@ -1222,10 +1237,10 @@ export default function AdminPage() {
                   key={tab.key}
                   type="button"
                   onClick={() => setActiveTab(tab.key as any)}
-                  className={`shrink-0 rounded-lg px-4 py-2 text-sm font-medium ${
+                  className={`shrink-0 rounded-lg px-4 py-2 text-sm font-semibold ${
                     activeTab === tab.key
                       ? 'bg-black text-white'
-                      : 'border bg-white text-gray-700 hover:bg-gray-50'
+                      : 'border border-gray-300 bg-white text-primary hover:bg-gray-100'
                   }`}
                 >
                   {tab.label}
@@ -1236,1171 +1251,1105 @@ export default function AdminPage() {
 
           {activeTab === 'overview' && (
             <>
-          <section className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
-            {[
-              ['Total documents', documentHealth.total, 'normal'],
-              ['Active', documentHealth.active, 'normal'],
-              ['Archived', documentHealth.archived, 'normal'],
-              ['Processed pages', totalPages, 'normal'],
-              ['Pending requests', pendingRequests.length, 'warning'],
-              ['Approved users', approvedRequests.length, 'success'],
-              ['Open issues', openIssues.length, 'danger'],
-            ].map(([label, value, type]) => {
-              const hasValue = Number(value) > 0
+              <section className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
+                {[
+                  ['Total documents', documentHealth.total, 'normal'],
+                  ['Active', documentHealth.active, 'normal'],
+                  ['Archived', documentHealth.archived, 'normal'],
+                  ['Processed pages', totalPages, 'normal'],
+                  ['Pending requests', pendingRequests.length, 'warning'],
+                  ['Approved users', approvedRequests.length, 'success'],
+                  ['Open issues', openIssues.length, 'danger'],
+                ].map(([label, value, type]) => {
+                  const hasValue = Number(value) > 0
 
-              return (
-                <div
-                  key={label}
-                  className={`rounded-xl border px-3 py-2 text-center shadow-sm transition ${
-                    type === 'warning' && hasValue
-                      ? 'border-yellow-300 bg-yellow-50'
-                      : type === 'danger' && hasValue
-                        ? 'border-red-300 bg-red-50'
-                        : type === 'success' && hasValue
-                          ? 'border-green-300 bg-green-50'
-                          : 'bg-white'
-                  }`}
-                >
-                  <p className="text-[11px] leading-tight text-gray-600">{label}</p>
-                  <p
-                    className={`text-xl font-bold leading-tight ${
-                      type === 'warning' && hasValue
-                        ? 'text-yellow-800'
-                        : type === 'danger' && hasValue
-                          ? 'text-red-700'
-                          : type === 'success' && hasValue
-                            ? 'text-green-700'
-                            : 'text-black'
-                    }`}
-                  >
-                    {value}
-                  </p>
-                </div>
-              )
-            })}
-          </section>
+                  return (
+                    <div
+                      key={label}
+                      className={`rounded-xl border px-3 py-2 text-center shadow-sm ${
+                        type === 'warning' && hasValue
+                          ? 'border-yellow-300 bg-yellow-50'
+                          : type === 'danger' && hasValue
+                            ? 'border-red-300 bg-red-50'
+                            : type === 'success' && hasValue
+                              ? 'border-green-300 bg-green-50'
+                              : 'border-gray-300 bg-white'
+                      }`}
+                    >
+                      <p className="text-[11px] font-medium leading-tight text-secondary">
+                        {label}
+                      </p>
+                      <p
+                        className={`text-xl font-bold leading-tight ${
+                          type === 'warning' && hasValue
+                            ? 'text-yellow-800'
+                            : type === 'danger' && hasValue
+                              ? 'text-red-700'
+                              : type === 'success' && hasValue
+                                ? 'text-green-700'
+                                : 'text-primary'
+                        }`}
+                      >
+                        {value}
+                      </p>
+                    </div>
+                  )
+                })}
+              </section>
+
+              <section className="grid gap-4 lg:grid-cols-2">
+                <section className={`${cardClass} space-y-4`}>
+                  <div>
+                    <h2 className="text-2xl font-bold text-primary">User Analytics</h2>
+                    <p className="text-sm text-secondary">See how testers are using the app.</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="rounded-2xl border border-gray-300 p-4">
+                      <p className="text-sm text-secondary">Questions asked</p>
+                      <p className="text-2xl font-bold text-primary">{userAnalytics.totalQuestions}</p>
+                    </div>
+                    <div className="rounded-2xl border border-gray-300 p-4">
+                      <p className="text-sm text-secondary">Unique users</p>
+                      <p className="text-2xl font-bold text-primary">{userAnalytics.uniqueUsers}</p>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="rounded-2xl border border-gray-300 p-4">
+                      <h3 className="font-bold text-primary">Answer modes</h3>
+                      <div className="mt-3 space-y-2">
+                        {Object.entries(userAnalytics.modeCounts).map(([mode, count]) => (
+                          <div key={mode} className="flex justify-between text-sm text-primary">
+                            <span>{mode}</span>
+                            <span className="font-semibold">{count}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-gray-300 p-4">
+                      <h3 className="font-bold text-primary">Categories</h3>
+                      <div className="mt-3 space-y-2">
+                        {Object.entries(userAnalytics.categoryCounts).map(([cat, count]) => (
+                          <div key={cat} className="flex justify-between text-sm text-primary">
+                            <span>{cat}</span>
+                            <span className="font-semibold">{count}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                <section className={`${cardClass} space-y-4`}>
+                  <div>
+                    <h2 className="text-2xl font-bold text-primary">Document Health</h2>
+                    <p className="text-sm text-secondary">Overview of document processing and readiness.</p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="rounded-lg border border-gray-300 p-4">
+                      <p className="text-xs font-medium text-muted">Not processed</p>
+                      <p className="text-xl font-bold text-red-700">{documentHealth.notProcessed}</p>
+                    </div>
+                    <div className="rounded-lg border border-gray-300 p-4">
+                      <p className="text-xs font-medium text-muted">Zero pages</p>
+                      <p className="text-xl font-bold text-red-700">{documentHealth.zeroPages}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    {[
+                      ['recent', 'Recent uploads'],
+                      ['not_processed', 'Not processed'],
+                      ['zero_pages', 'Zero pages'],
+                    ].map(([key, label]) => (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => setDocumentHealthView(key as any)}
+                        className={`rounded-lg border px-3 py-2 text-sm font-semibold ${
+                          documentHealthView === key
+                            ? 'bg-black text-white'
+                            : 'border-gray-300 bg-white text-primary hover:bg-gray-100'
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+
+                  <div>
+                    <div className="mb-2 flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
+                      <h3 className="text-sm font-semibold text-primary">
+                        {documentHealthView === 'recent'
+                          ? 'Recent uploads'
+                          : documentHealthView === 'not_processed'
+                            ? 'Not processed documents'
+                            : 'Zero-page documents'}
+                      </h3>
+
+                      <p className="text-xs font-medium text-muted">
+                        Showing {documentHealthDocs.length} document
+                        {documentHealthDocs.length === 1 ? '' : 's'}
+                      </p>
+                    </div>
+
+                    {documentHealthDocs.length === 0 ? (
+                      <p className="rounded-lg border border-gray-300 p-3 text-sm text-muted">
+                        No documents found for this view.
+                      </p>
+                    ) : (
+                      <div className="max-h-[420px] space-y-2 overflow-y-auto pr-1">
+                        {documentHealthDocs.map((doc) => {
+                          const isProcessed = (doc.page_count ?? 0) > 0
+
+                          return (
+                            <div key={doc.id} className="rounded-lg border border-gray-300 p-3">
+                              <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                                <div>
+                                  <p className="text-sm font-semibold text-primary">{doc.title || doc.filename}</p>
+                                  <p className="text-xs text-muted">{doc.filename}</p>
+                                  <p className="mt-1 text-xs text-muted">
+                                    Pages: {doc.page_count || 0} • {isProcessed ? 'Processed' : 'Not processed'} •{' '}
+                                    {doc.is_active ? 'Active' : 'Archived'}
+                                  </p>
+                                  <p className="text-xs text-muted">
+                                    {doc.uploaded_at
+                                      ? new Date(doc.uploaded_at).toLocaleString()
+                                      : 'Unknown upload date'}
+                                  </p>
+                                </div>
+
+                                {!isProcessed && (
+                                  <button
+                                    type="button"
+                                    onClick={() => processDocument(doc.id)}
+                                    disabled={processingId === doc.id || deletingId === doc.id}
+                                    className={smallSecondaryButton}
+                                  >
+                                    {processingId === doc.id ? 'Processing...' : 'Process'}
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    )}
+
+                    <p className="mt-3 text-xs text-muted">
+                      Use the Uploaded documents search below to manage all documents.
+                    </p>
+                  </div>
+                </section>
+              </section>
             </>
           )}
 
           {activeTab === 'access' && (
-            <>
-          <section className="rounded-2xl border bg-white p-6 space-y-6 shadow-sm">
-            <div>
-              <h2 className="text-2xl font-bold">Access & Invites</h2>
-              <p className="text-sm text-gray-600">
-                Approve access requests, send direct invites, or resend setup links.
-              </p>
-            </div>
-
-            <form onSubmit={sendDirectInvite} className="rounded-2xl border bg-gray-50 p-4 space-y-3">
+            <section className={`${cardClass} space-y-6`}>
               <div>
-                <h3 className="font-semibold">Send direct invite</h3>
-                <p className="text-sm text-gray-600">
-                  Use this when you want to invite someone without asking them to complete the request form first.
+                <h2 className="text-2xl font-bold text-primary">Access & Invites</h2>
+                <p className="text-sm text-secondary">
+                  Approve access requests, send direct invites, or resend setup links.
                 </p>
               </div>
 
-              <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto] md:items-end">
+              <form onSubmit={sendDirectInvite} className={`${subCardClass} space-y-3`}>
                 <div>
-                  <label className="mb-1 block text-sm font-medium">Full name</label>
-                  <input
-                    value={inviteFullName}
-                    onChange={(e) => setInviteFullName(e.target.value)}
-                    className="w-full rounded-lg border px-3 py-2 text-sm"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <label className="mb-1 block text-sm font-medium">Email</label>
-                  <input
-  type="email"
-  value={inviteEmail}
-  onChange={(e) => {
-    setInviteEmail(e.target.value)
-    setInviteEmailWarning('')
-  }}
-  className={
-    'w-full rounded-lg border px-3 py-2 text-sm ' +
-    (inviteEmailWarning ? 'border-red-300 bg-red-50' : '')
-  }
-  required
-/>
-{inviteEmailWarning && (
-  <p className="mt-1 text-xs text-red-700">{inviteEmailWarning}</p>
-)}
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={sendingInvite}
-                  className="rounded-lg bg-black px-4 py-2 text-sm text-white disabled:opacity-50"
-                >
-                  {sendingInvite ? 'Sending...' : 'Send invite'}
-                </button>
-              </div>
-            </form>
-
-            <div>
-              <h3 className="font-semibold">Pending access requests</h3>
-
-              {pendingRequests.length === 0 ? (
-                <p className="mt-2 text-sm text-gray-600">No pending access requests.</p>
-              ) : (
-                <div className="mt-3 overflow-x-auto rounded-lg border">
-                  <table className="w-full text-sm">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="p-3 text-left">Name</th>
-                        <th className="p-3 text-left">Email</th>
-                        <th className="p-3 text-left">Date</th>
-                        <th className="p-3 text-left">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {pendingRequests.map((request) => (
-                        <tr key={request.id} className="border-t">
-                          <td className="p-3">{request.full_name}</td>
-                          <td className="p-3">{request.email}</td>
-                          <td className="p-3 text-xs">
-                            {new Date(request.created_at).toLocaleString()}
-                          </td>
-                          <td className="p-3">
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => approveAccessRequest(request.id)}
-                                disabled={approvingId === request.id || decliningId === request.id}
-                                className="rounded bg-blue-600 px-3 py-1 text-xs text-white disabled:opacity-50"
-                              >
-                                {approvingId === request.id ? 'Approving...' : 'Approve'}
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => declineRequest(request.id)}
-                                disabled={approvingId === request.id || decliningId === request.id}
-                                className="rounded border px-3 py-1 text-xs disabled:opacity-50"
-                              >
-                                {decliningId === request.id ? 'Declining...' : 'Decline'}
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </div>
-
-            <div>
-              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <h3 className="font-semibold">Users & Invites Directory</h3>
-                  <p className="text-sm text-gray-600">
-                    Search everyone who has requested access or been invited. Review status, invite history, and resend setup instructions.
+                  <h3 className="font-semibold text-primary">Send direct invite</h3>
+                  <p className="text-sm text-secondary">
+                    Use this when you want to invite someone without asking them to complete the request form first.
                   </p>
                 </div>
 
-                <div className="grid w-full gap-2 md:max-w-xl md:grid-cols-[1fr_170px]">
-                  <input
-                    value={userInviteSearch}
-                    onChange={(e) => setUserInviteSearch(e.target.value)}
-                    placeholder="Search name, email, or reason..."
-                    className="w-full rounded-lg border px-3 py-2 text-sm"
-                  />
+                <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto] md:items-end">
+                  <div>
+                    <label className={labelClass}>Full name</label>
+                    <input
+                      value={inviteFullName}
+                      onChange={(e) => setInviteFullName(e.target.value)}
+                      className={inputClass}
+                      required
+                    />
+                  </div>
 
-                  <select
-                    value={userInviteStatusFilter}
-                    onChange={(e) =>
-                      setUserInviteStatusFilter(
-                        e.target.value as 'all' | 'pending' | 'approved' | 'declined'
-                      )
-                    }
-                    className="w-full rounded-lg border px-3 py-2 text-sm"
-                  >
-                    <option value="all">All statuses</option>
-                    <option value="pending">Pending</option>
-                    <option value="approved">Approved</option>
-                    <option value="declined">Declined</option>
-                  </select>
-                </div>
-              </div>
+                  <div>
+                    <label className={labelClass}>Email</label>
+                    <input
+                      type="email"
+                      value={inviteEmail}
+                      onChange={(e) => {
+                        setInviteEmail(e.target.value)
+                        setInviteEmailWarning('')
+                      }}
+                      className={`${inputClass} ${inviteEmailWarning ? 'border-red-300 bg-red-50' : ''}`}
+                      required
+                    />
+                    {inviteEmailWarning && (
+                      <p className="mt-1 text-xs font-medium text-red-700">{inviteEmailWarning}</p>
+                    )}
+                  </div>
 
-              <div className="grid gap-3 md:grid-cols-4">
-                <div className="rounded-xl border bg-gray-50 p-3">
-                  <p className="text-xs text-gray-500">Total records</p>
-                  <p className="text-xl font-bold">{accessRequests.length}</p>
+                  <button type="submit" disabled={sendingInvite} className={primaryButton}>
+                    {sendingInvite ? 'Sending...' : 'Send invite'}
+                  </button>
                 </div>
-                <div className="rounded-xl border bg-gray-50 p-3">
-                  <p className="text-xs text-gray-500">Pending</p>
-                  <p className="text-xl font-bold">{pendingRequests.length}</p>
-                </div>
-                <div className="rounded-xl border bg-gray-50 p-3">
-                  <p className="text-xs text-gray-500">Approved</p>
-                  <p className="text-xl font-bold">{approvedRequests.length}</p>
-                </div>
-                <div className="rounded-xl border bg-gray-50 p-3">
-                  <p className="text-xs text-gray-500">Showing</p>
-                  <p className="text-xl font-bold">{filteredInviteDirectory.length}</p>
-                </div>
-              </div>
+              </form>
 
-              {accessRequests.length === 0 ? (
-                <p className="mt-2 text-sm text-gray-600">No users or invites yet.</p>
-              ) : filteredInviteDirectory.length === 0 ? (
-                <p className="mt-3 rounded-lg border p-3 text-sm text-gray-600">
-                  No users or invites match your search/filter.
-                </p>
-              ) : (
-                <div className="mt-3 max-h-[420px] overflow-y-auto rounded-lg border">
-                  <table className="w-full text-sm">
-                    <thead className="sticky top-0 bg-gray-50">
-                      <tr>
-                        <th className="p-3 text-left">Name</th>
-                        <th className="p-3 text-left">Email</th>
-                        <th className="p-3 text-left">Status</th>
-                        <th className="p-3 text-left">User</th>
-                        <th className="p-3 text-left">Approved</th>
-                        <th className="p-3 text-left">Last invited</th>
-                        <th className="p-3 text-left">Last activity</th>
-                        <th className="p-3 text-left">Invites</th>
-                        <th className="p-3 text-left">Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredInviteDirectory.map((request) => (
-                        <tr key={request.id} className="border-t align-top">
-                          <td className="p-3">
-                            <p className="font-medium">{request.full_name}</p>
-                            {request.reason && (
-                              <p className="mt-1 line-clamp-2 text-xs text-gray-500">
-                                {request.reason}
-                              </p>
-                            )}
-                          </td>
-                          <td className="p-3 text-xs text-gray-600">{request.email}</td>
-                          <td className="p-3">
-                            <span
-                              className={`rounded-full px-2 py-1 text-xs ${
-                                request.status === 'approved'
-                                  ? 'bg-green-100 text-green-700'
-                                  : request.status === 'pending'
-                                    ? 'bg-yellow-100 text-yellow-800'
-                                    : 'bg-gray-100 text-gray-600'
-                              }`}
-                            >
-                              {request.status}
-                            </span>
-                          </td>
-                          <td className="p-3">
-                            <span
-                              className={`rounded-full px-2 py-1 text-xs ${
-                                request.profile_is_active === false
-                                  ? 'bg-red-100 text-red-700'
-                                  : request.profile_is_active === true
-                                    ? 'bg-green-100 text-green-700'
-                                    : 'bg-gray-100 text-gray-600'
-                              }`}
-                            >
-                              {request.profile_is_active === false
-                                ? 'inactive'
-                                : request.profile_is_active === true
-                                  ? request.profile_role || 'active'
-                                  : 'no profile'}
-                            </span>
-                          </td>
-                          <td className="p-3 text-xs text-gray-500">
-                            {request.approved_at
-                              ? new Date(request.approved_at).toLocaleString()
-                              : '—'}
-                          </td>
-                          <td className="p-3 text-xs text-gray-500">
-                            {request.last_invited_at
-                              ? new Date(request.last_invited_at).toLocaleString()
-                              : 'Not tracked'}
-                          </td>
-                          <td className="p-3 text-xs text-gray-500">
-                            {request.last_activity_at
-                              ? new Date(request.last_activity_at).toLocaleString()
-                              : 'No activity'}
-                            {request.last_question && (
-                              <p className="mt-1 line-clamp-2 max-w-[220px] text-gray-600">
-                                {request.last_question}
-                              </p>
-                            )}
-                          </td>
-                          <td className="p-3 text-xs text-gray-500">
-                            {request.invite_count ?? 0}
-                          </td>
-                          <td className="p-3">
-                            <div className="flex flex-wrap gap-2">
-                              {request.status === 'pending' && (
-                                <>
-                                  <button
-                                    type="button"
-                                    onClick={() => approveAccessRequest(request.id)}
-                                    disabled={approvingId === request.id || decliningId === request.id}
-                                    className="rounded bg-blue-600 px-3 py-1 text-xs text-white disabled:opacity-50"
-                                  >
-                                    {approvingId === request.id ? 'Approving...' : 'Approve'}
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => declineRequest(request.id)}
-                                    disabled={approvingId === request.id || decliningId === request.id}
-                                    className="rounded border px-3 py-1 text-xs disabled:opacity-50"
-                                  >
-                                    {decliningId === request.id ? 'Declining...' : 'Decline'}
-                                  </button>
-                                </>
-                              )}
+              <div>
+                <h3 className="font-semibold text-primary">Pending access requests</h3>
 
-                              {request.status === 'approved' && (
-                                <>
-                                  <button
-                                    type="button"
-                                    onClick={() => resendInvite(request)}
-                                    disabled={resendingInviteId === request.id}
-                                    className="rounded-lg border px-3 py-1 text-xs hover:bg-gray-50 disabled:opacity-50"
-                                  >
-                                    {resendingInviteId === request.id ? 'Resending...' : 'Resend'}
-                                  </button>
-
-                                  {request.profile_is_active === false ? (
-                                    <button
-                                      type="button"
-                                      onClick={() => updateUserStatus(request, true)}
-                                      disabled={updatingUserEmail === request.email}
-                                      className="rounded-lg border px-3 py-1 text-xs text-green-700 hover:bg-green-50 disabled:opacity-50"
-                                    >
-                                      {updatingUserEmail === request.email ? 'Updating...' : 'Reactivate'}
-                                    </button>
-                                  ) : (
-                                    <button
-                                      type="button"
-                                      onClick={() => updateUserStatus(request, false)}
-                                      disabled={updatingUserEmail === request.email}
-                                      className="rounded-lg border px-3 py-1 text-xs text-red-700 hover:bg-red-50 disabled:opacity-50"
-                                    >
-                                      {updatingUserEmail === request.email ? 'Updating...' : 'Deactivate'}
-                                    </button>
-                                  )}
-                                </>
-                              )}
-                            </div>
-                          </td>
+                {pendingRequests.length === 0 ? (
+                  <p className="mt-2 text-sm text-secondary">No pending access requests.</p>
+                ) : (
+                  <div className="mt-3 overflow-x-auto rounded-lg border border-gray-300">
+                    <table className="w-full text-sm text-primary">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="p-3 text-left">Name</th>
+                          <th className="p-3 text-left">Email</th>
+                          <th className="p-3 text-left">Date</th>
+                          <th className="p-3 text-left">Action</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {pendingRequests.map((request) => (
+                          <tr key={request.id} className="border-t border-gray-300">
+                            <td className="p-3">{request.full_name}</td>
+                            <td className="p-3">{request.email}</td>
+                            <td className="p-3 text-xs text-muted">
+                              {new Date(request.created_at).toLocaleString()}
+                            </td>
+                            <td className="p-3">
+                              <div className="flex gap-2">
+                                <button
+                                  onClick={() => approveAccessRequest(request.id)}
+                                  disabled={approvingId === request.id || decliningId === request.id}
+                                  className="rounded bg-blue-600 px-3 py-1 text-xs font-semibold text-white disabled:opacity-60"
+                                >
+                                  {approvingId === request.id ? 'Approving...' : 'Approve'}
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => declineRequest(request.id)}
+                                  disabled={approvingId === request.id || decliningId === request.id}
+                                  className={smallSecondaryButton}
+                                >
+                                  {decliningId === request.id ? 'Declining...' : 'Decline'}
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <h3 className="font-semibold text-primary">Users & Invites Directory</h3>
+                    <p className="text-sm text-secondary">
+                      Search everyone who has requested access or been invited.
+                    </p>
+                  </div>
+
+                  <div className="grid w-full gap-2 md:max-w-xl md:grid-cols-[1fr_170px]">
+                    <input
+                      value={userInviteSearch}
+                      onChange={(e) => setUserInviteSearch(e.target.value)}
+                      placeholder="Search name, email, or reason..."
+                      className={inputClass}
+                    />
+
+                    <select
+                      value={userInviteStatusFilter}
+                      onChange={(e) =>
+                        setUserInviteStatusFilter(
+                          e.target.value as 'all' | 'pending' | 'approved' | 'declined'
+                        )
+                      }
+                      className={inputClass}
+                    >
+                      <option value="all">All statuses</option>
+                      <option value="pending">Pending</option>
+                      <option value="approved">Approved</option>
+                      <option value="declined">Declined</option>
+                    </select>
+                  </div>
                 </div>
-              )}
-            </div>
-          </section>
-            </>
+
+                <div className="mt-4 grid gap-3 md:grid-cols-4">
+                  {[
+                    ['Total records', accessRequests.length],
+                    ['Pending', pendingRequests.length],
+                    ['Approved', approvedRequests.length],
+                    ['Showing', filteredInviteDirectory.length],
+                  ].map(([label, value]) => (
+                    <div key={label} className="rounded-xl border border-gray-300 bg-gray-50 p-3">
+                      <p className="text-xs font-medium text-muted">{label}</p>
+                      <p className="text-xl font-bold text-primary">{value}</p>
+                    </div>
+                  ))}
+                </div>
+
+                {accessRequests.length === 0 ? (
+                  <p className="mt-2 text-sm text-secondary">No users or invites yet.</p>
+                ) : filteredInviteDirectory.length === 0 ? (
+                  <p className="mt-3 rounded-lg border border-gray-300 p-3 text-sm text-secondary">
+                    No users or invites match your search/filter.
+                  </p>
+                ) : (
+                  <div className="mt-3 max-h-[420px] overflow-y-auto rounded-lg border border-gray-300">
+                    <table className="w-full text-sm text-primary">
+                      <thead className="sticky top-0 bg-gray-50">
+                        <tr>
+                          <th className="p-3 text-left">Name</th>
+                          <th className="p-3 text-left">Email</th>
+                          <th className="p-3 text-left">Status</th>
+                          <th className="p-3 text-left">User</th>
+                          <th className="p-3 text-left">Approved</th>
+                          <th className="p-3 text-left">Last invited</th>
+                          <th className="p-3 text-left">Last activity</th>
+                          <th className="p-3 text-left">Invites</th>
+                          <th className="p-3 text-left">Action</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredInviteDirectory.map((request) => (
+                          <tr key={request.id} className="border-t border-gray-300 align-top">
+                            <td className="p-3">
+                              <p className="font-semibold text-primary">{request.full_name}</p>
+                              {request.reason && (
+                                <p className="mt-1 line-clamp-2 text-xs text-muted">
+                                  {request.reason}
+                                </p>
+                              )}
+                            </td>
+                            <td className="p-3 text-xs text-secondary">{request.email}</td>
+                            <td className="p-3">
+                              <span
+                                className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                                  request.status === 'approved'
+                                    ? 'bg-green-100 text-green-700'
+                                    : request.status === 'pending'
+                                      ? 'bg-yellow-100 text-yellow-800'
+                                      : 'bg-gray-100 text-secondary'
+                                }`}
+                              >
+                                {request.status}
+                              </span>
+                            </td>
+                            <td className="p-3">
+                              <span
+                                className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                                  request.profile_is_active === false
+                                    ? 'bg-red-100 text-red-700'
+                                    : request.profile_is_active === true
+                                      ? 'bg-green-100 text-green-700'
+                                      : 'bg-gray-100 text-secondary'
+                                }`}
+                              >
+                                {request.profile_is_active === false
+                                  ? 'inactive'
+                                  : request.profile_is_active === true
+                                    ? request.profile_role || 'active'
+                                    : 'no profile'}
+                              </span>
+                            </td>
+                            <td className="p-3 text-xs text-muted">
+                              {request.approved_at
+                                ? new Date(request.approved_at).toLocaleString()
+                                : '—'}
+                            </td>
+                            <td className="p-3 text-xs text-muted">
+                              {request.last_invited_at
+                                ? new Date(request.last_invited_at).toLocaleString()
+                                : 'Not tracked'}
+                            </td>
+                            <td className="p-3 text-xs text-muted">
+                              {request.last_activity_at
+                                ? new Date(request.last_activity_at).toLocaleString()
+                                : 'No activity'}
+                              {request.last_question && (
+                                <p className="mt-1 line-clamp-2 max-w-[220px] text-secondary">
+                                  {request.last_question}
+                                </p>
+                              )}
+                            </td>
+                            <td className="p-3 text-xs text-muted">
+                              {request.invite_count ?? 0}
+                            </td>
+                            <td className="p-3">
+                              <div className="flex flex-wrap gap-2">
+                                {request.status === 'pending' && (
+                                  <>
+                                    <button
+                                      type="button"
+                                      onClick={() => approveAccessRequest(request.id)}
+                                      disabled={approvingId === request.id || decliningId === request.id}
+                                      className="rounded bg-blue-600 px-3 py-1 text-xs font-semibold text-white disabled:opacity-60"
+                                    >
+                                      {approvingId === request.id ? 'Approving...' : 'Approve'}
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => declineRequest(request.id)}
+                                      disabled={approvingId === request.id || decliningId === request.id}
+                                      className={smallSecondaryButton}
+                                    >
+                                      {decliningId === request.id ? 'Declining...' : 'Decline'}
+                                    </button>
+                                  </>
+                                )}
+
+                                {request.status === 'approved' && (
+                                  <>
+                                    <button
+                                      type="button"
+                                      onClick={() => resendInvite(request)}
+                                      disabled={resendingInviteId === request.id}
+                                      className={smallSecondaryButton}
+                                    >
+                                      {resendingInviteId === request.id ? 'Resending...' : 'Resend'}
+                                    </button>
+
+                                    {request.profile_is_active === false ? (
+                                      <button
+                                        type="button"
+                                        onClick={() => updateUserStatus(request, true)}
+                                        disabled={updatingUserEmail === request.email}
+                                        className="rounded-lg border border-gray-300 px-3 py-1 text-xs font-semibold text-green-700 hover:bg-green-50 disabled:opacity-60"
+                                      >
+                                        {updatingUserEmail === request.email ? 'Updating...' : 'Reactivate'}
+                                      </button>
+                                    ) : (
+                                      <button
+                                        type="button"
+                                        onClick={() => updateUserStatus(request, false)}
+                                        disabled={updatingUserEmail === request.email}
+                                        className="rounded-lg border border-gray-300 px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
+                                      >
+                                        {updatingUserEmail === request.email ? 'Updating...' : 'Deactivate'}
+                                      </button>
+                                    )}
+                                  </>
+                                )}
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </section>
           )}
 
           {activeTab === 'feedback' && (
             <>
-          <section className="rounded-2xl border bg-white p-6 space-y-5 shadow-sm">
-            <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-              <div>
-                <h2 className="text-2xl font-bold">Feedback Insights</h2>
-                <p className="text-sm text-gray-600">
-                  Use this view to quickly spot weak answers, missing sources, issue trends, and repeated content gaps.
-                </p>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                <select
-                  value={feedbackFilter}
-                  onChange={(e) =>
-                    setFeedbackFilter(
-                      e.target.value as 'all' | 'helpful' | 'not_helpful' | 'missing_source'
-                    )
-                  }
-                  className="rounded-lg border px-3 py-2 text-sm"
-                >
-                  <option value="all">All feedback</option>
-                  <option value="helpful">Helpful</option>
-                  <option value="not_helpful">Not helpful</option>
-                  <option value="missing_source">Missing source</option>
-                </select>
-
-                <button
-                  type="button"
-                  onClick={exportFeedbackCSV}
-                  className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50"
-                >
-                  Export CSV
-                </button>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-6">
-              <div className="rounded-xl border bg-green-50 p-3">
-                <p className="text-xs text-gray-600">Helpful</p>
-                <p className="text-2xl font-bold text-green-700">{feedbackCounts.helpful}</p>
-              </div>
-              <div className="rounded-xl border bg-red-50 p-3">
-                <p className="text-xs text-gray-600">Not helpful</p>
-                <p className="text-2xl font-bold text-red-700">{feedbackCounts.not_helpful}</p>
-              </div>
-              <div className="rounded-xl border bg-yellow-50 p-3">
-                <p className="text-xs text-gray-600">Missing source</p>
-                <p className="text-2xl font-bold text-yellow-800">{feedbackCounts.missing_source}</p>
-              </div>
-              <div className="rounded-xl border bg-red-50 p-3">
-                <p className="text-xs text-gray-600">Open issues</p>
-                <p className="text-2xl font-bold text-red-700">{openIssues.length}</p>
-              </div>
-              <div className="rounded-xl border bg-yellow-50 p-3">
-                <p className="text-xs text-gray-600">Reviewed</p>
-                <p className="text-2xl font-bold text-yellow-800">{reviewedIssues.length}</p>
-              </div>
-              <div className="rounded-xl border bg-green-50 p-3">
-                <p className="text-xs text-gray-600">Resolved</p>
-                <p className="text-2xl font-bold text-green-700">{resolvedIssues.length}</p>
-              </div>
-            </div>
-
-            <div className="grid gap-4 lg:grid-cols-2">
-              <section className="rounded-2xl border bg-gray-50 p-4">
-                <h3 className="font-semibold">Top problem questions</h3>
-                <p className="text-xs text-gray-600">
-                  Questions marked not helpful or missing source most often.
-                </p>
-
-                {topProblemQuestions.length === 0 ? (
-                  <p className="mt-3 text-sm text-gray-600">No problem questions yet.</p>
-                ) : (
-                  <div className="mt-3 space-y-2">
-                    {topProblemQuestions.map((item, index) => (
-                      <div key={`${item.question}-${index}`} className="rounded-lg border bg-white p-3">
-                        <div className="flex items-start justify-between gap-3">
-                          <p className="line-clamp-2 text-sm font-medium">{item.question}</p>
-                          <span className="shrink-0 rounded-full border px-2 py-1 text-xs">
-                            {item.count}x
-                          </span>
-                        </div>
-                        <p className="mt-1 text-xs text-gray-500">
-                          {Array.from(item.types).join(', ')}
-                        </p>
-                      </div>
-                    ))}
+              <section className={`${cardClass} space-y-5`}>
+                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold text-primary">Feedback Insights</h2>
+                    <p className="text-sm text-secondary">
+                      Spot weak answers, missing sources, issue trends, and repeated content gaps.
+                    </p>
                   </div>
-                )}
-              </section>
 
-              <section className="rounded-2xl border bg-gray-50 p-4">
-                <h3 className="font-semibold">Most common issue types</h3>
-                <p className="text-xs text-gray-600">
-                  Issue report categories submitted by testers.
-                </p>
+                  <div className="flex flex-wrap gap-2">
+                    <select
+                      value={feedbackFilter}
+                      onChange={(e) =>
+                        setFeedbackFilter(
+                          e.target.value as 'all' | 'helpful' | 'not_helpful' | 'missing_source'
+                        )
+                      }
+                      className={inputClass}
+                    >
+                      <option value="all">All feedback</option>
+                      <option value="helpful">Helpful</option>
+                      <option value="not_helpful">Not helpful</option>
+                      <option value="missing_source">Missing source</option>
+                    </select>
 
-                {issueTypeCounts.length === 0 ? (
-                  <p className="mt-3 text-sm text-gray-600">No issue types yet.</p>
-                ) : (
-                  <div className="mt-3 space-y-2">
-                    {issueTypeCounts.map(([issueType, count]) => (
-                      <div key={issueType} className="flex items-center justify-between rounded-lg border bg-white p-3 text-sm">
-                        <span>{issueType}</span>
-                        <span className="rounded-full border px-2 py-1 text-xs">{count}</span>
-                      </div>
-                    ))}
+                    <button type="button" onClick={exportFeedbackCSV} className={secondaryButton}>
+                      Export CSV
+                    </button>
                   </div>
-                )}
-              </section>
-            </div>
+                </div>
 
-            <section className="rounded-2xl border bg-gray-50 p-4">
-              <h3 className="font-semibold">Recent feedback</h3>
-              <p className="text-xs text-gray-600">
-                Filtered list for quick review and export.
-              </p>
-
-              {filteredFeedback.length === 0 ? (
-                <p className="mt-3 text-sm text-gray-600">No feedback submitted yet.</p>
-              ) : (
-                <div className="mt-3 rounded-lg border bg-white divide-y">
-                  {filteredFeedback.map((item) => (
-                    <div key={item.id} className="flex flex-col gap-2 p-3 md:flex-row md:items-start md:justify-between">
-                      <div>
-                        <p className="text-sm font-medium">
-                          {item.question || 'No question saved'}
-                        </p>
-                        {item.answer && (
-                          <p className="mt-1 line-clamp-2 text-xs text-gray-500">
-                            {item.answer}
-                          </p>
-                        )}
-                        <p className="mt-1 text-xs text-gray-500">
-                          {new Date(item.created_at).toLocaleString()}
-                        </p>
-                      </div>
-                      <span className="w-fit rounded bg-gray-100 px-2 py-1 text-xs">
-                        {item.feedback_type.replaceAll('_', ' ')}
-                      </span>
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-6">
+                  {[
+                    ['Helpful', feedbackCounts.helpful, 'green'],
+                    ['Not helpful', feedbackCounts.not_helpful, 'red'],
+                    ['Missing source', feedbackCounts.missing_source, 'yellow'],
+                    ['Open issues', openIssues.length, 'red'],
+                    ['Reviewed', reviewedIssues.length, 'yellow'],
+                    ['Resolved', resolvedIssues.length, 'green'],
+                  ].map(([label, value, color]) => (
+                    <div
+                      key={label}
+                      className={`rounded-xl border p-3 ${
+                        color === 'green'
+                          ? 'border-green-300 bg-green-50'
+                          : color === 'red'
+                            ? 'border-red-300 bg-red-50'
+                            : 'border-yellow-300 bg-yellow-50'
+                      }`}
+                    >
+                      <p className="text-xs font-medium text-secondary">{label}</p>
+                      <p
+                        className={`text-2xl font-bold ${
+                          color === 'green'
+                            ? 'text-green-700'
+                            : color === 'red'
+                              ? 'text-red-700'
+                              : 'text-yellow-800'
+                        }`}
+                      >
+                        {value}
+                      </p>
                     </div>
                   ))}
                 </div>
-              )}
-            </section>
-          </section>
 
-          <section className="rounded-2xl border bg-white p-6 space-y-4 shadow-sm">
-            <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
-              <div>
-                <h2 className="text-2xl font-bold">Issue Reports</h2>
-                <p className="text-sm text-gray-600">
-                  Review tester-reported problems, questions, and source concerns.
-                </p>
-              </div>
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <section className={subCardClass}>
+                    <h3 className="font-semibold text-primary">Top problem questions</h3>
+                    <p className="text-xs text-secondary">
+                      Questions marked not helpful or missing source most often.
+                    </p>
 
-              <span className="w-fit rounded-full border bg-gray-50 px-3 py-1 text-xs text-gray-600">
-                {openIssues.length} open
-              </span>
-            </div>
+                    {topProblemQuestions.length === 0 ? (
+                      <p className="mt-3 text-sm text-secondary">No problem questions yet.</p>
+                    ) : (
+                      <div className="mt-3 space-y-2">
+                        {topProblemQuestions.map((item, index) => (
+                          <div key={`${item.question}-${index}`} className="rounded-lg border border-gray-300 bg-white p-3">
+                            <div className="flex items-start justify-between gap-3">
+                              <p className="line-clamp-2 text-sm font-semibold text-primary">{item.question}</p>
+                              <span className="shrink-0 rounded-full border border-gray-300 px-2 py-1 text-xs text-secondary">
+                                {item.count}x
+                              </span>
+                            </div>
+                            <p className="mt-1 text-xs text-muted">
+                              {Array.from(item.types).join(', ')}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </section>
 
-            {issueReports.length === 0 ? (
-              <p className="text-sm text-gray-600">No issue reports submitted yet.</p>
-            ) : (
-              <div className="space-y-3">
-                {issueReports.map((item) => (
-                  <div key={item.id} className="rounded-lg border p-4">
-                    <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="text-sm font-semibold">{item.issue_type}</p>
-                          <span
-                            className={`rounded-full px-2 py-1 text-xs ${
-                              item.status === 'open'
-                                ? 'bg-red-100 text-red-700'
-                                : item.status === 'reviewed'
-                                  ? 'bg-yellow-100 text-yellow-800'
-                                  : 'bg-green-100 text-green-700'
-                            }`}
-                          >
-                            {item.status}
+                  <section className={subCardClass}>
+                    <h3 className="font-semibold text-primary">Most common issue types</h3>
+                    <p className="text-xs text-secondary">
+                      Issue report categories submitted by testers.
+                    </p>
+
+                    {issueTypeCounts.length === 0 ? (
+                      <p className="mt-3 text-sm text-secondary">No issue types yet.</p>
+                    ) : (
+                      <div className="mt-3 space-y-2">
+                        {issueTypeCounts.map(([issueType, count]) => (
+                          <div key={issueType} className="flex items-center justify-between rounded-lg border border-gray-300 bg-white p-3 text-sm text-primary">
+                            <span>{issueType}</span>
+                            <span className="rounded-full border border-gray-300 px-2 py-1 text-xs text-secondary">{count}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </section>
+                </div>
+
+                <section className={subCardClass}>
+                  <h3 className="font-semibold text-primary">Recent feedback</h3>
+                  <p className="text-xs text-secondary">Filtered list for quick review and export.</p>
+
+                  {filteredFeedback.length === 0 ? (
+                    <p className="mt-3 text-sm text-secondary">No feedback submitted yet.</p>
+                  ) : (
+                    <div className="mt-3 divide-y divide-gray-300 rounded-lg border border-gray-300 bg-white">
+                      {filteredFeedback.map((item) => (
+                        <div key={item.id} className="flex flex-col gap-2 p-3 md:flex-row md:items-start md:justify-between">
+                          <div>
+                            <p className="text-sm font-semibold text-primary">
+                              {item.question || 'No question saved'}
+                            </p>
+                            {item.answer && (
+                              <p className="mt-1 line-clamp-2 text-xs text-muted">
+                                {item.answer}
+                              </p>
+                            )}
+                            <p className="mt-1 text-xs text-muted">
+                              {new Date(item.created_at).toLocaleString()}
+                            </p>
+                          </div>
+                          <span className="w-fit rounded bg-gray-100 px-2 py-1 text-xs font-semibold text-secondary">
+                            {item.feedback_type.replaceAll('_', ' ')}
                           </span>
                         </div>
-
-                        <p className="mt-1 text-xs text-gray-500">
-                          {item.user_email || 'Unknown user'} •{' '}
-                          {new Date(item.created_at).toLocaleString()}
-                        </p>
-
-                        {item.related_question && (
-                          <p className="mt-3 text-sm">
-                            <strong>Related question:</strong> {item.related_question}
-                          </p>
-                        )}
-
-                        <p className="mt-2 whitespace-pre-wrap text-sm text-gray-700">
-                          {item.description}
-                        </p>
-                      </div>
-
-                      <div className="flex shrink-0 flex-wrap gap-2">
-                        {item.status !== 'reviewed' && (
-                          <button
-                            type="button"
-                            onClick={() => updateIssueStatus(item, 'reviewed')}
-                            disabled={updatingIssueId === item.id}
-                            className="rounded-lg border px-3 py-2 text-xs hover:bg-gray-50 disabled:opacity-50"
-                          >
-                            Mark reviewed
-                          </button>
-                        )}
-
-                        {item.status !== 'resolved' && (
-                          <button
-                            type="button"
-                            onClick={() => updateIssueStatus(item, 'resolved')}
-                            disabled={updatingIssueId === item.id}
-                            className="rounded-lg border px-3 py-2 text-xs hover:bg-gray-50 disabled:opacity-50"
-                          >
-                            Mark resolved
-                          </button>
-                        )}
-
-                        {item.status !== 'open' && (
-                          <button
-                            type="button"
-                            onClick={() => updateIssueStatus(item, 'open')}
-                            disabled={updatingIssueId === item.id}
-                            className="rounded-lg border px-3 py-2 text-xs hover:bg-gray-50 disabled:opacity-50"
-                          >
-                            Reopen
-                          </button>
-                        )}
-                      </div>
+                      ))}
                     </div>
+                  )}
+                </section>
+              </section>
+
+              <section className={`${cardClass} space-y-4`}>
+                <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold text-primary">Issue Reports</h2>
+                    <p className="text-sm text-secondary">
+                      Review tester-reported problems, questions, and source concerns.
+                    </p>
                   </div>
-                ))}
-              </div>
-            )}
-          </section>
 
-          <section className="rounded-2xl border bg-white p-6 space-y-4 shadow-sm">
-            <div>
-              <h2 className="text-2xl font-bold">Content Gaps</h2>
-              <p className="text-sm text-gray-600">
-                Questions the agent could not answer and frequently requested topics.
-              </p>
-            </div>
+                  <span className="w-fit rounded-full border border-gray-300 bg-gray-50 px-3 py-1 text-xs font-semibold text-secondary">
+                    {openIssues.length} open
+                  </span>
+                </div>
 
-            <div className="grid gap-4 lg:grid-cols-2">
-              <div>
-                <h3 className="font-semibold">Top repeated gaps</h3>
-                {contentGaps.length === 0 ? (
-                  <p className="mt-2 text-sm text-gray-600">No gaps yet.</p>
+                {issueReports.length === 0 ? (
+                  <p className="text-sm text-secondary">No issue reports submitted yet.</p>
                 ) : (
-                  <div className="mt-3 space-y-2">
-                    {contentGaps.map((gap, index) => (
-                      <div key={index} className="rounded-lg border p-3">
-                        <div className="flex justify-between gap-3">
-                          <p className="text-sm font-semibold">{gap.question}</p>
-                          <span className="text-xs text-gray-500">{gap.count}x</span>
+                  <div className="space-y-3">
+                    {issueReports.map((item) => (
+                      <div key={item.id} className="rounded-lg border border-gray-300 p-4">
+                        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                          <div>
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="text-sm font-semibold text-primary">{item.issue_type}</p>
+                              <span
+                                className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                                  item.status === 'open'
+                                    ? 'bg-red-100 text-red-700'
+                                    : item.status === 'reviewed'
+                                      ? 'bg-yellow-100 text-yellow-800'
+                                      : 'bg-green-100 text-green-700'
+                                }`}
+                              >
+                                {item.status}
+                              </span>
+                            </div>
+
+                            <p className="mt-1 text-xs text-muted">
+                              {item.user_email || 'Unknown user'} • {new Date(item.created_at).toLocaleString()}
+                            </p>
+
+                            {item.related_question && (
+                              <p className="mt-3 text-sm text-primary">
+                                <strong>Related question:</strong> {item.related_question}
+                              </p>
+                            )}
+
+                            <p className="mt-2 whitespace-pre-wrap text-sm text-primary">
+                              {item.description}
+                            </p>
+                          </div>
+
+                          <div className="flex shrink-0 flex-wrap gap-2">
+                            {item.status !== 'reviewed' && (
+                              <button
+                                type="button"
+                                onClick={() => updateIssueStatus(item, 'reviewed')}
+                                disabled={updatingIssueId === item.id}
+                                className={smallSecondaryButton}
+                              >
+                                Mark reviewed
+                              </button>
+                            )}
+
+                            {item.status !== 'resolved' && (
+                              <button
+                                type="button"
+                                onClick={() => updateIssueStatus(item, 'resolved')}
+                                disabled={updatingIssueId === item.id}
+                                className={smallSecondaryButton}
+                              >
+                                Mark resolved
+                              </button>
+                            )}
+
+                            {item.status !== 'open' && (
+                              <button
+                                type="button"
+                                onClick={() => updateIssueStatus(item, 'open')}
+                                disabled={updatingIssueId === item.id}
+                                className={smallSecondaryButton}
+                              >
+                                Reopen
+                              </button>
+                            )}
+                          </div>
                         </div>
-                        <p className="mt-1 text-xs text-gray-500">
-                          Mode: {gap.answer_mode || 'general'}
-                          {gap.category ? ` • Category: ${gap.category}` : ''}
-                        </p>
                       </div>
                     ))}
                   </div>
                 )}
-              </div>
+              </section>
 
-              <div>
-                <h3 className="font-semibold">Latest not found</h3>
-                {noAnswerItems.length === 0 ? (
-                  <p className="mt-2 text-sm text-gray-600">No not-found questions yet.</p>
-                ) : (
-                  <div className="mt-3 space-y-2">
-                    {noAnswerItems.slice(0, 8).map((item) => (
-                      <div key={item.id} className="rounded-lg border p-3">
-                        <p className="text-sm font-semibold">{item.question}</p>
-                        <p className="mt-1 text-xs text-gray-500">
-                          Mode: {item.answer_mode || 'general'}
-                          {item.category ? ` • Category: ${item.category}` : ''}
-                          {' • '}
-                          {new Date(item.created_at).toLocaleString()}
-                        </p>
-                        <button
-                          type="button"
-                          onClick={() => saveTrustedAnswer(item)}
-                          className="mt-2 rounded-lg border px-3 py-1 text-xs hover:bg-gray-50"
-                        >
-                          Save as trusted
-                        </button>
+              <section className={`${cardClass} space-y-4`}>
+                <div>
+                  <h2 className="text-2xl font-bold text-primary">Content Gaps</h2>
+                  <p className="text-sm text-secondary">
+                    Questions the agent could not answer and frequently requested topics.
+                  </p>
+                </div>
+
+                <div className="grid gap-4 lg:grid-cols-2">
+                  <div>
+                    <h3 className="font-semibold text-primary">Top repeated gaps</h3>
+                    {contentGaps.length === 0 ? (
+                      <p className="mt-2 text-sm text-secondary">No gaps yet.</p>
+                    ) : (
+                      <div className="mt-3 space-y-2">
+                        {contentGaps.map((gap, index) => (
+                          <div key={index} className="rounded-lg border border-gray-300 p-3">
+                            <div className="flex justify-between gap-3">
+                              <p className="text-sm font-semibold text-primary">{gap.question}</p>
+                              <span className="text-xs text-muted">{gap.count}x</span>
+                            </div>
+                            <p className="mt-1 text-xs text-muted">
+                              Mode: {gap.answer_mode || 'general'}
+                              {gap.category ? ` • Category: ${gap.category}` : ''}
+                            </p>
+                          </div>
+                        ))}
                       </div>
-                    ))}
+                    )}
                   </div>
-                )}
-              </div>
-            </div>
-          </section>
+
+                  <div>
+                    <h3 className="font-semibold text-primary">Latest not found</h3>
+                    {noAnswerItems.length === 0 ? (
+                      <p className="mt-2 text-sm text-secondary">No not-found questions yet.</p>
+                    ) : (
+                      <div className="mt-3 space-y-2">
+                        {noAnswerItems.slice(0, 8).map((item) => (
+                          <div key={item.id} className="rounded-lg border border-gray-300 p-3">
+                            <p className="text-sm font-semibold text-primary">{item.question}</p>
+                            <p className="mt-1 text-xs text-muted">
+                              Mode: {item.answer_mode || 'general'}
+                              {item.category ? ` • Category: ${item.category}` : ''}
+                              {' • '}
+                              {new Date(item.created_at).toLocaleString()}
+                            </p>
+                            <button
+                              type="button"
+                              onClick={() => saveTrustedAnswer(item)}
+                              className={`mt-2 ${smallSecondaryButton}`}
+                            >
+                              Save as trusted
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </section>
             </>
           )}
 
-          {activeTab === 'overview' && (
+          {activeTab === 'documents' && (
             <>
-          <section className="grid gap-4 lg:grid-cols-2">
-            <section className="rounded-2xl border bg-white p-6 space-y-4 shadow-sm">
-              <div>
-                <h2 className="text-2xl font-bold">User Analytics</h2>
-                <p className="text-sm text-gray-600">
-                  See how testers are using the app.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-2xl border p-4">
-                  <p className="text-sm text-gray-600">Questions asked</p>
-                  <p className="text-2xl font-bold">{userAnalytics.totalQuestions}</p>
+              <section className={`${cardClass} space-y-4`}>
+                <div>
+                  <h2 className="text-2xl font-bold text-primary">Upload PDF</h2>
+                  <p className="text-sm text-secondary">
+                    Add active publications for the agent to search.
+                  </p>
                 </div>
-                <div className="rounded-2xl border p-4">
-                  <p className="text-sm text-gray-600">Unique users</p>
-                  <p className="text-2xl font-bold">{userAnalytics.uniqueUsers}</p>
-                </div>
-              </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-2xl border p-4">
-                  <h3 className="font-bold">Answer modes</h3>
-                  <div className="mt-3 space-y-2">
-                    {Object.entries(userAnalytics.modeCounts).map(([mode, count]) => (
-                      <div key={mode} className="flex justify-between text-sm">
-                        <span>{mode}</span>
-                        <span className="font-semibold">{count}</span>
-                      </div>
-                    ))}
+                <form onSubmit={handleUpload} className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <label className={labelClass}>Title</label>
+                    <input
+                      value={title}
+                      onChange={(e) => setTitle(e.target.value)}
+                      placeholder="Example: Drying Fruits and Vegetables"
+                      className={inputClass}
+                      required
+                    />
                   </div>
-                </div>
 
-                <div className="rounded-2xl border p-4">
-                  <h3 className="font-bold">Categories</h3>
-                  <div className="mt-3 space-y-2">
-                    {Object.entries(userAnalytics.categoryCounts).map(([cat, count]) => (
-                      <div key={cat} className="flex justify-between text-sm">
-                        <span>{cat}</span>
-                        <span className="font-semibold">{count}</span>
-                      </div>
-                    ))}
+                  <div>
+                    <label className={labelClass}>Category</label>
+                    <input
+                      value={category}
+                      onChange={(e) => setCategory(e.target.value)}
+                      placeholder="Example: Food safety, Canning, Freezing"
+                      className={inputClass}
+                    />
                   </div>
-                </div>
-              </div>
-            </section>
 
-            <section className="rounded-2xl border bg-white p-6 space-y-4 shadow-sm">
-              <div>
-                <h2 className="text-2xl font-bold">Document Health</h2>
-                <p className="text-sm text-gray-600">
-                  Overview of document processing and readiness.
-                </p>
-              </div>
+                  <div>
+                    <label className={labelClass}>Version</label>
+                    <input
+                      value={version}
+                      onChange={(e) => setVersion(e.target.value)}
+                      placeholder="Example: 2026, v1, current"
+                      className={inputClass}
+                    />
+                  </div>
 
-              <div className="grid grid-cols-2 gap-3">
-                <div className="rounded-lg border p-4">
-                  <p className="text-xs text-gray-500">Not processed</p>
-                  <p className="text-xl font-bold text-red-600">
-                    {documentHealth.notProcessed}
-                  </p>
-                </div>
-                <div className="rounded-lg border p-4">
-                  <p className="text-xs text-gray-500">Zero pages</p>
-                  <p className="text-xl font-bold text-red-600">
-                    {documentHealth.zeroPages}
-                  </p>
-                </div>
-              </div>
+                  <div>
+                    <label className={labelClass}>PDF file</label>
+                    <input
+                      type="file"
+                      accept="application/pdf"
+                      onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-primary"
+                      required
+                    />
+                  </div>
 
-              <div className="flex flex-wrap gap-2">
-                <button
-                  type="button"
-                  onClick={() => setDocumentHealthView('recent')}
-                  className={`rounded-lg border px-3 py-2 text-sm ${
-                    documentHealthView === 'recent'
-                      ? 'bg-black text-white'
-                      : 'hover:bg-gray-50'
-                  }`}
-                >
-                  Recent uploads
-                </button>
+                  <button type="submit" className={primaryButton}>
+                    Upload PDF
+                  </button>
+                </form>
+              </section>
 
-                <button
-                  type="button"
-                  onClick={() => setDocumentHealthView('not_processed')}
-                  className={`rounded-lg border px-3 py-2 text-sm ${
-                    documentHealthView === 'not_processed'
-                      ? 'bg-black text-white'
-                      : 'hover:bg-gray-50'
-                  }`}
-                >
-                  Not processed
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setDocumentHealthView('zero_pages')}
-                  className={`rounded-lg border px-3 py-2 text-sm ${
-                    documentHealthView === 'zero_pages'
-                      ? 'bg-black text-white'
-                      : 'hover:bg-gray-50'
-                  }`}
-                >
-                  Zero pages
-                </button>
-              </div>
-
-              <div>
-                <div className="mb-2 flex flex-col gap-1 md:flex-row md:items-center md:justify-between">
-                  <h3 className="text-sm font-semibold">
-                    {documentHealthView === 'recent'
-                      ? 'Recent uploads'
-                      : documentHealthView === 'not_processed'
-                        ? 'Not processed documents'
-                        : 'Zero-page documents'}
-                  </h3>
-
-                  <p className="text-xs text-gray-500">
-                    Showing {documentHealthDocs.length} document
-                    {documentHealthDocs.length === 1 ? '' : 's'}
+              <section className={`${cardClass} space-y-4`}>
+                <div>
+                  <h2 className="text-2xl font-bold text-primary">Uploaded documents</h2>
+                  <p className="text-sm text-secondary">
+                    Processed documents are split into page-level files for better source citations.
                   </p>
                 </div>
 
-                {documentHealthDocs.length === 0 ? (
-                  <p className="rounded-lg border p-3 text-sm text-gray-500">
-                    No documents found for this view.
+                <div className="grid gap-3 md:grid-cols-[1fr_220px]">
+                  <input
+                    value={documentSearch}
+                    onChange={(e) => setDocumentSearch(e.target.value)}
+                    placeholder="Search title, filename, category, or version..."
+                    className={inputClass}
+                  />
+
+                  <select
+                    value={documentStatusFilter}
+                    onChange={(e) =>
+                      setDocumentStatusFilter(
+                        e.target.value as 'all' | 'active' | 'archived' | 'processed' | 'not_processed'
+                      )
+                    }
+                    className={inputClass}
+                  >
+                    <option value="all">All documents</option>
+                    <option value="active">Active only</option>
+                    <option value="archived">Archived only</option>
+                    <option value="processed">Processed only</option>
+                    <option value="not_processed">Not processed only</option>
+                  </select>
+                </div>
+
+                <div className="flex flex-col gap-2 text-sm text-secondary md:flex-row md:items-center md:justify-between">
+                  <p>
+                    Showing <strong>{filteredDocumentsForAdmin.length}</strong> of{' '}
+                    <strong>{documents.length}</strong> uploaded documents
+                  </p>
+
+                  {(documentSearch || documentStatusFilter !== 'all') && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDocumentSearch('')
+                        setDocumentStatusFilter('all')
+                      }}
+                      className={smallSecondaryButton}
+                    >
+                      Clear filters
+                    </button>
+                  )}
+                </div>
+
+                {filteredDocumentsForAdmin.length === 0 ? (
+                  <p className="rounded-lg border border-gray-300 p-3 text-sm text-secondary">
+                    No documents match your search/filter.
                   </p>
                 ) : (
-                  <div className="max-h-[420px] space-y-2 overflow-y-auto pr-1">
-                    {documentHealthDocs.map((doc) => {
+                  <div className="space-y-3">
+                    {filteredDocumentsForAdmin.map((doc) => {
                       const isProcessed = (doc.page_count ?? 0) > 0
 
                       return (
-                        <div key={doc.id} className="rounded-lg border p-3">
-                          <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                        <div key={doc.id} className="rounded-xl border border-gray-300 bg-white p-4">
+                          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                             <div>
-                              <p className="text-sm font-medium">{doc.title || doc.filename}</p>
-                              <p className="text-xs text-gray-500">{doc.filename}</p>
-                              <p className="mt-1 text-xs text-gray-500">
-                                Pages: {doc.page_count || 0} •{' '}
-                                {isProcessed ? 'Processed' : 'Not processed'} •{' '}
-                                {doc.is_active ? 'Active' : 'Archived'}
+                              <p className="font-semibold text-primary">{doc.title || doc.filename}</p>
+                              <p className="mt-1 text-xs text-muted">{doc.filename}</p>
+                              <p className="mt-1 text-xs text-muted">
+                                Category: {doc.category || 'Uncategorized'} • Version: {doc.version || '—'}
                               </p>
-                              <p className="text-xs text-gray-500">
-                                {doc.uploaded_at
-                                  ? new Date(doc.uploaded_at).toLocaleString()
-                                  : 'Unknown upload date'}
+                              <p className="mt-1 text-xs text-muted">
+                                Pages: {doc.page_count || 0} • {isProcessed ? 'Processed' : 'Not processed'} •{' '}
+                                {doc.is_active ? 'Active' : 'Archived'}
                               </p>
                             </div>
 
-                            {!isProcessed && (
+                            <div className="flex flex-wrap gap-2">
+                              {!isProcessed && (
+                                <button
+                                  type="button"
+                                  onClick={() => processDocument(doc.id)}
+                                  disabled={processingId === doc.id || deletingId === doc.id}
+                                  className={smallSecondaryButton}
+                                >
+                                  {processingId === doc.id ? 'Processing...' : 'Process'}
+                                </button>
+                              )}
+
                               <button
                                 type="button"
-                                onClick={() => processDocument(doc.id)}
-                                disabled={processingId === doc.id || deletingId === doc.id}
-                                className="w-fit rounded-lg border px-3 py-2 text-xs hover:bg-gray-50 disabled:opacity-50"
+                                onClick={() => updateDocumentStatus(doc.id, !doc.is_active)}
+                                disabled={updatingId === doc.id || deletingId === doc.id}
+                                className={smallSecondaryButton}
                               >
-                                {processingId === doc.id ? 'Processing...' : 'Process'}
+                                {updatingId === doc.id
+                                  ? 'Updating...'
+                                  : doc.is_active
+                                    ? 'Archive'
+                                    : 'Unarchive'}
                               </button>
-                            )}
+
+                              <button
+                                type="button"
+                                onClick={() => deleteDocument(doc.id, doc.title || doc.filename)}
+                                disabled={deletingId === doc.id}
+                                className="rounded-lg border border-gray-300 bg-white px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
+                              >
+                                {deletingId === doc.id ? 'Deleting...' : 'Delete'}
+                              </button>
+                            </div>
                           </div>
                         </div>
                       )
                     })}
                   </div>
                 )}
-
-                <p className="mt-3 text-xs text-gray-500">
-                  Use the Uploaded documents search below to manage all documents.
-                </p>
-              </div>
-            </section>
-          </section>
+              </section>
             </>
           )}
 
           {activeTab === 'trusted' && (
-            <>
-          <section className="rounded-2xl border bg-white p-6 space-y-4 shadow-sm">
-            <div>
-              <h2 className="text-2xl font-bold">Trusted Answers</h2>
-              <p className="text-sm text-gray-600">
-                Manage administrator-approved answers reused by chat before calling AI search.
-              </p>
-            </div>
+            <section className={`${cardClass} space-y-4`}>
+              <div>
+                <h2 className="text-2xl font-bold text-primary">Trusted Answers</h2>
+                <p className="text-sm text-secondary">
+                  Manage administrator-approved answers reused by chat before calling AI search.
+                </p>
+              </div>
 
-            {trustedAnswers.length === 0 ? (
-              <p className="text-sm text-gray-600">No trusted answers saved yet.</p>
-            ) : (
-              <div className="space-y-3">
-                {trustedAnswers.map((item) => (
-                  <div key={item.id} className="rounded-lg border p-4 space-y-3">
-                    {editingTrustedId === item.id ? (
-                      <>
-                        <div>
-                          <label className="mb-1 block text-sm font-medium">
-                            Trusted question
-                          </label>
-                          <input
-                            value={trustedEditQuestion}
-                            onChange={(e) => setTrustedEditQuestion(e.target.value)}
-                            className="w-full rounded-lg border px-3 py-2 text-sm"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="mb-1 block text-sm font-medium">
-                            Trusted answer
-                          </label>
-                          <textarea
-                            value={trustedEditAnswer}
-                            onChange={(e) => setTrustedEditAnswer(e.target.value)}
-                            className="min-h-[160px] w-full rounded-lg border px-3 py-2 text-sm"
-                          />
-                        </div>
-
-                        <div className="flex flex-wrap gap-2">
-                          <button
-                            type="button"
-                            onClick={() => updateTrustedAnswer(item)}
-                            className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50"
-                          >
-                            Save changes
-                          </button>
-                          <button
-                            type="button"
-                            onClick={cancelEditTrustedAnswer}
-                            className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50"
-                          >
-                            Cancel
-                          </button>
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+              {trustedAnswers.length === 0 ? (
+                <p className="text-sm text-secondary">No trusted answers saved yet.</p>
+              ) : (
+                <div className="space-y-3">
+                  {trustedAnswers.map((item) => (
+                    <div key={item.id} className="space-y-3 rounded-lg border border-gray-300 p-4">
+                      {editingTrustedId === item.id ? (
+                        <>
                           <div>
-                            <div className="flex flex-wrap items-center gap-2">
-                              <p className="font-semibold text-sm">{item.question}</p>
-                              <span
-                                className={`rounded px-2 py-1 text-xs ${
-                                  item.is_active
-                                    ? 'bg-green-100 text-green-700'
-                                    : 'bg-gray-100 text-gray-600'
-                                }`}
-                              >
-                                {item.is_active ? 'Active' : 'Inactive'}
-                              </span>
-                            </div>
+                            <label className={labelClass}>Trusted question</label>
+                            <input
+                              value={trustedEditQuestion}
+                              onChange={(e) => setTrustedEditQuestion(e.target.value)}
+                              className={inputClass}
+                            />
+                          </div>
 
-                            <p className="mt-1 text-xs text-gray-500">
-                              Mode: {item.answer_mode || 'general'}
-                              {item.category ? ` • Category: ${item.category}` : ''}
-                              {' • '}
-                              {new Date(item.created_at).toLocaleString()}
-                            </p>
+                          <div>
+                            <label className={labelClass}>Trusted answer</label>
+                            <textarea
+                              value={trustedEditAnswer}
+                              onChange={(e) => setTrustedEditAnswer(e.target.value)}
+                              className="min-h-[160px] w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-primary"
+                            />
                           </div>
 
                           <div className="flex flex-wrap gap-2">
                             <button
                               type="button"
-                              onClick={() => toggleTrustedAnswer(item)}
-                              className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50"
+                              onClick={() => updateTrustedAnswer(item)}
+                              className={primaryButton}
                             >
-                              {item.is_active ? 'Deactivate' : 'Activate'}
+                              Save changes
                             </button>
 
                             <button
                               type="button"
+                              onClick={cancelEditTrustedAnswer}
+                              className={secondaryButton}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                            <div>
+                              <p className="font-semibold text-primary">{item.question}</p>
+                              <p className="mt-1 whitespace-pre-wrap text-sm text-secondary">
+                                {item.answer}
+                              </p>
+                              <p className="mt-2 text-xs text-muted">
+                                Mode: {item.answer_mode || 'general'}
+                                {item.category ? ` • Category: ${item.category}` : ''}
+                                {' • '}
+                                {new Date(item.created_at).toLocaleString()}
+                              </p>
+                            </div>
+
+                            <span
+                              className={`w-fit rounded-full px-2 py-1 text-xs font-semibold ${
+                                item.is_active
+                                  ? 'bg-green-100 text-green-700'
+                                  : 'bg-gray-100 text-secondary'
+                              }`}
+                            >
+                              {item.is_active ? 'active' : 'inactive'}
+                            </span>
+                          </div>
+
+                          <div className="flex flex-wrap gap-2 border-t border-gray-300 pt-3">
+                            <button
+                              type="button"
                               onClick={() => startEditTrustedAnswer(item)}
-                              className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50"
+                              className={smallSecondaryButton}
                             >
                               Edit
                             </button>
 
                             <button
                               type="button"
+                              onClick={() => toggleTrustedAnswer(item)}
+                              className={smallSecondaryButton}
+                            >
+                              {item.is_active ? 'Deactivate' : 'Activate'}
+                            </button>
+
+                            <button
+                              type="button"
                               onClick={() => deleteTrustedAnswer(item)}
-                              className="rounded-lg border px-3 py-2 text-sm text-red-700 hover:bg-red-50"
+                              className="rounded-lg border border-gray-300 bg-white px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-50"
                             >
                               Delete
                             </button>
                           </div>
-                        </div>
-
-                        <p className="line-clamp-3 text-sm text-gray-600">
-                          {item.answer}
-                        </p>
-                      </>
-                    )}
-                  </div>
-                ))}
-              </div>
-            )}
-          </section>
-            </>
-          )}
-
-          {activeTab === 'documents' && (
-            <>
-          <section className="grid gap-6 lg:grid-cols-[380px_1fr]">
-            <form onSubmit={handleUpload} className="rounded-2xl border bg-white p-6 space-y-4 shadow-sm">
-              <div>
-                <h2 className="text-xl font-bold mb-1">Upload a PDF</h2>
-                <p className="text-sm text-gray-600">
-                  Upload first, then process it for page-aware AI search.
-                </p>
-              </div>
-
-              <div>
-                <label className="mb-1 block text-sm font-medium">Document title</label>
-                <input
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full rounded-lg border px-3 py-2"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="mb-1 block text-sm font-medium">Category</label>
-                <input
-                  value={category}
-                  onChange={(e) => setCategory(e.target.value)}
-                  placeholder="Example: Food safety, Canning, Freezing"
-                  className="w-full rounded-lg border px-3 py-2"
-                />
-              </div>
-
-              <div>
-                <label className="mb-1 block text-sm font-medium">Version</label>
-                <input
-                  value={version}
-                  onChange={(e) => setVersion(e.target.value)}
-                  placeholder="Example: 2026, v1, current"
-                  className="w-full rounded-lg border px-3 py-2"
-                />
-              </div>
-
-              <div>
-                <label className="mb-1 block text-sm font-medium">PDF file</label>
-                <input
-                  type="file"
-                  accept="application/pdf"
-                  onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                  className="w-full"
-                  required
-                />
-              </div>
-
-              <button type="submit" className="rounded-lg bg-black px-4 py-2 text-white">
-                Upload PDF
-              </button>
-            </form>
-
-            <section className="rounded-2xl border bg-white p-6 space-y-4 shadow-sm">
-              <div>
-                <h2 className="text-2xl font-bold">Uploaded documents</h2>
-                <p className="text-sm text-gray-600">
-                  Processed documents are split into page-level files for better source citations.
-                </p>
-              </div>
-
-              <div className="grid gap-3 md:grid-cols-[1fr_220px]">
-                <input
-                  value={documentSearch}
-                  onChange={(e) => setDocumentSearch(e.target.value)}
-                  placeholder="Search title, filename, category, or version..."
-                  className="w-full rounded-lg border px-3 py-2 text-sm"
-                />
-
-                <select
-                  value={documentStatusFilter}
-                  onChange={(e) =>
-                    setDocumentStatusFilter(
-                      e.target.value as 'all' | 'active' | 'archived' | 'processed' | 'not_processed'
-                    )
-                  }
-                  className="w-full rounded-lg border px-3 py-2 text-sm"
-                >
-                  <option value="all">All documents</option>
-                  <option value="active">Active only</option>
-                  <option value="archived">Archived only</option>
-                  <option value="processed">Processed only</option>
-                  <option value="not_processed">Not processed only</option>
-                </select>
-              </div>
-
-              <div className="flex flex-col gap-2 text-sm text-gray-600 md:flex-row md:items-center md:justify-between">
-                <p>
-                  Showing <strong>{filteredDocumentsForAdmin.length}</strong> of{' '}
-                  <strong>{documents.length}</strong> uploaded documents
-                </p>
-
-                {(documentSearch || documentStatusFilter !== 'all') && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setDocumentSearch('')
-                      setDocumentStatusFilter('all')
-                    }}
-                    className="w-fit rounded-lg border px-3 py-1 text-xs hover:bg-gray-50"
-                  >
-                    Clear filters
-                  </button>
-                )}
-              </div>
-
-              {documents.length === 0 ? (
-                <p>No documents uploaded yet.</p>
-              ) : filteredDocumentsForAdmin.length === 0 ? (
-                <p className="rounded-lg border p-4 text-sm text-gray-600">
-                  No documents match your current search or filter.
-                </p>
-              ) : (
-                <div className="max-h-[650px] space-y-3 overflow-y-auto pr-1">
-                  {filteredDocumentsForAdmin.map((doc) => {
-                    const isProcessed = (doc.page_count ?? 0) > 0
-                    const uploadedDate = doc.uploaded_at
-                      ? new Date(doc.uploaded_at).toLocaleString()
-                      : 'Unknown'
-
-                    return (
-                      <div
-                        key={doc.id}
-                        className={`rounded-2xl border p-4 ${doc.is_active ? '' : 'opacity-60'}`}
-                      >
-                        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                          <div className="space-y-2">
-                            <div>
-                              <p className="font-semibold">{doc.title}</p>
-                              <p className="text-sm text-gray-600">{doc.filename}</p>
-                            </div>
-
-                            <div className="flex flex-wrap gap-2 text-xs">
-                              <span className="rounded-full border px-2 py-1">
-                                {doc.is_active ? 'Active' : 'Archived'}
-                              </span>
-                              <span className="rounded-full border px-2 py-1">
-                                {isProcessed ? 'Processed' : 'Not processed'}
-                              </span>
-                              <span className="rounded-full border px-2 py-1">
-                                Pages: {doc.page_count ?? 0}
-                              </span>
-                            </div>
-
-                            <p className="text-xs text-gray-500">
-                              Category: {doc.category || 'None'} • Version: {doc.version || 'None'} • Uploaded: {uploadedDate}
-                            </p>
-                          </div>
-
-                          <div className="flex flex-wrap gap-2">
-                            <button
-                              onClick={() => updateDocumentStatus(doc.id, !doc.is_active)}
-                              disabled={updatingId === doc.id || deletingId === doc.id}
-                              className="rounded-lg border px-3 py-2 text-sm"
-                            >
-                              {updatingId === doc.id
-                                ? 'Updating...'
-                                : doc.is_active
-                                  ? 'Archive'
-                                  : 'Unarchive'}
-                            </button>
-
-                            <button
-                              onClick={() => processDocument(doc.id)}
-                              disabled={processingId === doc.id || deletingId === doc.id}
-                              className="rounded-lg border px-3 py-2 text-sm"
-                            >
-                              {processingId === doc.id
-                                ? 'Processing...'
-                                : isProcessed
-                                  ? 'Reprocess'
-                                  : 'Process'}
-                            </button>
-
-                            <button
-                              onClick={() => deleteDocument(doc.id, doc.title)}
-                              disabled={deletingId === doc.id}
-                              className="rounded-lg border px-3 py-2 text-sm text-red-700"
-                            >
-                              {deletingId === doc.id ? 'Deleting...' : 'Delete'}
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  })}
+                        </>
+                      )}
+                    </div>
+                  ))}
                 </div>
               )}
             </section>
-          </section>
-            </>
           )}
         </div>
       </main>

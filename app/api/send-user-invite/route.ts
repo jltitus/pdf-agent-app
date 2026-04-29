@@ -58,7 +58,7 @@ async function sendOnboardingEmail({
         <li>Open the setup email from Supabase and set your password.</li>
         <li>Go to <a href="${siteUrl}/login">${siteUrl}/login</a>.</li>
         <li>Use the Help page first for testing instructions.</li>
-        <li>If something seems wrong, use Help → Report an Issue.</li>
+        <li>If something seems wrong, use Help Report an Issue.</li>
       </ol>
       <p>If the setup email is expired or missing, use “Forgot password” from the login page.</p>
     `,

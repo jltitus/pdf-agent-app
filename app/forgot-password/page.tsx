@@ -44,12 +44,12 @@ export default function ForgotPasswordPage() {
             required
           />
 
-          {message && <p className="text-sm text-gray-600">{message}</p>}
+          {message && <p className="text-sm text-secondary">{message}</p>}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-black text-white py-2 disabled:opacity-50"
+            className="w-full rounded-lg bg-black text-white py-2 disabled:opacity-60"
           >
             {loading ? 'Sending...' : 'Send reset email'}
           </button>

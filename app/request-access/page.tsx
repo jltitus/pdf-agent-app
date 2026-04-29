@@ -37,70 +37,90 @@ export default function RequestAccessPage() {
   }
 
   return (
-    <main className="min-h-screen p-8 flex items-center justify-center">
-      <div className="w-full max-w-lg rounded-2xl border p-6 space-y-5">
+    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-green-50 p-8 text-primary">
+      <div className="w-full max-w-lg rounded-2xl border border-gray-300 bg-white p-6 shadow-sm space-y-5">
+        
+        {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold">Request Access</h1>
-          <p className="text-sm text-gray-600 mt-2">
-            Request access to the PDF Agent. Access is manually approved.
+          <h1 className="text-2xl font-bold text-primary">Request Access</h1>
+          <p className="mt-2 text-sm text-secondary">
+            Request access to the MFP Publication Agent. Access is manually approved.
           </p>
         </div>
 
         {submitted ? (
           <div className="space-y-4">
-            <div className="rounded-lg border p-4 text-sm">
+            <div className="rounded-lg border border-gray-300 bg-gray-50 p-4 text-sm text-primary">
               {message}
             </div>
 
-            <Link href="/login" className="text-sm underline">
+            <Link href="/login" className="text-sm font-medium underline text-primary">
               Back to sign in
             </Link>
           </div>
         ) : (
           <form onSubmit={submitRequest} className="space-y-4">
+            
+            {/* Full Name */}
             <div>
-              <label className="block text-sm font-medium mb-1">Full name</label>
+              <label className="mb-1 block text-sm font-semibold text-primary">
+                Full name
+              </label>
               <input
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="w-full rounded-lg border px-3 py-2"
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-primary"
                 required
               />
             </div>
 
+            {/* Email */}
             <div>
-              <label className="block text-sm font-medium mb-1">Email</label>
+              <label className="mb-1 block text-sm font-semibold text-primary">
+                Email
+              </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-lg border px-3 py-2"
+                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-primary"
                 required
               />
             </div>
 
+            {/* Reason */}
             <div>
-              <label className="block text-sm font-medium mb-1">
+              <label className="mb-1 block text-sm font-semibold text-primary">
                 Why are you requesting access?
               </label>
               <textarea
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                className="w-full min-h-28 rounded-lg border px-3 py-2"
+                className="w-full min-h-28 rounded-lg border border-gray-300 bg-white px-3 py-2 text-primary"
                 placeholder="Optional"
               />
             </div>
 
-            {message && <p className="text-sm text-gray-600">{message}</p>}
+            {/* Message */}
+            {message && (
+              <p className="text-sm text-secondary">
+                {message}
+              </p>
+            )}
 
+            {/* Submit */}
             <button
               type="submit"
-              className="w-full rounded-lg bg-black text-white py-2"
+              className="w-full rounded-lg bg-black py-2 font-semibold text-white shadow-sm"
             >
               Submit request
             </button>
 
-            <Link href="/login" className="block text-center text-sm underline">
+            {/* Back */}
+            <Link
+              href="/login"
+              className="block text-center text-sm font-medium underline text-primary"
+            >
               Back to sign in
             </Link>
           </form>

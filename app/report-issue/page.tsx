@@ -45,9 +45,7 @@ export default function ReportIssuePage() {
 
     const notificationResponse = await fetch('/api/send-issue-notification', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         issueType,
         description,
@@ -78,9 +76,11 @@ export default function ReportIssuePage() {
     <>
       <HeaderBar />
 
-      <main className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50">
+      <main className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 text-primary">
         <div className="mx-auto max-w-3xl px-6 py-8">
-          <section className="rounded-3xl border bg-white p-8 shadow-sm">
+          <section className="rounded-3xl border border-gray-300 bg-white p-8 shadow-sm">
+            
+            {/* Header */}
             <div className="flex items-center gap-4">
               <img
                 src="/jar-logosm.png"
@@ -89,27 +89,32 @@ export default function ReportIssuePage() {
               />
 
               <div>
-                <h1 className="text-3xl font-bold">Report an Issue</h1>
-                <p className="text-sm tracking-wide text-gray-600">
+                <h1 className="text-3xl font-bold text-primary">
+                  Report an Issue
+                </h1>
+                <p className="text-sm font-semibold tracking-wide text-secondary">
                   MFP PUBLICATION AGENT
                 </p>
               </div>
             </div>
 
-            <p className="mt-6 text-sm leading-6 text-gray-600">
+            <p className="mt-6 text-sm leading-6 text-secondary">
               Use this form to report confusing answers, missing sources, source problems,
               or anything that does not seem right.
             </p>
 
+            {/* Form */}
             <form onSubmit={submitIssue} className="mt-8 space-y-5">
+              
+              {/* Issue Type */}
               <div>
-                <label className="mb-1 block text-sm font-medium">
+                <label className="mb-1 block text-sm font-semibold text-primary">
                   Issue type
                 </label>
                 <select
                   value={issueType}
                   onChange={(e) => setIssueType(e.target.value)}
-                  className="w-full rounded-lg border px-3 py-3"
+                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-3 text-primary"
                 >
                   <option>Incorrect answer</option>
                   <option>Missing source</option>
@@ -120,49 +125,53 @@ export default function ReportIssuePage() {
                 </select>
               </div>
 
+              {/* Related Question */}
               <div>
-                <label className="mb-1 block text-sm font-medium">
+                <label className="mb-1 block text-sm font-semibold text-primary">
                   Related question, if applicable
                 </label>
                 <input
                   value={relatedQuestion}
                   onChange={(e) => setRelatedQuestion(e.target.value)}
-                  className="w-full rounded-lg border px-3 py-3"
+                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-3 text-primary"
                   placeholder="Paste the question you asked, if relevant"
                 />
               </div>
 
+              {/* Description */}
               <div>
-                <label className="mb-1 block text-sm font-medium">
+                <label className="mb-1 block text-sm font-semibold text-primary">
                   What happened?
                 </label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="min-h-[160px] w-full rounded-lg border px-3 py-3"
+                  className="min-h-[160px] w-full rounded-lg border border-gray-300 bg-white px-3 py-3 text-primary"
                   placeholder="Describe what seemed wrong, missing, confusing, or unexpected."
                   required
                 />
               </div>
 
+              {/* Message */}
               {message && (
-                <div className="rounded-lg border bg-gray-50 p-3 text-sm">
+                <div className="rounded-lg border border-gray-300 bg-gray-50 p-3 text-sm text-primary">
                   {message}
                 </div>
               )}
 
+              {/* Actions */}
               <div className="flex flex-wrap gap-3">
                 <button
                   type="submit"
                   disabled={loading}
-                  className="rounded-lg bg-black px-4 py-2 text-white disabled:opacity-50"
+                  className="rounded-lg bg-black px-4 py-2 font-semibold text-white shadow-sm disabled:opacity-60"
                 >
                   {loading ? 'Submitting...' : 'Submit issue'}
                 </button>
 
                 <Link
                   href="/help"
-                  className="rounded-lg border bg-white px-4 py-2 text-sm hover:bg-gray-50"
+                  className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-primary hover:bg-gray-100"
                 >
                   Back to help
                 </Link>
