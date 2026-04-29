@@ -1,21 +1,52 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
+import { createClient } from '../../lib/supabase/client'
 
-export default function HeaderBar({
-  user,
-  isAdmin,
-}: {
-  user?: any
-  isAdmin?: boolean
-}) {
+type UserInfo = {
+  email?: string | null
+  name?: string | null
+}
+
+export default function HeaderBar() {
   const pathname = usePathname()
   const router = useRouter()
+  const supabase = createClient()
+
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null)
+  const [isAdmin, setIsAdmin] = useState(false)
+
+  useEffect(() => {
+    async function loadUser() {
+      const { data } = await supabase.auth.getSession()
+      const user = data.session?.user
+
+      if (!user) {
+        setUserInfo(null)
+        setIsAdmin(false)
+        return
+      }
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('full_name, role, is_active')
+        .eq('id', user.id)
+        .single()
+
+      setUserInfo({
+        email: user.email,
+        name: profile?.full_name || user.email,
+      })
+
+      setIsAdmin(profile?.role === 'admin' && profile?.is_active === true)
+    }
+
+    loadUser()
+  }, [supabase])
 
   async function handleSignOut() {
-    const { createClient } = await import('../../lib/supabase/client')
-    const supabase = createClient()
     await supabase.auth.signOut()
     router.push('/login')
   }
@@ -30,48 +61,50 @@ export default function HeaderBar({
 
   return (
     <header className="sticky top-0 z-50 border-b bg-gradient-to-r from-blue-100 via-blue-50 to-green-100 shadow-sm">
-      <div className="mx-auto max-w-6xl px-6 py-4">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div className="mx-auto max-w-6xl px-4 py-4 sm:px-6">
+        <div className="flex flex-col gap-4">
           <Link href="/dashboard" className="flex items-center gap-3">
             <img
               src="/jar-logosm.png"
               alt="MFP Publication Agent logo"
-              className="h-11 w-11 object-contain"
+              className="h-10 w-10 object-contain"
             />
 
             <div>
-              <h1 className="text-xl font-bold">MFP Publication Agent</h1>
+              <h1 className="text-lg font-bold sm:text-xl">
+                MFP Publication Agent
+              </h1>
               <p className="text-xs tracking-wide text-gray-600">
                 MASTER FOOD PRESERVERS
               </p>
             </div>
           </Link>
 
-          <div className="flex flex-col gap-3 md:items-end">
+          <div className="flex w-full flex-wrap items-center justify-between gap-2">
             <nav className="flex flex-wrap items-center gap-2">
               <Link href="/dashboard" className={navClass('/dashboard')}>
-                🏠 Dashboard
+                🏠 <span className="hidden sm:inline">Home</span>
               </Link>
 
               <Link href="/chat" className={navClass('/chat')}>
-                💬 Chat
+                💬 <span className="hidden sm:inline">Chat</span>
               </Link>
 
               <Link href="/help" className={navClass('/help')}>
-                ❔ Help
+                ❔ <span className="hidden sm:inline">Help</span>
               </Link>
 
               {isAdmin && (
                 <Link href="/admin" className={navClass('/admin')}>
-                  ⚙️ Admin
+                  ⚙️ <span className="hidden sm:inline">Admin</span>
                 </Link>
               )}
             </nav>
 
-            {user && (
-              <div className="flex items-center gap-3 text-sm">
-                <span className="text-gray-700">
-                  {user.email}
+            {userInfo && (
+              <div className="flex items-center gap-2 text-xs sm:text-sm">
+                <span className="max-w-[140px] truncate text-gray-700 sm:max-w-[220px]">
+                  {userInfo.name}
                 </span>
 
                 {isAdmin && (
