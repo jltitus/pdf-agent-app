@@ -56,13 +56,13 @@ export default function HeaderBar() {
 
     return active
       ? 'rounded-lg bg-black px-3 py-2 text-sm font-medium text-white'
-      : 'rounded-lg px-3 py-2 text-sm font-medium text-gray-700 hover:bg-white/60'
+      : 'rounded-lg border border-transparent bg-white/50 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-white'
   }
 
   return (
     <header className="sticky top-0 z-50 border-b bg-gradient-to-r from-blue-100 via-blue-50 to-green-100 shadow-sm">
-      <div className="mx-auto max-w-6xl px-4 py-4 sm:px-6">
-        <div className="flex flex-col gap-4">
+      <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6">
+        <div className="flex flex-col gap-3">
           <Link href="/dashboard" className="flex items-center gap-3">
             <img
               src="/jar-logosm.png"
@@ -71,7 +71,7 @@ export default function HeaderBar() {
             />
 
             <div>
-              <h1 className="text-lg font-bold sm:text-xl">
+              <h1 className="text-lg font-bold leading-tight sm:text-xl">
                 MFP Publication Agent
               </h1>
               <p className="text-xs tracking-wide text-gray-600">
@@ -80,49 +80,68 @@ export default function HeaderBar() {
             </div>
           </Link>
 
-          <div className="flex w-full flex-wrap items-center justify-between gap-2">
-            <nav className="flex flex-wrap items-center gap-2">
-              <Link href="/dashboard" className={navClass('/dashboard')}>
-                🏠 <span className="hidden sm:inline">Home</span>
+          <nav className="grid grid-cols-4 gap-2">
+            <Link href="/dashboard" className={navClass('/dashboard')}>
+              <span className="flex flex-col items-center leading-tight">
+                <span>🏠</span>
+                <span className="text-[11px]">Home</span>
+              </span>
+            </Link>
+
+            <Link href="/chat" className={navClass('/chat')}>
+              <span className="flex flex-col items-center leading-tight">
+                <span>💬</span>
+                <span className="text-[11px]">Chat</span>
+              </span>
+            </Link>
+
+            <Link href="/help" className={navClass('/help')}>
+              <span className="flex flex-col items-center leading-tight">
+                <span>❔</span>
+                <span className="text-[11px]">Help</span>
+              </span>
+            </Link>
+
+            {isAdmin ? (
+              <Link href="/admin" className={navClass('/admin')}>
+                <span className="flex flex-col items-center leading-tight">
+                  <span>⚙️</span>
+                  <span className="text-[11px]">Admin</span>
+                </span>
               </Link>
-
-              <Link href="/chat" className={navClass('/chat')}>
-                💬 <span className="hidden sm:inline">Chat</span>
+            ) : (
+              <Link href="/request-access" className={navClass('/request-access')}>
+                <span className="flex flex-col items-center leading-tight">
+                  <span>➕</span>
+                  <span className="text-[11px]">Access</span>
+                </span>
               </Link>
+            )}
+          </nav>
 
-              <Link href="/help" className={navClass('/help')}>
-                ❔ <span className="hidden sm:inline">Help</span>
-              </Link>
-
-              {isAdmin && (
-                <Link href="/admin" className={navClass('/admin')}>
-                  ⚙️ <span className="hidden sm:inline">Admin</span>
-                </Link>
-              )}
-            </nav>
-
-            {userInfo && (
-              <div className="flex items-center gap-2 text-xs sm:text-sm">
-                <span className="max-w-[140px] truncate text-gray-700 sm:max-w-[220px]">
+          {userInfo && (
+            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-black/10 pt-2 text-xs sm:text-sm">
+              <div className="flex min-w-0 items-center gap-2">
+                <span className="truncate text-gray-700">
                   {userInfo.name}
                 </span>
 
                 {isAdmin && (
-                  <span className="rounded-full border bg-white/60 px-2 py-0.5 text-xs">
+                  <span className="shrink-0 rounded-full border bg-white/60 px-2 py-0.5 text-xs">
                     admin
                   </span>
                 )}
-
-                <button
-                  type="button"
-                  onClick={handleSignOut}
-                  className="underline hover:text-black"
-                >
-                  Sign out
-                </button>
               </div>
-            )}
-          </div>
+
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="shrink-0 underline hover:text-black"
+              >
+                Sign out
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </header>
