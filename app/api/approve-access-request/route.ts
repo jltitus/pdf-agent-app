@@ -63,25 +63,58 @@ export async function POST(request: Request) {
       )
     }
 
-    const { data: invitedUser, error: inviteError } =
-      await supabaseAdmin.auth.admin.inviteUserByEmail(accessRequest.email, {
-        redirectTo: `${siteUrl}/update-password`,
-        data: {
-          full_name: accessRequest.full_name,
-        },
+    const normalizedEmail = String(accessRequest.email).trim().toLowerCase()
+
+    // Check whether the user already exists in Supabase Auth.
+    // This prevents approval from failing when someone already registered or was invited before.
+    const { data: usersList, error: usersListError } =
+      await supabaseAdmin.auth.admin.listUsers({
+        page: 1,
+        perPage: 1000,
       })
 
-    if (inviteError || !invitedUser.user) {
-      return NextResponse.json(
-        { error: inviteError?.message ?? 'Could not invite user' },
-        { status: 500 }
-      )
+    if (usersListError) {
+      return NextResponse.json({ error: usersListError.message }, { status: 500 })
+    }
+
+    const existingUser = usersList.users.find(
+      (user) => user.email?.toLowerCase() === normalizedEmail
+    )
+
+    let approvedUserId: string
+    let invited = false
+    let message = ''
+
+    if (existingUser) {
+      approvedUserId = existingUser.id
+      invited = false
+      message =
+        'User already existed. Their profile has been activated. Ask them to sign in or use Forgot Password if needed.'
+    } else {
+      const { data: invitedUser, error: inviteError } =
+        await supabaseAdmin.auth.admin.inviteUserByEmail(normalizedEmail, {
+          redirectTo: `${siteUrl}/update-password`,
+          data: {
+            full_name: accessRequest.full_name,
+          },
+        })
+
+      if (inviteError || !invitedUser.user) {
+        return NextResponse.json(
+          { error: inviteError?.message ?? 'Could not invite user' },
+          { status: 500 }
+        )
+      }
+
+      approvedUserId = invitedUser.user.id
+      invited = true
+      message = 'Invitation email sent. User will set their own password.'
     }
 
     const { error: profileError } = await supabaseAdmin
       .from('profiles')
       .upsert({
-        id: invitedUser.user.id,
+        id: approvedUserId,
         full_name: accessRequest.full_name,
         role: 'member',
         is_active: true,
@@ -106,9 +139,9 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      email: accessRequest.email,
-      invited: true,
-      message: 'Invitation email sent. User will set their own password.',
+      email: normalizedEmail,
+      invited,
+      message,
     })
   } catch (error: any) {
     console.error('APPROVE ACCESS REQUEST ERROR:', error)
