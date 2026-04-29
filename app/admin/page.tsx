@@ -163,6 +163,9 @@ export default function AdminPage() {
   const [inviteFullName, setInviteFullName] = useState('')
   const [inviteEmail, setInviteEmail] = useState('')
   const [userInviteSearch, setUserInviteSearch] = useState('')
+  const [userInviteStatusFilter, setUserInviteStatusFilter] = useState<
+    'all' | 'pending' | 'approved' | 'declined'
+  >('all')
 
   const [approvedUserInfo, setApprovedUserInfo] = useState<{
     email: string
@@ -948,6 +951,21 @@ export default function AdminPage() {
       request.email.toLowerCase().includes(search)
     )
   })
+
+  const filteredInviteDirectory = accessRequests.filter((request) => {
+    const search = userInviteSearch.trim().toLowerCase()
+
+    const matchesSearch =
+      !search ||
+      request.full_name.toLowerCase().includes(search) ||
+      request.email.toLowerCase().includes(search) ||
+      (request.reason ?? '').toLowerCase().includes(search)
+
+    const matchesStatus =
+      userInviteStatusFilter === 'all' || request.status === userInviteStatusFilter
+
+    return matchesSearch && matchesStatus
+  })
   const openIssues = issueReports.filter((issue) => issue.status === 'open')
   const totalPages = documents.reduce((sum, doc) => sum + (doc.page_count ?? 0), 0)
 
@@ -1194,66 +1212,153 @@ export default function AdminPage() {
             <div>
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <div>
-                  <h3 className="font-semibold">Approved users / resend setup</h3>
+                  <h3 className="font-semibold">Users & Invites Directory</h3>
                   <p className="text-sm text-gray-600">
-                    Search approved users, review invite activity, and resend setup instructions.
+                    Search everyone who has requested access or been invited. Review status, invite history, and resend setup instructions.
                   </p>
                 </div>
 
-                <input
-                  value={userInviteSearch}
-                  onChange={(e) => setUserInviteSearch(e.target.value)}
-                  placeholder="Search name or email..."
-                  className="w-full rounded-lg border px-3 py-2 text-sm md:max-w-xs"
-                />
+                <div className="grid w-full gap-2 md:max-w-xl md:grid-cols-[1fr_170px]">
+                  <input
+                    value={userInviteSearch}
+                    onChange={(e) => setUserInviteSearch(e.target.value)}
+                    placeholder="Search name, email, or reason..."
+                    className="w-full rounded-lg border px-3 py-2 text-sm"
+                  />
+
+                  <select
+                    value={userInviteStatusFilter}
+                    onChange={(e) =>
+                      setUserInviteStatusFilter(
+                        e.target.value as 'all' | 'pending' | 'approved' | 'declined'
+                      )
+                    }
+                    className="w-full rounded-lg border px-3 py-2 text-sm"
+                  >
+                    <option value="all">All statuses</option>
+                    <option value="pending">Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="declined">Declined</option>
+                  </select>
+                </div>
               </div>
 
-              {approvedRequests.length === 0 ? (
-                <p className="mt-2 text-sm text-gray-600">No approved requests yet.</p>
-              ) : filteredApprovedRequests.length === 0 ? (
+              <div className="grid gap-3 md:grid-cols-4">
+                <div className="rounded-xl border bg-gray-50 p-3">
+                  <p className="text-xs text-gray-500">Total records</p>
+                  <p className="text-xl font-bold">{accessRequests.length}</p>
+                </div>
+                <div className="rounded-xl border bg-gray-50 p-3">
+                  <p className="text-xs text-gray-500">Pending</p>
+                  <p className="text-xl font-bold">{pendingRequests.length}</p>
+                </div>
+                <div className="rounded-xl border bg-gray-50 p-3">
+                  <p className="text-xs text-gray-500">Approved</p>
+                  <p className="text-xl font-bold">{approvedRequests.length}</p>
+                </div>
+                <div className="rounded-xl border bg-gray-50 p-3">
+                  <p className="text-xs text-gray-500">Showing</p>
+                  <p className="text-xl font-bold">{filteredInviteDirectory.length}</p>
+                </div>
+              </div>
+
+              {accessRequests.length === 0 ? (
+                <p className="mt-2 text-sm text-gray-600">No users or invites yet.</p>
+              ) : filteredInviteDirectory.length === 0 ? (
                 <p className="mt-3 rounded-lg border p-3 text-sm text-gray-600">
-                  No approved users match your search.
+                  No users or invites match your search/filter.
                 </p>
               ) : (
-                <div className="mt-3 max-h-[360px] space-y-2 overflow-y-auto pr-1">
-                  <p className="text-xs text-gray-500">
-                    Showing {filteredApprovedRequests.length} of {approvedRequests.length} approved user
-                    {approvedRequests.length === 1 ? '' : 's'}.
-                  </p>
-
-                  {filteredApprovedRequests.map((request) => (
-                    <div key={request.id} className="rounded-lg border p-3">
-                      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                        <div>
-                          <p className="text-sm font-semibold">{request.full_name}</p>
-                          <p className="text-xs text-gray-500">{request.email}</p>
-                          <p className="mt-1 text-xs text-gray-500">
-                            Approved:{' '}
+                <div className="mt-3 max-h-[420px] overflow-y-auto rounded-lg border">
+                  <table className="w-full text-sm">
+                    <thead className="sticky top-0 bg-gray-50">
+                      <tr>
+                        <th className="p-3 text-left">Name</th>
+                        <th className="p-3 text-left">Email</th>
+                        <th className="p-3 text-left">Status</th>
+                        <th className="p-3 text-left">Approved</th>
+                        <th className="p-3 text-left">Last invited</th>
+                        <th className="p-3 text-left">Invites</th>
+                        <th className="p-3 text-left">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredInviteDirectory.map((request) => (
+                        <tr key={request.id} className="border-t align-top">
+                          <td className="p-3">
+                            <p className="font-medium">{request.full_name}</p>
+                            {request.reason && (
+                              <p className="mt-1 line-clamp-2 text-xs text-gray-500">
+                                {request.reason}
+                              </p>
+                            )}
+                          </td>
+                          <td className="p-3 text-xs text-gray-600">{request.email}</td>
+                          <td className="p-3">
+                            <span
+                              className={`rounded-full px-2 py-1 text-xs ${
+                                request.status === 'approved'
+                                  ? 'bg-green-100 text-green-700'
+                                  : request.status === 'pending'
+                                    ? 'bg-yellow-100 text-yellow-800'
+                                    : 'bg-gray-100 text-gray-600'
+                              }`}
+                            >
+                              {request.status}
+                            </span>
+                          </td>
+                          <td className="p-3 text-xs text-gray-500">
                             {request.approved_at
                               ? new Date(request.approved_at).toLocaleString()
-                              : 'Unknown'}
-                          </p>
-                          <p className="text-xs text-gray-500">
-                            Last invited:{' '}
+                              : '—'}
+                          </td>
+                          <td className="p-3 text-xs text-gray-500">
                             {request.last_invited_at
                               ? new Date(request.last_invited_at).toLocaleString()
-                              : 'Not tracked yet'}
-                            {' • '}
-                            Invite count: {request.invite_count ?? 0}
-                          </p>
-                        </div>
+                              : 'Not tracked'}
+                          </td>
+                          <td className="p-3 text-xs text-gray-500">
+                            {request.invite_count ?? 0}
+                          </td>
+                          <td className="p-3">
+                            <div className="flex flex-wrap gap-2">
+                              {request.status === 'pending' && (
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => approveAccessRequest(request.id)}
+                                    disabled={approvingId === request.id || decliningId === request.id}
+                                    className="rounded bg-blue-600 px-3 py-1 text-xs text-white disabled:opacity-50"
+                                  >
+                                    {approvingId === request.id ? 'Approving...' : 'Approve'}
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => declineRequest(request.id)}
+                                    disabled={approvingId === request.id || decliningId === request.id}
+                                    className="rounded border px-3 py-1 text-xs disabled:opacity-50"
+                                  >
+                                    {decliningId === request.id ? 'Declining...' : 'Decline'}
+                                  </button>
+                                </>
+                              )}
 
-                        <button
-                          type="button"
-                          onClick={() => resendInvite(request)}
-                          disabled={resendingInviteId === request.id}
-                          className="w-fit rounded-lg border px-3 py-2 text-xs hover:bg-gray-50 disabled:opacity-50"
-                        >
-                          {resendingInviteId === request.id ? 'Resending...' : 'Resend invite'}
-                        </button>
-                      </div>
-                    </div>
-                  ))}
+                              {request.status === 'approved' && (
+                                <button
+                                  type="button"
+                                  onClick={() => resendInvite(request)}
+                                  disabled={resendingInviteId === request.id}
+                                  className="rounded-lg border px-3 py-1 text-xs hover:bg-gray-50 disabled:opacity-50"
+                                >
+                                  {resendingInviteId === request.id ? 'Resending...' : 'Resend'}
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </div>
