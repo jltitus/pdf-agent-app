@@ -55,8 +55,8 @@ export default function HeaderBar() {
     const active = pathname === path
 
     return active
-      ? 'rounded-lg bg-black px-3 py-2 text-sm font-medium text-white'
-      : 'rounded-lg border border-transparent bg-white/50 px-3 py-2 text-sm font-medium text-gray-700 hover:bg-white'
+  ? 'rounded-lg bg-black px-3 py-2 text-sm font-medium text-white shadow'
+  : 'rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 hover:bg-gray-100'
   }
 
   return (
@@ -97,7 +97,7 @@ export default function HeaderBar() {
 
             <Link href="/help" className={navClass('/help')}>
               <span className="flex flex-col items-center leading-tight">
-                <span>❔</span>
+                <span className="text-lg">❓</span>
                 <span className="text-[11px]">Help</span>
               </span>
             </Link>

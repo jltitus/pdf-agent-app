@@ -1141,22 +1141,50 @@ if (
 
           {activeTab === 'overview' && (
             <>
-          <section className="grid grid-cols-1 gap-3 md:grid-cols-5">
-            {[
-              ['Total documents', documentHealth.total],
-              ['Active', documentHealth.active],
-              ['Archived', documentHealth.archived],
-              ['Processed pages', totalPages],
-              ['Pending requests', pendingRequests.length],
-              ['Approved users', approvedRequests.length],
-              ['Open issues', openIssues.length],
-            ].map(([label, value]) => (
-              <div key={label} className="rounded-2xl border bg-white p-4 shadow-sm">
-                <p className="text-sm text-gray-600">{label}</p>
-                <p className="text-2xl font-bold">{value}</p>
-              </div>
-            ))}
-          </section>
+          <section className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
+  {[
+    ['Total documents', documentHealth.total, 'normal'],
+    ['Active', documentHealth.active, 'normal'],
+    ['Archived', documentHealth.archived, 'normal'],
+    ['Processed pages', totalPages, 'normal'],
+    ['Pending requests', pendingRequests.length, 'warning'],
+    ['Approved users', approvedRequests.length, 'success'],
+    ['Open issues', openIssues.length, 'danger'],
+  ].map(([label, value, type]) => {
+    const hasValue = Number(value) > 0
+
+    return (
+      <div
+        key={label}
+        className={`rounded-xl border px-3 py-2 text-center shadow-sm transition ${
+          type === 'warning' && hasValue
+            ? 'border-yellow-300 bg-yellow-50'
+            : type === 'danger' && hasValue
+            ? 'border-red-300 bg-red-50'
+            : type === 'success' && hasValue
+            ? 'border-green-300 bg-green-50'
+            : 'bg-white'
+        }`}
+      >
+        <p className="text-[11px] leading-tight text-gray-600">{label}</p>
+
+        <p
+          className={`text-xl font-bold leading-tight ${
+            type === 'warning' && hasValue
+              ? 'text-yellow-800'
+              : type === 'danger' && hasValue
+              ? 'text-red-700'
+              : type === 'success' && hasValue
+              ? 'text-green-700'
+              : 'text-black'
+          }`}
+        >
+          {value}
+        </p>
+      </div>
+    )
+  })}
+</section>
             </>
           )}
 
