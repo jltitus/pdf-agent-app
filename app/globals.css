@@ -62,9 +62,15 @@ body {
 
 input,
 textarea,
-select,
-button {
+select {
   color: var(--text-primary);
+}
+
+button {
+  color: inherit;
+}
+button:disabled {
+  opacity: 1;
 }
 
 input::placeholder,

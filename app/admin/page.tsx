@@ -1239,8 +1239,8 @@ export default function AdminPage() {
                   onClick={() => setActiveTab(tab.key as any)}
                   className={`shrink-0 rounded-lg px-4 py-2 text-sm font-semibold ${
                     activeTab === tab.key
-                      ? 'bg-black text-white'
-                      : 'border border-gray-300 bg-white text-primary hover:bg-gray-100'
+  ? 'bg-black text-white'
+  : 'border border-gray-300 bg-white text-primary hover:bg-gray-100'
                   }`}
                 >
                   {tab.label}

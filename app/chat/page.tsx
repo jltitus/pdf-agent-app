@@ -545,7 +545,7 @@ export default function ChatPage() {
 
                   <button
                     type="submit"
-                    className="rounded-xl bg-black px-6 py-3 font-semibold text-white shadow disabled:opacity-60"
+                    className="rounded-xl bg-black px-6 py-3 font-semibold text-white shadow disabled:bg-gray-700 disabled:text-white disabled:cursor-not-allowed"
                     disabled={loading}
                   >
                     {loading ? 'Searching...' : 'Send'}
