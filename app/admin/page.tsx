@@ -163,13 +163,11 @@ export default function AdminPage() {
   const [approvingId, setApprovingId] = useState<string | null>(null)
   const [decliningId, setDecliningId] = useState<string | null>(null)
   const [sendingInvite, setSendingInvite] = useState(false)
-  const [updatingUserEmail, setUpdatingUserEmail] = useState<string | null>(null)
-const [inviteEmailWarning, setInviteEmailWarning] = useState('')
   const [resendingInviteId, setResendingInviteId] = useState<string | null>(null)
- 
+  const [updatingUserEmail, setUpdatingUserEmail] = useState<string | null>(null)
   const [inviteFullName, setInviteFullName] = useState('')
   const [inviteEmail, setInviteEmail] = useState('')
-  
+  const [inviteEmailWarning, setInviteEmailWarning] = useState('')
   const [userInviteSearch, setUserInviteSearch] = useState('')
   const [userInviteStatusFilter, setUserInviteStatusFilter] = useState<
     'all' | 'pending' | 'approved' | 'declined'
@@ -1048,8 +1046,42 @@ const [inviteEmailWarning, setInviteEmailWarning] = useState('')
 
     return matchesSearch && matchesStatus
   })
-  
   const openIssues = issueReports.filter((issue) => issue.status === 'open')
+  const reviewedIssues = issueReports.filter((issue) => issue.status === 'reviewed')
+  const resolvedIssues = issueReports.filter((issue) => issue.status === 'resolved')
+
+  const problemFeedback = feedback.filter(
+    (item) => item.feedback_type === 'not_helpful' || item.feedback_type === 'missing_source'
+  )
+
+  const topProblemQuestions = Object.values(
+    problemFeedback.reduce((acc: Record<string, { question: string; count: number; types: Set<string> }>, item) => {
+      const questionText = item.question || 'No question saved'
+      const key = questionText.trim().toLowerCase()
+
+      if (!acc[key]) {
+        acc[key] = {
+          question: questionText,
+          count: 0,
+          types: new Set<string>(),
+        }
+      }
+
+      acc[key].count += 1
+      acc[key].types.add(item.feedback_type.replaceAll('_', ' '))
+      return acc
+    }, {})
+  )
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5)
+
+  const issueTypeCounts = Object.entries(
+    issueReports.reduce((acc: Record<string, number>, item) => {
+      acc[item.issue_type] = (acc[item.issue_type] ?? 0) + 1
+      return acc
+    }, {})
+  ).sort((a, b) => b[1] - a[1])
+
   const totalPages = documents.reduce((sum, doc) => sum + (doc.page_count ?? 0), 0)
 
   const filteredDocumentsForAdmin = documents.filter((doc) => {
@@ -1259,53 +1291,55 @@ const [inviteEmailWarning, setInviteEmailWarning] = useState('')
                 Approve access requests, send direct invites, or resend setup links.
               </p>
             </div>
-<form onSubmit={sendDirectInvite} className="rounded-2xl border bg-gray-50 p-4 space-y-3">
-  <div>
-    <h3 className="font-semibold">Send direct invite</h3>
-    <p className="text-sm text-gray-600">
-      Use this when you want to invite someone without asking them to complete the request form first.
-    </p>
-  </div>
 
-  <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto] md:items-end">
-    <div>
-      <label className="mb-1 block text-sm font-medium">Full name</label>
-      <input
-        value={inviteFullName}
-        onChange={(e) => setInviteFullName(e.target.value)}
-        className="w-full rounded-lg border px-3 py-2 text-sm"
-        required
-      />
-    </div>
+            <form onSubmit={sendDirectInvite} className="rounded-2xl border bg-gray-50 p-4 space-y-3">
+              <div>
+                <h3 className="font-semibold">Send direct invite</h3>
+                <p className="text-sm text-gray-600">
+                  Use this when you want to invite someone without asking them to complete the request form first.
+                </p>
+              </div>
 
-    <div>
-      <label className="mb-1 block text-sm font-medium">Email</label>
-      <input
-        type="email"
-        value={inviteEmail}
-        onChange={(e) => {
-          setInviteEmail(e.target.value)
-          setInviteEmailWarning('')
-        }}
-        className={`w-full rounded-lg border px-3 py-2 text-sm ${
-          inviteEmailWarning ? 'border-red-300 bg-red-50' : ''
-        }`}
-        required
-      />
-      {inviteEmailWarning && (
-        <p className="mt-1 text-xs text-red-700">{inviteEmailWarning}</p>
-      )}
-    </div>
+              <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto] md:items-end">
+                <div>
+                  <label className="mb-1 block text-sm font-medium">Full name</label>
+                  <input
+                    value={inviteFullName}
+                    onChange={(e) => setInviteFullName(e.target.value)}
+                    className="w-full rounded-lg border px-3 py-2 text-sm"
+                    required
+                  />
+                </div>
 
-    <button
-      type="submit"
-      disabled={sendingInvite}
-      className="rounded-lg bg-black px-4 py-2 text-sm text-white disabled:opacity-50"
-    >
-      {sendingInvite ? 'Sending...' : 'Send invite'}
-    </button>
-  </div>
-</form>
+                <div>
+                  <label className="mb-1 block text-sm font-medium">Email</label>
+                  <input
+  type="email"
+  value={inviteEmail}
+  onChange={(e) => {
+    setInviteEmail(e.target.value)
+    setInviteEmailWarning('')
+  }}
+  className={
+    'w-full rounded-lg border px-3 py-2 text-sm ' +
+    (inviteEmailWarning ? 'border-red-300 bg-red-50' : '')
+  }
+  required
+/>
+{inviteEmailWarning && (
+  <p className="mt-1 text-xs text-red-700">{inviteEmailWarning}</p>
+)}
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={sendingInvite}
+                  className="rounded-lg bg-black px-4 py-2 text-sm text-white disabled:opacity-50"
+                >
+                  {sendingInvite ? 'Sending...' : 'Send invite'}
+                </button>
+              </div>
+            </form>
 
             <div>
               <h3 className="font-semibold">Pending access requests</h3>
@@ -1568,12 +1602,12 @@ const [inviteEmailWarning, setInviteEmailWarning] = useState('')
 
           {activeTab === 'feedback' && (
             <>
-          <section className="rounded-2xl border bg-white p-6 space-y-4 shadow-sm">
+          <section className="rounded-2xl border bg-white p-6 space-y-5 shadow-sm">
             <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
               <div>
-                <h2 className="text-2xl font-bold">Feedback Dashboard</h2>
+                <h2 className="text-2xl font-bold">Feedback Insights</h2>
                 <p className="text-sm text-gray-600">
-                  Review tester feedback to identify helpful answers, weak answers, and source issues.
+                  Use this view to quickly spot weak answers, missing sources, issue trends, and repeated content gaps.
                 </p>
               </div>
 
@@ -1587,7 +1621,7 @@ const [inviteEmailWarning, setInviteEmailWarning] = useState('')
                   }
                   className="rounded-lg border px-3 py-2 text-sm"
                 >
-                  <option value="all">All</option>
+                  <option value="all">All feedback</option>
                   <option value="helpful">Helpful</option>
                   <option value="not_helpful">Not helpful</option>
                   <option value="missing_source">Missing source</option>
@@ -1603,42 +1637,115 @@ const [inviteEmailWarning, setInviteEmailWarning] = useState('')
               </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
-              <div className="rounded-2xl border p-4">
-                <p className="text-sm text-gray-600">Helpful</p>
-                <p className="text-2xl font-bold">{feedbackCounts.helpful}</p>
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-6">
+              <div className="rounded-xl border bg-green-50 p-3">
+                <p className="text-xs text-gray-600">Helpful</p>
+                <p className="text-2xl font-bold text-green-700">{feedbackCounts.helpful}</p>
               </div>
-              <div className="rounded-2xl border p-4">
-                <p className="text-sm text-gray-600">Not helpful</p>
-                <p className="text-2xl font-bold">{feedbackCounts.not_helpful}</p>
+              <div className="rounded-xl border bg-red-50 p-3">
+                <p className="text-xs text-gray-600">Not helpful</p>
+                <p className="text-2xl font-bold text-red-700">{feedbackCounts.not_helpful}</p>
               </div>
-              <div className="rounded-2xl border p-4">
-                <p className="text-sm text-gray-600">Missing source</p>
-                <p className="text-2xl font-bold">{feedbackCounts.missing_source}</p>
+              <div className="rounded-xl border bg-yellow-50 p-3">
+                <p className="text-xs text-gray-600">Missing source</p>
+                <p className="text-2xl font-bold text-yellow-800">{feedbackCounts.missing_source}</p>
+              </div>
+              <div className="rounded-xl border bg-red-50 p-3">
+                <p className="text-xs text-gray-600">Open issues</p>
+                <p className="text-2xl font-bold text-red-700">{openIssues.length}</p>
+              </div>
+              <div className="rounded-xl border bg-yellow-50 p-3">
+                <p className="text-xs text-gray-600">Reviewed</p>
+                <p className="text-2xl font-bold text-yellow-800">{reviewedIssues.length}</p>
+              </div>
+              <div className="rounded-xl border bg-green-50 p-3">
+                <p className="text-xs text-gray-600">Resolved</p>
+                <p className="text-2xl font-bold text-green-700">{resolvedIssues.length}</p>
               </div>
             </div>
 
-            {filteredFeedback.length === 0 ? (
-              <p className="text-sm text-gray-600">No feedback submitted yet.</p>
-            ) : (
-              <div className="rounded-lg border divide-y">
-                {filteredFeedback.map((item) => (
-                  <div key={item.id} className="flex items-start justify-between gap-4 p-3">
-                    <div>
-                      <p className="text-sm font-medium">
-                        {item.question || 'No question saved'}
-                      </p>
-                      <p className="mt-1 text-xs text-gray-500">
-                        {new Date(item.created_at).toLocaleString()}
-                      </p>
-                    </div>
-                    <span className="rounded bg-gray-100 px-2 py-1 text-xs">
-                      {item.feedback_type.replaceAll('_', ' ')}
-                    </span>
+            <div className="grid gap-4 lg:grid-cols-2">
+              <section className="rounded-2xl border bg-gray-50 p-4">
+                <h3 className="font-semibold">Top problem questions</h3>
+                <p className="text-xs text-gray-600">
+                  Questions marked not helpful or missing source most often.
+                </p>
+
+                {topProblemQuestions.length === 0 ? (
+                  <p className="mt-3 text-sm text-gray-600">No problem questions yet.</p>
+                ) : (
+                  <div className="mt-3 space-y-2">
+                    {topProblemQuestions.map((item, index) => (
+                      <div key={`${item.question}-${index}`} className="rounded-lg border bg-white p-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <p className="line-clamp-2 text-sm font-medium">{item.question}</p>
+                          <span className="shrink-0 rounded-full border px-2 py-1 text-xs">
+                            {item.count}x
+                          </span>
+                        </div>
+                        <p className="mt-1 text-xs text-gray-500">
+                          {Array.from(item.types).join(', ')}
+                        </p>
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-            )}
+                )}
+              </section>
+
+              <section className="rounded-2xl border bg-gray-50 p-4">
+                <h3 className="font-semibold">Most common issue types</h3>
+                <p className="text-xs text-gray-600">
+                  Issue report categories submitted by testers.
+                </p>
+
+                {issueTypeCounts.length === 0 ? (
+                  <p className="mt-3 text-sm text-gray-600">No issue types yet.</p>
+                ) : (
+                  <div className="mt-3 space-y-2">
+                    {issueTypeCounts.map(([issueType, count]) => (
+                      <div key={issueType} className="flex items-center justify-between rounded-lg border bg-white p-3 text-sm">
+                        <span>{issueType}</span>
+                        <span className="rounded-full border px-2 py-1 text-xs">{count}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </section>
+            </div>
+
+            <section className="rounded-2xl border bg-gray-50 p-4">
+              <h3 className="font-semibold">Recent feedback</h3>
+              <p className="text-xs text-gray-600">
+                Filtered list for quick review and export.
+              </p>
+
+              {filteredFeedback.length === 0 ? (
+                <p className="mt-3 text-sm text-gray-600">No feedback submitted yet.</p>
+              ) : (
+                <div className="mt-3 rounded-lg border bg-white divide-y">
+                  {filteredFeedback.map((item) => (
+                    <div key={item.id} className="flex flex-col gap-2 p-3 md:flex-row md:items-start md:justify-between">
+                      <div>
+                        <p className="text-sm font-medium">
+                          {item.question || 'No question saved'}
+                        </p>
+                        {item.answer && (
+                          <p className="mt-1 line-clamp-2 text-xs text-gray-500">
+                            {item.answer}
+                          </p>
+                        )}
+                        <p className="mt-1 text-xs text-gray-500">
+                          {new Date(item.created_at).toLocaleString()}
+                        </p>
+                      </div>
+                      <span className="w-fit rounded bg-gray-100 px-2 py-1 text-xs">
+                        {item.feedback_type.replaceAll('_', ' ')}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </section>
           </section>
 
           <section className="rounded-2xl border bg-white p-6 space-y-4 shadow-sm">
