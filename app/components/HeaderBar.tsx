@@ -55,7 +55,7 @@ export default function HeaderBar() {
     const active = pathname === path
 
     return active
-      ? 'rounded-lg bg-black px-3 py-2 text-sm font-semibold text-white shadow'
+      ? 'rounded-lg bg-black px-3 py-2 text-sm font-semibold !text-white shadow'
       : 'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-primary shadow-sm hover:bg-gray-100'
   }
 
