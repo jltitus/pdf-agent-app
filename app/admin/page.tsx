@@ -166,6 +166,9 @@ export default function AdminPage() {
   const [userInviteStatusFilter, setUserInviteStatusFilter] = useState<
     'all' | 'pending' | 'approved' | 'declined'
   >('all')
+  const [activeTab, setActiveTab] = useState<
+    'overview' | 'access' | 'documents' | 'feedback' | 'trusted'
+  >('overview')
 
   const [approvedUserInfo, setApprovedUserInfo] = useState<{
     email: string
@@ -1094,6 +1097,33 @@ export default function AdminPage() {
             </section>
           )}
 
+          <div className="sticky top-[150px] z-40 rounded-2xl border bg-white/95 p-2 shadow-sm backdrop-blur">
+            <div className="flex gap-2 overflow-x-auto">
+              {[
+                { key: 'overview', label: 'Overview' },
+                { key: 'access', label: 'Access & Invites' },
+                { key: 'documents', label: 'Documents' },
+                { key: 'feedback', label: 'Feedback & Issues' },
+                { key: 'trusted', label: 'Trusted Answers' },
+              ].map((tab) => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => setActiveTab(tab.key as any)}
+                  className={`shrink-0 rounded-lg px-4 py-2 text-sm font-medium ${
+                    activeTab === tab.key
+                      ? 'bg-black text-white'
+                      : 'border bg-white text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {activeTab === 'overview' && (
+            <>
           <section className="grid grid-cols-1 gap-3 md:grid-cols-5">
             {[
               ['Total documents', documentHealth.total],
@@ -1109,7 +1139,11 @@ export default function AdminPage() {
               </div>
             ))}
           </section>
+            </>
+          )}
 
+          {activeTab === 'access' && (
+            <>
           <section className="rounded-2xl border bg-white p-6 space-y-6 shadow-sm">
             <div>
               <h2 className="text-2xl font-bold">Access & Invites</h2>
@@ -1363,7 +1397,11 @@ export default function AdminPage() {
               )}
             </div>
           </section>
+            </>
+          )}
 
+          {activeTab === 'feedback' && (
+            <>
           <section className="rounded-2xl border bg-white p-6 space-y-4 shadow-sm">
             <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
               <div>
@@ -1591,7 +1629,11 @@ export default function AdminPage() {
               </div>
             </div>
           </section>
+            </>
+          )}
 
+          {activeTab === 'overview' && (
+            <>
           <section className="grid gap-4 lg:grid-cols-2">
             <section className="rounded-2xl border bg-white p-6 space-y-4 shadow-sm">
               <div>
@@ -1766,7 +1808,11 @@ export default function AdminPage() {
               </div>
             </section>
           </section>
+            </>
+          )}
 
+          {activeTab === 'trusted' && (
+            <>
           <section className="rounded-2xl border bg-white p-6 space-y-4 shadow-sm">
             <div>
               <h2 className="text-2xl font-bold">Trusted Answers</h2>
@@ -1884,7 +1930,11 @@ export default function AdminPage() {
               </div>
             )}
           </section>
+            </>
+          )}
 
+          {activeTab === 'documents' && (
+            <>
           <section className="grid gap-6 lg:grid-cols-[380px_1fr]">
             <form onSubmit={handleUpload} className="rounded-2xl border bg-white p-6 space-y-4 shadow-sm">
               <div>
@@ -2077,6 +2127,8 @@ export default function AdminPage() {
               )}
             </section>
           </section>
+            </>
+          )}
         </div>
       </main>
     </>
