@@ -1101,7 +1101,7 @@ export default function AdminPage() {
             <div className="flex gap-2 overflow-x-auto">
               {[
                 { key: 'overview', label: 'Overview' },
-                { key: 'access', label: 'Access & Invites' },
+                { key: 'access', label: `Access & Invites${pendingRequests.length > 0 ? ` (${pendingRequests.length})` : ''}` },
                 { key: 'documents', label: 'Documents' },
                 { key: 'feedback', label: 'Feedback & Issues' },
                 { key: 'trusted', label: 'Trusted Answers' },
@@ -1131,6 +1131,7 @@ export default function AdminPage() {
               ['Archived', documentHealth.archived],
               ['Processed pages', totalPages],
               ['Pending requests', pendingRequests.length],
+              ['Approved users', approvedRequests.length],
               ['Open issues', openIssues.length],
             ].map(([label, value]) => (
               <div key={label} className="rounded-2xl border bg-white p-4 shadow-sm">
