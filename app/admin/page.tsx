@@ -27,6 +27,10 @@ type AccessRequest = {
   approved_at?: string | null
   last_invited_at?: string | null
   invite_count?: number | null
+  profile_is_active?: boolean | null
+  profile_role?: string | null
+  last_activity_at?: string | null
+  last_question?: string | null
 }
 
 type FeedbackItem = {
@@ -159,9 +163,13 @@ export default function AdminPage() {
   const [approvingId, setApprovingId] = useState<string | null>(null)
   const [decliningId, setDecliningId] = useState<string | null>(null)
   const [sendingInvite, setSendingInvite] = useState(false)
+  const [updatingUserEmail, setUpdatingUserEmail] = useState<string | null>(null)
+const [inviteEmailWarning, setInviteEmailWarning] = useState('')
   const [resendingInviteId, setResendingInviteId] = useState<string | null>(null)
+ 
   const [inviteFullName, setInviteFullName] = useState('')
   const [inviteEmail, setInviteEmail] = useState('')
+  
   const [userInviteSearch, setUserInviteSearch] = useState('')
   const [userInviteStatusFilter, setUserInviteStatusFilter] = useState<
     'all' | 'pending' | 'approved' | 'declined'
@@ -709,22 +717,26 @@ export default function AdminPage() {
 
     try {
       const trimmedEmail = inviteEmail.trim().toLowerCase()
+      setInviteEmailWarning('')
 
-if (!trimmedEmail.includes('@') || !trimmedEmail.includes('.')) {
-  setMessage('Please enter a valid email address before sending an invite.')
-  setSendingInvite(false)
-  return
-}
+      if (!trimmedEmail.includes('@') || !trimmedEmail.includes('.')) {
+        setInviteEmailWarning('Please enter a valid email address before sending an invite.')
+        setMessage('Please enter a valid email address before sending an invite.')
+        setSendingInvite(false)
+        return
+      }
 
-if (
-  trimmedEmail.includes('enter_') ||
-  trimmedEmail.includes('placeholder') ||
-  trimmedEmail.includes('example.com')
-) {
-  setMessage('Please replace the placeholder with a real email address.')
-  setSendingInvite(false)
-  return
-}
+      if (
+        trimmedEmail.includes('enter_') ||
+        trimmedEmail.includes('placeholder') ||
+        trimmedEmail.includes('example.com')
+      ) {
+        setInviteEmailWarning('Please replace the placeholder with a real email address.')
+        setMessage('Please replace the placeholder with a real email address.')
+        setSendingInvite(false)
+        return
+      }
+
       const token = await getToken()
 
       if (!token) {
@@ -755,6 +767,7 @@ if (
 
       setInviteFullName('')
       setInviteEmail('')
+      setInviteEmailWarning('')
       setApprovedUserInfo({
         email: result.email,
         message: result.message ?? 'Invite sent.',
@@ -811,6 +824,55 @@ if (
     } catch (error: any) {
       setMessage(`Resend invite failed: ${error.message ?? 'Network or server error.'}`)
       setResendingInviteId(null)
+    }
+  }
+
+  async function updateUserStatus(request: AccessRequest, isActive: boolean) {
+    const action = isActive ? 'reactivate' : 'deactivate'
+    const confirmed = window.confirm(
+      `Are you sure you want to ${action} ${request.full_name || request.email}?`
+    )
+
+    if (!confirmed) return
+
+    setUpdatingUserEmail(request.email)
+    setMessage(isActive ? 'Reactivating user...' : 'Deactivating user...')
+
+    try {
+      const token = await getToken()
+
+      if (!token) {
+        setMessage('You must be signed in.')
+        setUpdatingUserEmail(null)
+        return
+      }
+
+      const res = await fetch('/api/update-user-status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          email: request.email,
+          isActive,
+        }),
+      })
+
+      const result = await res.json().catch(() => ({}))
+
+      if (!res.ok) {
+        setMessage(result.error ?? 'User status update failed.')
+        setUpdatingUserEmail(null)
+        return
+      }
+
+      setMessage(result.message ?? (isActive ? 'User reactivated.' : 'User deactivated.'))
+      setUpdatingUserEmail(null)
+      await loadData()
+    } catch (error: any) {
+      setMessage(`User status update failed: ${error.message ?? 'Network or server error.'}`)
+      setUpdatingUserEmail(null)
     }
   }
 
@@ -986,6 +1048,7 @@ if (
 
     return matchesSearch && matchesStatus
   })
+  
   const openIssues = issueReports.filter((issue) => issue.status === 'open')
   const totalPages = documents.reduce((sum, doc) => sum + (doc.page_count ?? 0), 0)
 
@@ -1120,7 +1183,7 @@ if (
                 { key: 'overview', label: 'Overview' },
                 { key: 'access', label: `Access & Invites${pendingRequests.length > 0 ? ` (${pendingRequests.length})` : ''}` },
                 { key: 'documents', label: 'Documents' },
-                { key: 'feedback', label: 'Feedback & Issues' },
+                { key: 'feedback', label: `Feedback & Issues${openIssues.length > 0 ? ` (${openIssues.length})` : ''}` },
                 { key: 'trusted', label: 'Trusted Answers' },
               ].map((tab) => (
                 <button
@@ -1142,49 +1205,48 @@ if (
           {activeTab === 'overview' && (
             <>
           <section className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
-  {[
-    ['Total documents', documentHealth.total, 'normal'],
-    ['Active', documentHealth.active, 'normal'],
-    ['Archived', documentHealth.archived, 'normal'],
-    ['Processed pages', totalPages, 'normal'],
-    ['Pending requests', pendingRequests.length, 'warning'],
-    ['Approved users', approvedRequests.length, 'success'],
-    ['Open issues', openIssues.length, 'danger'],
-  ].map(([label, value, type]) => {
-    const hasValue = Number(value) > 0
+            {[
+              ['Total documents', documentHealth.total, 'normal'],
+              ['Active', documentHealth.active, 'normal'],
+              ['Archived', documentHealth.archived, 'normal'],
+              ['Processed pages', totalPages, 'normal'],
+              ['Pending requests', pendingRequests.length, 'warning'],
+              ['Approved users', approvedRequests.length, 'success'],
+              ['Open issues', openIssues.length, 'danger'],
+            ].map(([label, value, type]) => {
+              const hasValue = Number(value) > 0
 
-    return (
-      <div
-        key={label}
-        className={`rounded-xl border px-3 py-2 text-center shadow-sm transition ${
-          type === 'warning' && hasValue
-            ? 'border-yellow-300 bg-yellow-50'
-            : type === 'danger' && hasValue
-            ? 'border-red-300 bg-red-50'
-            : type === 'success' && hasValue
-            ? 'border-green-300 bg-green-50'
-            : 'bg-white'
-        }`}
-      >
-        <p className="text-[11px] leading-tight text-gray-600">{label}</p>
-
-        <p
-          className={`text-xl font-bold leading-tight ${
-            type === 'warning' && hasValue
-              ? 'text-yellow-800'
-              : type === 'danger' && hasValue
-              ? 'text-red-700'
-              : type === 'success' && hasValue
-              ? 'text-green-700'
-              : 'text-black'
-          }`}
-        >
-          {value}
-        </p>
-      </div>
-    )
-  })}
-</section>
+              return (
+                <div
+                  key={label}
+                  className={`rounded-xl border px-3 py-2 text-center shadow-sm transition ${
+                    type === 'warning' && hasValue
+                      ? 'border-yellow-300 bg-yellow-50'
+                      : type === 'danger' && hasValue
+                        ? 'border-red-300 bg-red-50'
+                        : type === 'success' && hasValue
+                          ? 'border-green-300 bg-green-50'
+                          : 'bg-white'
+                  }`}
+                >
+                  <p className="text-[11px] leading-tight text-gray-600">{label}</p>
+                  <p
+                    className={`text-xl font-bold leading-tight ${
+                      type === 'warning' && hasValue
+                        ? 'text-yellow-800'
+                        : type === 'danger' && hasValue
+                          ? 'text-red-700'
+                          : type === 'success' && hasValue
+                            ? 'text-green-700'
+                            : 'text-black'
+                    }`}
+                  >
+                    {value}
+                  </p>
+                </div>
+              )
+            })}
+          </section>
             </>
           )}
 
@@ -1197,46 +1259,53 @@ if (
                 Approve access requests, send direct invites, or resend setup links.
               </p>
             </div>
+<form onSubmit={sendDirectInvite} className="rounded-2xl border bg-gray-50 p-4 space-y-3">
+  <div>
+    <h3 className="font-semibold">Send direct invite</h3>
+    <p className="text-sm text-gray-600">
+      Use this when you want to invite someone without asking them to complete the request form first.
+    </p>
+  </div>
 
-            <form onSubmit={sendDirectInvite} className="rounded-2xl border bg-gray-50 p-4 space-y-3">
-              <div>
-                <h3 className="font-semibold">Send direct invite</h3>
-                <p className="text-sm text-gray-600">
-                  Use this when you want to invite someone without asking them to complete the request form first.
-                </p>
-              </div>
+  <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto] md:items-end">
+    <div>
+      <label className="mb-1 block text-sm font-medium">Full name</label>
+      <input
+        value={inviteFullName}
+        onChange={(e) => setInviteFullName(e.target.value)}
+        className="w-full rounded-lg border px-3 py-2 text-sm"
+        required
+      />
+    </div>
 
-              <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto] md:items-end">
-                <div>
-                  <label className="mb-1 block text-sm font-medium">Full name</label>
-                  <input
-                    value={inviteFullName}
-                    onChange={(e) => setInviteFullName(e.target.value)}
-                    className="w-full rounded-lg border px-3 py-2 text-sm"
-                    required
-                  />
-                </div>
+    <div>
+      <label className="mb-1 block text-sm font-medium">Email</label>
+      <input
+        type="email"
+        value={inviteEmail}
+        onChange={(e) => {
+          setInviteEmail(e.target.value)
+          setInviteEmailWarning('')
+        }}
+        className={`w-full rounded-lg border px-3 py-2 text-sm ${
+          inviteEmailWarning ? 'border-red-300 bg-red-50' : ''
+        }`}
+        required
+      />
+      {inviteEmailWarning && (
+        <p className="mt-1 text-xs text-red-700">{inviteEmailWarning}</p>
+      )}
+    </div>
 
-                <div>
-                  <label className="mb-1 block text-sm font-medium">Email</label>
-                  <input
-                    type="email"
-                    value={inviteEmail}
-                    onChange={(e) => setInviteEmail(e.target.value)}
-                    className="w-full rounded-lg border px-3 py-2 text-sm"
-                    required
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={sendingInvite}
-                  className="rounded-lg bg-black px-4 py-2 text-sm text-white disabled:opacity-50"
-                >
-                  {sendingInvite ? 'Sending...' : 'Send invite'}
-                </button>
-              </div>
-            </form>
+    <button
+      type="submit"
+      disabled={sendingInvite}
+      className="rounded-lg bg-black px-4 py-2 text-sm text-white disabled:opacity-50"
+    >
+      {sendingInvite ? 'Sending...' : 'Send invite'}
+    </button>
+  </div>
+</form>
 
             <div>
               <h3 className="font-semibold">Pending access requests</h3>
@@ -1356,8 +1425,10 @@ if (
                         <th className="p-3 text-left">Name</th>
                         <th className="p-3 text-left">Email</th>
                         <th className="p-3 text-left">Status</th>
+                        <th className="p-3 text-left">User</th>
                         <th className="p-3 text-left">Approved</th>
                         <th className="p-3 text-left">Last invited</th>
+                        <th className="p-3 text-left">Last activity</th>
                         <th className="p-3 text-left">Invites</th>
                         <th className="p-3 text-left">Action</th>
                       </tr>
@@ -1387,6 +1458,23 @@ if (
                               {request.status}
                             </span>
                           </td>
+                          <td className="p-3">
+                            <span
+                              className={`rounded-full px-2 py-1 text-xs ${
+                                request.profile_is_active === false
+                                  ? 'bg-red-100 text-red-700'
+                                  : request.profile_is_active === true
+                                    ? 'bg-green-100 text-green-700'
+                                    : 'bg-gray-100 text-gray-600'
+                              }`}
+                            >
+                              {request.profile_is_active === false
+                                ? 'inactive'
+                                : request.profile_is_active === true
+                                  ? request.profile_role || 'active'
+                                  : 'no profile'}
+                            </span>
+                          </td>
                           <td className="p-3 text-xs text-gray-500">
                             {request.approved_at
                               ? new Date(request.approved_at).toLocaleString()
@@ -1396,6 +1484,16 @@ if (
                             {request.last_invited_at
                               ? new Date(request.last_invited_at).toLocaleString()
                               : 'Not tracked'}
+                          </td>
+                          <td className="p-3 text-xs text-gray-500">
+                            {request.last_activity_at
+                              ? new Date(request.last_activity_at).toLocaleString()
+                              : 'No activity'}
+                            {request.last_question && (
+                              <p className="mt-1 line-clamp-2 max-w-[220px] text-gray-600">
+                                {request.last_question}
+                              </p>
+                            )}
                           </td>
                           <td className="p-3 text-xs text-gray-500">
                             {request.invite_count ?? 0}
@@ -1424,14 +1522,36 @@ if (
                               )}
 
                               {request.status === 'approved' && (
-                                <button
-                                  type="button"
-                                  onClick={() => resendInvite(request)}
-                                  disabled={resendingInviteId === request.id}
-                                  className="rounded-lg border px-3 py-1 text-xs hover:bg-gray-50 disabled:opacity-50"
-                                >
-                                  {resendingInviteId === request.id ? 'Resending...' : 'Resend'}
-                                </button>
+                                <>
+                                  <button
+                                    type="button"
+                                    onClick={() => resendInvite(request)}
+                                    disabled={resendingInviteId === request.id}
+                                    className="rounded-lg border px-3 py-1 text-xs hover:bg-gray-50 disabled:opacity-50"
+                                  >
+                                    {resendingInviteId === request.id ? 'Resending...' : 'Resend'}
+                                  </button>
+
+                                  {request.profile_is_active === false ? (
+                                    <button
+                                      type="button"
+                                      onClick={() => updateUserStatus(request, true)}
+                                      disabled={updatingUserEmail === request.email}
+                                      className="rounded-lg border px-3 py-1 text-xs text-green-700 hover:bg-green-50 disabled:opacity-50"
+                                    >
+                                      {updatingUserEmail === request.email ? 'Updating...' : 'Reactivate'}
+                                    </button>
+                                  ) : (
+                                    <button
+                                      type="button"
+                                      onClick={() => updateUserStatus(request, false)}
+                                      disabled={updatingUserEmail === request.email}
+                                      className="rounded-lg border px-3 py-1 text-xs text-red-700 hover:bg-red-50 disabled:opacity-50"
+                                    >
+                                      {updatingUserEmail === request.email ? 'Updating...' : 'Deactivate'}
+                                    </button>
+                                  )}
+                                </>
                               )}
                             </div>
                           </td>
