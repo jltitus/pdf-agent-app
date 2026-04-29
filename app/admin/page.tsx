@@ -155,6 +155,10 @@ export default function AdminPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [approvingId, setApprovingId] = useState<string | null>(null)
   const [decliningId, setDecliningId] = useState<string | null>(null)
+  const [sendingInvite, setSendingInvite] = useState(false)
+  const [resendingInviteId, setResendingInviteId] = useState<string | null>(null)
+  const [inviteFullName, setInviteFullName] = useState('')
+  const [inviteEmail, setInviteEmail] = useState('')
 
   const [approvedUserInfo, setApprovedUserInfo] = useState<{
     email: string
@@ -687,6 +691,102 @@ export default function AdminPage() {
     }
   }
 
+  async function sendDirectInvite(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setSendingInvite(true)
+    setMessage('Sending invite...')
+    setApprovedUserInfo(null)
+
+    try {
+      const token = await getToken()
+
+      if (!token) {
+        setMessage('You must be signed in.')
+        setSendingInvite(false)
+        return
+      }
+
+      const res = await fetch('/api/send-user-invite', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          fullName: inviteFullName,
+          email: inviteEmail,
+        }),
+      })
+
+      const result = await res.json().catch(() => ({}))
+
+      if (!res.ok) {
+        setMessage(result.error ?? 'Invite failed.')
+        setSendingInvite(false)
+        return
+      }
+
+      setInviteFullName('')
+      setInviteEmail('')
+      setApprovedUserInfo({
+        email: result.email,
+        message: result.message ?? 'Invite sent.',
+      })
+      setMessage(result.message ?? 'Invite sent.')
+      setSendingInvite(false)
+      await loadData()
+    } catch (error: any) {
+      setMessage(`Invite failed: ${error.message ?? 'Network or server error.'}`)
+      setSendingInvite(false)
+    }
+  }
+
+  async function resendInvite(request: AccessRequest) {
+    setResendingInviteId(request.id)
+    setMessage('Resending invite...')
+    setApprovedUserInfo(null)
+
+    try {
+      const token = await getToken()
+
+      if (!token) {
+        setMessage('You must be signed in.')
+        setResendingInviteId(null)
+        return
+      }
+
+      const res = await fetch('/api/resend-user-invite', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          requestId: request.id,
+        }),
+      })
+
+      const result = await res.json().catch(() => ({}))
+
+      if (!res.ok) {
+        setMessage(result.error ?? 'Resend invite failed.')
+        setResendingInviteId(null)
+        return
+      }
+
+      setApprovedUserInfo({
+        email: result.email,
+        message: result.message ?? 'Invite resent.',
+      })
+      setMessage(result.message ?? 'Invite resent.')
+      setResendingInviteId(null)
+      await loadData()
+    } catch (error: any) {
+      setMessage(`Resend invite failed: ${error.message ?? 'Network or server error.'}`)
+      setResendingInviteId(null)
+    }
+  }
+
   async function saveTrustedAnswer(item: NoAnswerItem) {
     setMessage('Saving trusted answer...')
 
@@ -833,6 +933,7 @@ export default function AdminPage() {
       : feedback.filter((item) => item.feedback_type === feedbackFilter)
 
   const pendingRequests = accessRequests.filter((request) => request.status === 'pending')
+  const approvedRequests = accessRequests.filter((request) => request.status === 'approved')
   const openIssues = issueReports.filter((issue) => issue.status === 'open')
   const totalPages = documents.reduce((sum, doc) => sum + (doc.page_count ?? 0), 0)
 
@@ -977,60 +1078,134 @@ export default function AdminPage() {
             ))}
           </section>
 
-          <section className="rounded-2xl border bg-white p-6 space-y-4 shadow-sm">
+          <section className="rounded-2xl border bg-white p-6 space-y-6 shadow-sm">
             <div>
-              <h2 className="text-2xl font-bold">Access Requests</h2>
+              <h2 className="text-2xl font-bold">Access & Invites</h2>
               <p className="text-sm text-gray-600">
-                Approve requesters to send an invite email, or decline requests that should not receive access.
+                Approve access requests, send direct invites, or resend setup links.
               </p>
             </div>
 
-            {pendingRequests.length === 0 ? (
-              <p className="text-sm text-gray-600">No pending access requests.</p>
-            ) : (
-              <div className="overflow-x-auto rounded-lg border">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="p-3 text-left">Name</th>
-                      <th className="p-3 text-left">Email</th>
-                      <th className="p-3 text-left">Date</th>
-                      <th className="p-3 text-left">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {pendingRequests.map((request) => (
-                      <tr key={request.id} className="border-t">
-                        <td className="p-3">{request.full_name}</td>
-                        <td className="p-3">{request.email}</td>
-                        <td className="p-3 text-xs">
-                          {new Date(request.created_at).toLocaleString()}
-                        </td>
-                        <td className="p-3">
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => approveAccessRequest(request.id)}
-                              disabled={approvingId === request.id || decliningId === request.id}
-                              className="rounded bg-blue-600 px-3 py-1 text-xs text-white disabled:opacity-50"
-                            >
-                              {approvingId === request.id ? 'Approving...' : 'Approve'}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => declineRequest(request.id)}
-                              disabled={approvingId === request.id || decliningId === request.id}
-                              className="rounded border px-3 py-1 text-xs disabled:opacity-50"
-                            >
-                              {decliningId === request.id ? 'Declining...' : 'Decline'}
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+            <form onSubmit={sendDirectInvite} className="rounded-2xl border bg-gray-50 p-4 space-y-3">
+              <div>
+                <h3 className="font-semibold">Send direct invite</h3>
+                <p className="text-sm text-gray-600">
+                  Use this when you want to invite someone without asking them to complete the request form first.
+                </p>
               </div>
-            )}
+
+              <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto] md:items-end">
+                <div>
+                  <label className="mb-1 block text-sm font-medium">Full name</label>
+                  <input
+                    value={inviteFullName}
+                    onChange={(e) => setInviteFullName(e.target.value)}
+                    className="w-full rounded-lg border px-3 py-2 text-sm"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-1 block text-sm font-medium">Email</label>
+                  <input
+                    type="email"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    className="w-full rounded-lg border px-3 py-2 text-sm"
+                    required
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={sendingInvite}
+                  className="rounded-lg bg-black px-4 py-2 text-sm text-white disabled:opacity-50"
+                >
+                  {sendingInvite ? 'Sending...' : 'Send invite'}
+                </button>
+              </div>
+            </form>
+
+            <div>
+              <h3 className="font-semibold">Pending access requests</h3>
+
+              {pendingRequests.length === 0 ? (
+                <p className="mt-2 text-sm text-gray-600">No pending access requests.</p>
+              ) : (
+                <div className="mt-3 overflow-x-auto rounded-lg border">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="p-3 text-left">Name</th>
+                        <th className="p-3 text-left">Email</th>
+                        <th className="p-3 text-left">Date</th>
+                        <th className="p-3 text-left">Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {pendingRequests.map((request) => (
+                        <tr key={request.id} className="border-t">
+                          <td className="p-3">{request.full_name}</td>
+                          <td className="p-3">{request.email}</td>
+                          <td className="p-3 text-xs">
+                            {new Date(request.created_at).toLocaleString()}
+                          </td>
+                          <td className="p-3">
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => approveAccessRequest(request.id)}
+                                disabled={approvingId === request.id || decliningId === request.id}
+                                className="rounded bg-blue-600 px-3 py-1 text-xs text-white disabled:opacity-50"
+                              >
+                                {approvingId === request.id ? 'Approving...' : 'Approve'}
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => declineRequest(request.id)}
+                                disabled={approvingId === request.id || decliningId === request.id}
+                                className="rounded border px-3 py-1 text-xs disabled:opacity-50"
+                              >
+                                {decliningId === request.id ? 'Declining...' : 'Decline'}
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+
+            <div>
+              <h3 className="font-semibold">Approved users / resend setup</h3>
+
+              {approvedRequests.length === 0 ? (
+                <p className="mt-2 text-sm text-gray-600">No approved requests yet.</p>
+              ) : (
+                <div className="mt-3 max-h-[300px] space-y-2 overflow-y-auto pr-1">
+                  {approvedRequests.map((request) => (
+                    <div key={request.id} className="rounded-lg border p-3">
+                      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                        <div>
+                          <p className="text-sm font-semibold">{request.full_name}</p>
+                          <p className="text-xs text-gray-500">{request.email}</p>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => resendInvite(request)}
+                          disabled={resendingInviteId === request.id}
+                          className="w-fit rounded-lg border px-3 py-2 text-xs hover:bg-gray-50 disabled:opacity-50"
+                        >
+                          {resendingInviteId === request.id ? 'Resending...' : 'Resend invite'}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </section>
 
           <section className="rounded-2xl border bg-white p-6 space-y-4 shadow-sm">
