@@ -444,7 +444,7 @@ return (
   <>
     <HeaderBar />
 
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50">
+    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 pb-28 md:pb-0">
 
 
       <div className="mx-auto flex max-w-6xl flex-col gap-6 px-4 py-6 md:px-8">
@@ -523,13 +523,24 @@ return (
                 </button>
               </div>
             </div>
-
-            <form onSubmit={askQuestion} className="space-y-3 border-b bg-gray-50 p-4">
+<div className="border-b bg-blue-50 p-4 md:hidden">
+  <h3 className="text-sm font-semibold">How to use this</h3>
+  <ul className="mt-2 space-y-1 text-xs text-gray-700">
+    <li>• Ask a real food preservation question</li>
+    <li>• Review sources below the answer</li>
+    <li>• Tap “Open source” to verify</li>
+    <li>• Use “Report issue” if something looks wrong</li>
+  </ul>
+</div>
+            <form onSubmit={askQuestion} className="hidden space-y-3 border-b bg-gray-50 p-4 md:block">
 
   <div className="flex justify-end">
-    <Link href="/help" className="text-xs text-gray-500 underline">
-      Need help using this tool?
-    </Link>
+   <Link
+  href="/help"
+  className="rounded-full bg-white px-3 py-1 text-xs font-medium text-gray-700 shadow-sm border hover:bg-gray-50"
+>
+  ❓ Help
+</Link>
   </div>
               {message && (
                 <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
@@ -637,12 +648,12 @@ return (
         return (
           <div
             key={`${source.filename}-${sourceIndex}`}
-            className="rounded-xl border bg-white p-4"
+            className="rounded-xl border bg-white p-3"
           >
-            <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+            <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <p className="font-semibold text-sm">{source.title}</p>
+                  <p className="font-medium text-sm leading-tight">{source.title}</p>
 
                   {sourceIndex === 0 && (
                     <span className="rounded-full border px-2 py-1 text-xs font-medium">
@@ -651,9 +662,9 @@ return (
                   )}
                 </div>
 
-                <p className="mt-1 text-xs text-gray-500">
-                  {source.filename}
-                </p>
+                <p className="mt-1 text-[10px] text-gray-400">
+  {source.filename}
+</p>
 
                 <p className="mt-1 text-xs text-gray-600">
                   Pages: {source.pages?.join(', ') || 'Unknown'}
@@ -677,6 +688,7 @@ return (
 </div>
 
                         <div className="mt-4 flex flex-wrap gap-2 border-t pt-4">
+                          
                           <button
                             type="button"
                             onClick={() => submitFeedback(index, 'helpful')}
@@ -718,7 +730,12 @@ return (
                           >
                             Save as trusted
                           </button>
-
+<Link
+  href={`/report-issue?question=${encodeURIComponent(turn.question)}`}
+  className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50"
+>
+  Report issue
+</Link>
                           {(turn.evidenceStrength?.label === 'Not found' ||
                             !turn.sources ||
                             turn.sources.length === 0 ||
@@ -735,6 +752,7 @@ return (
                             >
                               Try broader search
                             </button>
+                            
                           )}
                         </div>
 
@@ -836,6 +854,38 @@ return (
           </aside>
         </div>
       </div>
+      <form
+  onSubmit={askQuestion}
+  className="fixed bottom-0 left-0 right-0 z-50 border-t bg-white p-3 shadow-lg md:hidden"
+>
+  {message && (
+    <div className="mb-2 rounded-lg border border-red-200 bg-red-50 p-2 text-xs text-red-700">
+      {message}
+    </div>
+  )}
+
+  <div className="flex gap-2">
+    <textarea
+      value={question}
+      onChange={(e) => setQuestion(e.target.value)}
+      className="min-h-[48px] flex-1 rounded-xl border bg-white p-3 text-sm shadow-sm"
+      placeholder={
+        conversationTurns.length > 0
+          ? 'Ask a follow-up...'
+          : 'Ask a question...'
+      }
+      required
+    />
+
+    <button
+      type="submit"
+      className="rounded-xl bg-black px-4 py-2 text-sm text-white shadow disabled:opacity-50"
+      disabled={loading}
+    >
+      {loading ? '...' : 'Send'}
+    </button>
+  </div>
+</form>
     </main>
   </>
 )
