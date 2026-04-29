@@ -708,6 +708,23 @@ export default function AdminPage() {
     setApprovedUserInfo(null)
 
     try {
+      const trimmedEmail = inviteEmail.trim().toLowerCase()
+
+if (!trimmedEmail.includes('@') || !trimmedEmail.includes('.')) {
+  setMessage('Please enter a valid email address before sending an invite.')
+  setSendingInvite(false)
+  return
+}
+
+if (
+  trimmedEmail.includes('enter_') ||
+  trimmedEmail.includes('placeholder') ||
+  trimmedEmail.includes('example.com')
+) {
+  setMessage('Please replace the placeholder with a real email address.')
+  setSendingInvite(false)
+  return
+}
       const token = await getToken()
 
       if (!token) {
@@ -724,7 +741,7 @@ export default function AdminPage() {
         },
         body: JSON.stringify({
           fullName: inviteFullName,
-          email: inviteEmail,
+          email: trimmedEmail,
         }),
       })
 

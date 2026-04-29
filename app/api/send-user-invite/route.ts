@@ -73,6 +73,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing full name or email' }, { status: 400 })
     }
 
+    const normalizedEmail = String(email).trim().toLowerCase()
+
+    if (!normalizedEmail.includes('@') || !normalizedEmail.includes('.')) {
+      return NextResponse.json({ error: 'Invalid email address' }, { status: 400 })
+    }
+
     const supabaseAdmin = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -88,8 +94,6 @@ export async function POST(request: Request) {
         { status: 500 }
       )
     }
-
-    const normalizedEmail = String(email).trim().toLowerCase()
 
     const { data: usersList, error: usersListError } =
       await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 })
@@ -108,9 +112,14 @@ export async function POST(request: Request) {
     if (existingUser) {
       userId = existingUser.id
 
-      await supabaseAdmin.auth.resetPasswordForEmail(normalizedEmail, {
-        redirectTo: `${siteUrl}/update-password`,
-      })
+      const { error: resetError } = await supabaseAdmin.auth.resetPasswordForEmail(
+        normalizedEmail,
+        { redirectTo: `${siteUrl}/update-password` }
+      )
+
+      if (resetError) {
+        return NextResponse.json({ error: resetError.message }, { status: 500 })
+      }
 
       message =
         'User already existed. Their profile was activated and a password reset/setup email was sent.'
@@ -145,19 +154,47 @@ export async function POST(request: Request) {
 
     const now = new Date().toISOString()
 
-    await supabaseAdmin.from('access_requests').upsert(
-      {
-        email: normalizedEmail,
-        full_name: fullName,
-        reason: 'Direct admin invite',
-        status: 'approved',
-        approved_at: now,
-        approved_by: adminCheck.user.id,
-        last_invited_at: now,
-        invite_count: 1,
-      },
-      { onConflict: 'email' }
-    )
+    const { data: existingAccessRequest } = await supabaseAdmin
+      .from('access_requests')
+      .select('id, invite_count')
+      .eq('email', normalizedEmail)
+      .maybeSingle()
+
+    if (existingAccessRequest) {
+      const { error: updateRequestError } = await supabaseAdmin
+        .from('access_requests')
+        .update({
+          full_name: fullName,
+          reason: 'Direct admin invite',
+          status: 'approved',
+          approved_at: now,
+          approved_by: adminCheck.user.id,
+          last_invited_at: now,
+          invite_count: (existingAccessRequest.invite_count ?? 0) + 1,
+        })
+        .eq('id', existingAccessRequest.id)
+
+      if (updateRequestError) {
+        return NextResponse.json({ error: updateRequestError.message }, { status: 500 })
+      }
+    } else {
+      const { error: insertRequestError } = await supabaseAdmin
+        .from('access_requests')
+        .insert({
+          email: normalizedEmail,
+          full_name: fullName,
+          reason: 'Direct admin invite',
+          status: 'approved',
+          approved_at: now,
+          approved_by: adminCheck.user.id,
+          last_invited_at: now,
+          invite_count: 1,
+        })
+
+      if (insertRequestError) {
+        return NextResponse.json({ error: insertRequestError.message }, { status: 500 })
+      }
+    }
 
     await sendOnboardingEmail({
       email: normalizedEmail,
