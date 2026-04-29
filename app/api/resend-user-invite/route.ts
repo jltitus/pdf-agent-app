@@ -1,5 +1,39 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { Resend } from 'resend'
+
+async function sendOnboardingEmail({
+  email,
+  fullName,
+  siteUrl,
+}: {
+  email: string
+  fullName: string
+  siteUrl: string
+}) {
+  if (!process.env.RESEND_API_KEY || !process.env.ADMIN_NOTIFICATION_EMAIL) return
+
+  const resend = new Resend(process.env.RESEND_API_KEY)
+
+  await resend.emails.send({
+    from: 'MFP Agent <onboarding@resend.dev>',
+    to: email,
+    bcc: process.env.ADMIN_NOTIFICATION_EMAIL,
+    subject: 'MFP Publication Agent setup link resent',
+    html: `
+      <h2>Hello${fullName ? `, ${fullName}` : ''}!</h2>
+      <p>Your MFP Publication Agent setup/reset email has been resent.</p>
+      <p><strong>Next steps:</strong></p>
+      <ol>
+        <li>Check your inbox and spam folder for the setup/reset email.</li>
+        <li>Set your password.</li>
+        <li>Go to <a href="${siteUrl}/login">${siteUrl}/login</a>.</li>
+        <li>Review the Help page before testing.</li>
+      </ol>
+      <p>If you still cannot get in, contact the app admin.</p>
+    `,
+  })
+}
 
 export async function POST(request: Request) {
   try {
@@ -62,6 +96,22 @@ export async function POST(request: Request) {
 
     await supabaseAdmin.auth.resetPasswordForEmail(normalizedEmail, {
       redirectTo: `${siteUrl}/update-password`,
+    })
+
+    const now = new Date().toISOString()
+
+    await supabaseAdmin
+      .from('access_requests')
+      .update({
+        last_invited_at: now,
+        invite_count: (accessRequest.invite_count ?? 0) + 1,
+      })
+      .eq('id', requestId)
+
+    await sendOnboardingEmail({
+      email: normalizedEmail,
+      fullName: accessRequest.full_name,
+      siteUrl,
     })
 
     return NextResponse.json({

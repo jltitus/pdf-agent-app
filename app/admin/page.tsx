@@ -24,6 +24,9 @@ type AccessRequest = {
   reason?: string | null
   status: string
   created_at: string
+  approved_at?: string | null
+  last_invited_at?: string | null
+  invite_count?: number | null
 }
 
 type FeedbackItem = {
@@ -159,6 +162,7 @@ export default function AdminPage() {
   const [resendingInviteId, setResendingInviteId] = useState<string | null>(null)
   const [inviteFullName, setInviteFullName] = useState('')
   const [inviteEmail, setInviteEmail] = useState('')
+  const [userInviteSearch, setUserInviteSearch] = useState('')
 
   const [approvedUserInfo, setApprovedUserInfo] = useState<{
     email: string
@@ -934,6 +938,16 @@ export default function AdminPage() {
 
   const pendingRequests = accessRequests.filter((request) => request.status === 'pending')
   const approvedRequests = accessRequests.filter((request) => request.status === 'approved')
+  const filteredApprovedRequests = approvedRequests.filter((request) => {
+    const search = userInviteSearch.trim().toLowerCase()
+
+    if (!search) return true
+
+    return (
+      request.full_name.toLowerCase().includes(search) ||
+      request.email.toLowerCase().includes(search)
+    )
+  })
   const openIssues = issueReports.filter((issue) => issue.status === 'open')
   const totalPages = documents.reduce((sum, doc) => sum + (doc.page_count ?? 0), 0)
 
@@ -1178,18 +1192,55 @@ export default function AdminPage() {
             </div>
 
             <div>
-              <h3 className="font-semibold">Approved users / resend setup</h3>
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <h3 className="font-semibold">Approved users / resend setup</h3>
+                  <p className="text-sm text-gray-600">
+                    Search approved users, review invite activity, and resend setup instructions.
+                  </p>
+                </div>
+
+                <input
+                  value={userInviteSearch}
+                  onChange={(e) => setUserInviteSearch(e.target.value)}
+                  placeholder="Search name or email..."
+                  className="w-full rounded-lg border px-3 py-2 text-sm md:max-w-xs"
+                />
+              </div>
 
               {approvedRequests.length === 0 ? (
                 <p className="mt-2 text-sm text-gray-600">No approved requests yet.</p>
+              ) : filteredApprovedRequests.length === 0 ? (
+                <p className="mt-3 rounded-lg border p-3 text-sm text-gray-600">
+                  No approved users match your search.
+                </p>
               ) : (
-                <div className="mt-3 max-h-[300px] space-y-2 overflow-y-auto pr-1">
-                  {approvedRequests.map((request) => (
+                <div className="mt-3 max-h-[360px] space-y-2 overflow-y-auto pr-1">
+                  <p className="text-xs text-gray-500">
+                    Showing {filteredApprovedRequests.length} of {approvedRequests.length} approved user
+                    {approvedRequests.length === 1 ? '' : 's'}.
+                  </p>
+
+                  {filteredApprovedRequests.map((request) => (
                     <div key={request.id} className="rounded-lg border p-3">
                       <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                         <div>
                           <p className="text-sm font-semibold">{request.full_name}</p>
                           <p className="text-xs text-gray-500">{request.email}</p>
+                          <p className="mt-1 text-xs text-gray-500">
+                            Approved:{' '}
+                            {request.approved_at
+                              ? new Date(request.approved_at).toLocaleString()
+                              : 'Unknown'}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            Last invited:{' '}
+                            {request.last_invited_at
+                              ? new Date(request.last_invited_at).toLocaleString()
+                              : 'Not tracked yet'}
+                            {' • '}
+                            Invite count: {request.invite_count ?? 0}
+                          </p>
                         </div>
 
                         <button

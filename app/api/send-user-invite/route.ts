@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { Resend } from 'resend'
 
 async function requireAdmin(request: Request, supabaseAdmin: any) {
   const authHeader = request.headers.get('authorization')
@@ -31,15 +32,45 @@ async function requireAdmin(request: Request, supabaseAdmin: any) {
   return { user }
 }
 
+async function sendOnboardingEmail({
+  email,
+  fullName,
+  siteUrl,
+}: {
+  email: string
+  fullName: string
+  siteUrl: string
+}) {
+  if (!process.env.RESEND_API_KEY || !process.env.ADMIN_NOTIFICATION_EMAIL) return
+
+  const resend = new Resend(process.env.RESEND_API_KEY)
+
+  await resend.emails.send({
+    from: 'MFP Agent <onboarding@resend.dev>',
+    to: email,
+    bcc: process.env.ADMIN_NOTIFICATION_EMAIL,
+    subject: 'Welcome to the MFP Publication Agent',
+    html: `
+      <h2>Welcome${fullName ? `, ${fullName}` : ''}!</h2>
+      <p>You have been invited to use the MFP Publication Agent.</p>
+      <p><strong>Next steps:</strong></p>
+      <ol>
+        <li>Open the setup email from Supabase and set your password.</li>
+        <li>Go to <a href="${siteUrl}/login">${siteUrl}/login</a>.</li>
+        <li>Use the Help page first for testing instructions.</li>
+        <li>If something seems wrong, use Help → Report an Issue.</li>
+      </ol>
+      <p>If the setup email is expired or missing, use “Forgot password” from the login page.</p>
+    `,
+  })
+}
+
 export async function POST(request: Request) {
   try {
     const { fullName, email } = await request.json()
 
     if (!fullName || !email) {
-      return NextResponse.json(
-        { error: 'Missing full name or email' },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: 'Missing full name or email' }, { status: 400 })
     }
 
     const supabaseAdmin = createClient(
@@ -61,10 +92,7 @@ export async function POST(request: Request) {
     const normalizedEmail = String(email).trim().toLowerCase()
 
     const { data: usersList, error: usersListError } =
-      await supabaseAdmin.auth.admin.listUsers({
-        page: 1,
-        perPage: 1000,
-      })
+      await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 })
 
     if (usersListError) {
       return NextResponse.json({ error: usersListError.message }, { status: 500 })
@@ -115,17 +143,27 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: profileError.message }, { status: 500 })
     }
 
+    const now = new Date().toISOString()
+
     await supabaseAdmin.from('access_requests').upsert(
       {
         email: normalizedEmail,
         full_name: fullName,
         reason: 'Direct admin invite',
         status: 'approved',
-        approved_at: new Date().toISOString(),
+        approved_at: now,
         approved_by: adminCheck.user.id,
+        last_invited_at: now,
+        invite_count: 1,
       },
       { onConflict: 'email' }
     )
+
+    await sendOnboardingEmail({
+      email: normalizedEmail,
+      fullName,
+      siteUrl,
+    })
 
     return NextResponse.json({
       success: true,
