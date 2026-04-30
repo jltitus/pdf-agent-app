@@ -12,6 +12,10 @@ type DocumentRow = {
   version?: string | null
   publication_date?: string | null
   document_notes?: string | null
+  approval_status?: string | null
+  approved_at?: string | null
+  approved_by?: string | null
+  previous_document_id?: string | null
   is_active: boolean
   storage_path?: string | null
   vector_store_id?: string | null
@@ -100,7 +104,17 @@ type ReplaceFormState = {
   version: string
   publicationDate: string
   documentNotes: string
+  approvalStatus: string
   file: File | null
+}
+
+type EditFormState = {
+  title: string
+  category: string
+  version: string
+  publicationDate: string
+  documentNotes: string
+  approvalStatus: string
 }
 
 export default function AdminPage() {
@@ -113,7 +127,7 @@ export default function AdminPage() {
   const [documents, setDocuments] = useState<DocumentRow[]>([])
   const [documentSearch, setDocumentSearch] = useState('')
   const [documentStatusFilter, setDocumentStatusFilter] = useState<
-    'all' | 'active' | 'archived' | 'processed' | 'not_processed'
+    'all' | 'active' | 'archived' | 'processed' | 'not_processed' | 'pending_review'
   >('all')
 
   const [documentHealthView, setDocumentHealthView] = useState<
@@ -177,6 +191,8 @@ export default function AdminPage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [replacingId, setReplacingId] = useState<string | null>(null)
+  const [editingDocId, setEditingDocId] = useState<string | null>(null)
+  const [savingMetadataId, setSavingMetadataId] = useState<string | null>(null)
   const [replaceForm, setReplaceForm] = useState<ReplaceFormState>({
     documentId: null,
     title: '',
@@ -184,7 +200,17 @@ export default function AdminPage() {
     version: '',
     publicationDate: '',
     documentNotes: '',
+    approvalStatus: 'active',
     file: null,
+  })
+
+  const [editForm, setEditForm] = useState<EditFormState>({
+    title: '',
+    category: '',
+    version: '',
+    publicationDate: '',
+    documentNotes: '',
+    approvalStatus: 'active',
   })
 
   const [approvingId, setApprovingId] = useState<string | null>(null)
@@ -573,6 +599,7 @@ export default function AdminPage() {
       version: doc.version || '',
       publicationDate: doc.publication_date || '',
       documentNotes: doc.document_notes || '',
+      approvalStatus: 'active',
       file: null,
     })
     setMessage('')
@@ -586,8 +613,81 @@ export default function AdminPage() {
       version: '',
       publicationDate: '',
       documentNotes: '',
+      approvalStatus: 'active',
       file: null,
     })
+  }
+
+  function openEditForm(doc: DocumentRow) {
+    setEditingDocId(doc.id)
+    setReplaceForm((prev) => ({ ...prev, documentId: null }))
+    setEditForm({
+      title: doc.title || '',
+      category: doc.category || '',
+      version: doc.version || '',
+      publicationDate: doc.publication_date || '',
+      documentNotes: doc.document_notes || '',
+      approvalStatus: doc.approval_status || (doc.is_active ? 'active' : 'archived'),
+    })
+  }
+
+  function closeEditForm() {
+    setEditingDocId(null)
+    setEditForm({
+      title: '',
+      category: '',
+      version: '',
+      publicationDate: '',
+      documentNotes: '',
+      approvalStatus: 'active',
+    })
+  }
+
+  async function saveDocumentMetadata(documentId: string) {
+    setSavingMetadataId(documentId)
+    setMessage('Saving document details...')
+
+    try {
+      const token = await getToken()
+      if (!token) {
+        setMessage('You must be signed in.')
+        setSavingMetadataId(null)
+        return
+      }
+
+      const res = await fetch('/api/update-document-metadata', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          documentId,
+          title: editForm.title,
+          category: editForm.category,
+          version: editForm.version,
+          publicationDate: editForm.publicationDate,
+          documentNotes: editForm.documentNotes,
+          approvalStatus: editForm.approvalStatus,
+        }),
+      })
+
+      const result = await res.json().catch(() => ({}))
+
+      if (!res.ok) {
+        setMessage(result.error || 'Update failed.')
+        setSavingMetadataId(null)
+        return
+      }
+
+      setMessage('Document details updated.')
+      setSavingMetadataId(null)
+      closeEditForm()
+      await loadDocuments()
+    } catch (error: any) {
+      setMessage(`Update failed: ${error.message ?? 'Network or server error.'}`)
+      setSavingMetadataId(null)
+    }
   }
 
   async function replaceDocument() {
@@ -630,6 +730,7 @@ export default function AdminPage() {
       formData.append('version', replaceForm.version)
       formData.append('publicationDate', replaceForm.publicationDate)
       formData.append('documentNotes', replaceForm.documentNotes)
+      formData.append('approvalStatus', replaceForm.approvalStatus)
       formData.append('file', replaceForm.file)
 
       const replaceResponse = await fetch('/api/replace-document', {
@@ -1156,13 +1257,15 @@ export default function AdminPage() {
       doc.filename.toLowerCase().includes(search) ||
       (doc.category ?? '').toLowerCase().includes(search) ||
       (doc.version ?? '').toLowerCase().includes(search) ||
-      (doc.publication_date ?? '').toLowerCase().includes(search)
+      (doc.publication_date ?? '').toLowerCase().includes(search) ||
+      (doc.approval_status ?? '').toLowerCase().includes(search)
     const matchesStatus =
       documentStatusFilter === 'all' ||
       (documentStatusFilter === 'active' && doc.is_active) ||
       (documentStatusFilter === 'archived' && !doc.is_active) ||
       (documentStatusFilter === 'processed' && isProcessed) ||
-      (documentStatusFilter === 'not_processed' && !isProcessed)
+      (documentStatusFilter === 'not_processed' && !isProcessed) ||
+      (documentStatusFilter === 'pending_review' && doc.approval_status === 'pending_review')
     return matchesSearch && matchesStatus
   })
 
@@ -1199,10 +1302,26 @@ export default function AdminPage() {
         <p><strong className="text-secondary">Pages:</strong> {doc.page_count || 0}</p>
         <p><strong className="text-secondary">Search status:</strong> {isProcessed ? 'Processed' : 'Not processed'}</p>
         <p><strong className="text-secondary">Document status:</strong> {doc.is_active ? 'Active' : 'Archived'}</p>
+        <p><strong className="text-secondary">Approval:</strong> {doc.approval_status || (doc.is_active ? 'active' : 'archived')}</p>
         {doc.replaced_at && <p><strong className="text-secondary">Replaced:</strong> {formatDate(doc.replaced_at)}</p>}
         {doc.document_notes && <p className="md:col-span-2"><strong className="text-secondary">Notes:</strong> {doc.document_notes}</p>}
       </div>
     )
+  }
+
+
+  function renderStatusPill(doc: DocumentRow) {
+    const status = doc.approval_status || (doc.is_active ? 'active' : 'archived')
+    const className =
+      status === 'active'
+        ? 'bg-green-100 text-green-700'
+        : status === 'pending_review'
+          ? 'bg-yellow-100 text-yellow-800'
+          : status === 'approved'
+            ? 'bg-blue-100 text-blue-700'
+            : 'bg-gray-100 text-secondary'
+
+    return <span className={`rounded-full px-2 py-1 text-xs font-semibold ${className}`}>{status}</span>
   }
 
   if (loading) {
@@ -1385,7 +1504,7 @@ export default function AdminPage() {
 
               <section className={`${cardClass} space-y-4`}>
                 <div><h2 className="text-2xl font-bold text-primary">Uploaded documents</h2><p className="text-sm text-secondary">View full PDFs, replace updated publications, archive old versions, and process documents for page-level citations.</p></div>
-                <div className="grid gap-3 md:grid-cols-[1fr_220px]"><input value={documentSearch} onChange={(e) => setDocumentSearch(e.target.value)} placeholder="Search title, filename, category, version, or publication date..." className={inputClass} /><select value={documentStatusFilter} onChange={(e) => setDocumentStatusFilter(e.target.value as any)} className={inputClass}><option value="all">All documents</option><option value="active">Active only</option><option value="archived">Archived only</option><option value="processed">Processed only</option><option value="not_processed">Not processed only</option></select></div>
+                <div className="grid gap-3 md:grid-cols-[1fr_220px]"><input value={documentSearch} onChange={(e) => setDocumentSearch(e.target.value)} placeholder="Search title, filename, category, version, or publication date..." className={inputClass} /><select value={documentStatusFilter} onChange={(e) => setDocumentStatusFilter(e.target.value as any)} className={inputClass}><option value="all">All documents</option><option value="active">Active only</option><option value="archived">Archived only</option><option value="pending_review">Pending review</option><option value="processed">Processed only</option><option value="not_processed">Not processed only</option></select></div>
                 <div className="flex flex-col gap-2 text-sm text-secondary md:flex-row md:items-center md:justify-between"><p>Showing <strong>{filteredDocumentsForAdmin.length}</strong> of <strong>{documents.length}</strong> uploaded documents</p>{(documentSearch || documentStatusFilter !== 'all') && <button type="button" onClick={() => { setDocumentSearch(''); setDocumentStatusFilter('all') }} className={smallSecondaryButton}>Clear filters</button>}</div>
                 {filteredDocumentsForAdmin.length === 0 ? <p className="rounded-lg border border-gray-300 p-3 text-sm text-secondary">No documents match your search/filter.</p> : <div className="space-y-3">{filteredDocumentsForAdmin.map((doc) => {
                   const isProcessed = (doc.page_count ?? 0) > 0
@@ -1395,18 +1514,33 @@ export default function AdminPage() {
                     <div key={doc.id} className="rounded-xl border border-gray-300 bg-white p-4">
                       <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                         <div className="min-w-0 flex-1">
-                          <div className="flex flex-wrap items-center gap-2"><p className="font-semibold text-primary">{doc.title || doc.filename}</p><span className={`rounded-full px-2 py-1 text-xs font-semibold ${doc.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-secondary'}`}>{doc.is_active ? 'Active' : 'Archived'}</span>{doc.replaced_by_document_id && <span className="rounded-full bg-yellow-100 px-2 py-1 text-xs font-semibold text-yellow-800">Replaced</span>}</div>
+                          <div className="flex flex-wrap items-center gap-2"><p className="font-semibold text-primary">{doc.title || doc.filename}</p><span className={`rounded-full px-2 py-1 text-xs font-semibold ${doc.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-secondary'}`}>{doc.is_active ? 'Active' : 'Archived'}</span>{renderStatusPill(doc)}{doc.replaced_by_document_id && <span className="rounded-full bg-yellow-100 px-2 py-1 text-xs font-semibold text-yellow-800">Replaced</span>}</div>
                           <p className="mt-1 break-all text-xs text-muted">{doc.filename}</p>
                           {renderDocumentMeta(doc)}
                         </div>
                         <div className="flex flex-wrap gap-2">
                           <a href={viewPdfUrl(doc)} target="_blank" rel="noopener noreferrer" className={smallSecondaryButton}>View PDF</a>
                           {!isProcessed && <button type="button" onClick={() => processDocument(doc.id)} disabled={processingId === doc.id || deletingId === doc.id || isReplacingThis} className={smallSecondaryButton}>{processingId === doc.id ? 'Processing...' : 'Process'}</button>}
-                          <button type="button" onClick={() => openReplaceForm(doc)} disabled={deletingId === doc.id || isReplacingThis} className={smallSecondaryButton}>Replace PDF</button>
+                          <button type="button" onClick={() => openEditForm(doc)} disabled={isReplacingThis} className={smallSecondaryButton}>Edit</button><button type="button" onClick={() => openReplaceForm(doc)} disabled={deletingId === doc.id || isReplacingThis} className={smallSecondaryButton}>Replace PDF</button>
                           <button type="button" onClick={() => updateDocumentStatus(doc.id, !doc.is_active)} disabled={updatingId === doc.id || deletingId === doc.id || isReplacingThis} className={smallSecondaryButton}>{updatingId === doc.id ? 'Updating...' : doc.is_active ? 'Archive' : 'Unarchive'}</button>
                           <button type="button" onClick={() => deleteDocument(doc.id, doc.title || doc.filename)} disabled={deletingId === doc.id || isReplacingThis} className="rounded-lg border border-gray-300 bg-white px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60">{deletingId === doc.id ? 'Deleting...' : 'Delete'}</button>
                         </div>
                       </div>
+
+                      {editingDocId === doc.id && (
+                        <div className="mt-4 rounded-xl border border-green-200 bg-green-50 p-4">
+                          <div className="mb-3 flex flex-col gap-1 md:flex-row md:items-start md:justify-between"><div><h3 className="font-semibold text-primary">Edit document details</h3><p className="text-sm text-secondary">Update metadata without replacing the PDF.</p></div><button type="button" onClick={closeEditForm} className={smallSecondaryButton}>Cancel</button></div>
+                          <div className="grid gap-3 md:grid-cols-2">
+                            <div><label className={labelClass}>Title</label><input value={editForm.title} onChange={(e) => setEditForm((prev) => ({ ...prev, title: e.target.value }))} className={inputClass} /></div>
+                            <div><label className={labelClass}>Category</label><input value={editForm.category} onChange={(e) => setEditForm((prev) => ({ ...prev, category: e.target.value }))} className={inputClass} /></div>
+                            <div><label className={labelClass}>Version</label><input value={editForm.version} onChange={(e) => setEditForm((prev) => ({ ...prev, version: e.target.value }))} className={inputClass} /></div>
+                            <div><label className={labelClass}>Publication date</label><input type="date" value={editForm.publicationDate} onChange={(e) => setEditForm((prev) => ({ ...prev, publicationDate: e.target.value }))} className={inputClass} /></div>
+                            <div><label className={labelClass}>Approval status</label><select value={editForm.approvalStatus} onChange={(e) => setEditForm((prev) => ({ ...prev, approvalStatus: e.target.value }))} className={inputClass}><option value="active">Active</option><option value="approved">Approved</option><option value="pending_review">Pending review</option><option value="archived">Archived</option><option value="draft">Draft</option></select></div>
+                            <div className="md:col-span-2"><label className={labelClass}>Admin notes</label><textarea value={editForm.documentNotes} onChange={(e) => setEditForm((prev) => ({ ...prev, documentNotes: e.target.value }))} className="min-h-[80px] w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-primary" /></div>
+                          </div>
+                          <div className="mt-4 flex flex-wrap gap-2"><button type="button" onClick={() => saveDocumentMetadata(doc.id)} disabled={savingMetadataId === doc.id} className={blueButton}>{savingMetadataId === doc.id ? 'Saving...' : 'Save changes'}</button><button type="button" onClick={closeEditForm} disabled={savingMetadataId === doc.id} className={secondaryButton}>Cancel</button></div>
+                        </div>
+                      )}
 
                       {replacementOpen && (
                         <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50 p-4">
@@ -1416,7 +1550,7 @@ export default function AdminPage() {
                             <div><label className={labelClass}>Category</label><input value={replaceForm.category} onChange={(e) => setReplaceForm((prev) => ({ ...prev, category: e.target.value }))} className={inputClass} /></div>
                             <div><label className={labelClass}>Version</label><input value={replaceForm.version} onChange={(e) => setReplaceForm((prev) => ({ ...prev, version: e.target.value }))} placeholder="Example: 2026 update" className={inputClass} /></div>
                             <div><label className={labelClass}>Publication date</label><input type="date" value={replaceForm.publicationDate} onChange={(e) => setReplaceForm((prev) => ({ ...prev, publicationDate: e.target.value }))} className={inputClass} /></div>
-                            <div className="md:col-span-2"><label className={labelClass}>Admin notes</label><textarea value={replaceForm.documentNotes} onChange={(e) => setReplaceForm((prev) => ({ ...prev, documentNotes: e.target.value }))} className="min-h-[80px] w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-primary" /></div>
+                            <div><label className={labelClass}>Approval status</label><select value={replaceForm.approvalStatus} onChange={(e) => setReplaceForm((prev) => ({ ...prev, approvalStatus: e.target.value }))} className={inputClass}><option value="active">Active</option><option value="pending_review">Pending review</option><option value="approved">Approved</option><option value="draft">Draft</option></select></div><div className="md:col-span-2"><label className={labelClass}>Admin notes</label><textarea value={replaceForm.documentNotes} onChange={(e) => setReplaceForm((prev) => ({ ...prev, documentNotes: e.target.value }))} className="min-h-[80px] w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-primary" /></div>
                             <div className="md:col-span-2"><label className={labelClass}>Replacement PDF</label><input type="file" accept="application/pdf" onChange={(e) => setReplaceForm((prev) => ({ ...prev, file: e.target.files?.[0] ?? null }))} className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-primary" /></div>
                           </div>
                           <div className="mt-4 flex flex-wrap gap-2"><button type="button" onClick={replaceDocument} disabled={isReplacingThis} className={blueButton}>{isReplacingThis ? 'Replacing and processing...' : 'Replace and process'}</button><button type="button" onClick={closeReplaceForm} disabled={isReplacingThis} className={secondaryButton}>Cancel</button></div>
