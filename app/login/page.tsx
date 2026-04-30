@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '../../lib/supabase/client'
@@ -11,8 +11,18 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [rememberEmail, setRememberEmail] = useState(true)
   const [message, setMessage] = useState('')
   const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    const savedEmail = window.localStorage.getItem('mfp_saved_email')
+
+    if (savedEmail) {
+      setEmail(savedEmail)
+      setRememberEmail(true)
+    }
+  }, [])
 
   async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -30,6 +40,12 @@ export default function LoginPage() {
       return
     }
 
+    if (rememberEmail) {
+      window.localStorage.setItem('mfp_saved_email', email)
+    } else {
+      window.localStorage.removeItem('mfp_saved_email')
+    }
+
     router.push('/dashboard')
   }
 
@@ -37,9 +53,7 @@ export default function LoginPage() {
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 px-6 py-10 text-primary">
       <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-5xl items-center justify-center">
         <div className="grid w-full overflow-hidden rounded-3xl border border-gray-300 bg-white shadow-sm md:grid-cols-[1fr_420px]">
-          
-          {/* LEFT PANEL */}
-          <section className="hidden bg-gradient-to-br from-blue-100 via-blue-50 to-green-100 p-10 md:flex md:flex-col md:justify-between text-primary">
+          <section className="hidden bg-gradient-to-br from-blue-100 via-blue-50 to-green-100 p-10 text-primary md:flex md:flex-col md:justify-between">
             <div>
               <div className="flex items-center gap-4">
                 <img
@@ -63,7 +77,9 @@ export default function LoginPage() {
                   <div className="flex gap-4">
                     <img src="/ask-agent.png" alt="" className="h-10 w-10" />
                     <div>
-                      <h2 className="font-bold text-primary">Ask grounded questions</h2>
+                      <h2 className="font-bold text-primary">
+                        Ask grounded questions
+                      </h2>
                       <p className="mt-1 text-sm text-secondary">
                         Search active MFP publications and get answers with source support.
                       </p>
@@ -87,7 +103,9 @@ export default function LoginPage() {
                   <div className="flex gap-4">
                     <img src="/info.png" alt="" className="h-10 w-10" />
                     <div>
-                      <h2 className="font-bold text-primary">Designed for MFP learning</h2>
+                      <h2 className="font-bold text-primary">
+                        Designed for MFP learning
+                      </h2>
                       <p className="mt-1 text-sm text-secondary">
                         Use the agent to explore publication content, recipes, safety guidance, and process questions.
                       </p>
@@ -102,8 +120,7 @@ export default function LoginPage() {
             </p>
           </section>
 
-          {/* RIGHT PANEL */}
-          <section className="p-8 md:p-10 text-primary">
+          <section className="p-8 text-primary md:p-10">
             <div className="mb-8 flex items-center gap-3 md:hidden">
               <img
                 src="/jar-logosm.png"
@@ -137,6 +154,8 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full rounded-lg border border-gray-300 bg-white px-3 py-3 text-primary"
+                  autoComplete="email"
+                  inputMode="email"
                   required
                 />
               </div>
@@ -150,9 +169,24 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full rounded-lg border border-gray-300 bg-white px-3 py-3 text-primary"
+                  autoComplete="current-password"
                   required
                 />
               </div>
+
+              <label className="flex items-center gap-2 text-sm text-secondary">
+                <input
+                  type="checkbox"
+                  checked={rememberEmail}
+                  onChange={(e) => setRememberEmail(e.target.checked)}
+                  className="h-4 w-4"
+                />
+                Remember my email on this device
+              </label>
+
+              <p className="text-xs leading-5 text-muted">
+                For security, this app does not store your password. Your browser or device password manager can securely autofill it and may use Face ID, Touch ID, or Android biometrics.
+              </p>
 
               {message && (
                 <div className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm font-medium text-red-800">
@@ -163,7 +197,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-lg bg-black py-3 font-semibold text-white shadow-sm disabled:opacity-60"
+                className="w-full rounded-lg bg-black py-3 font-semibold !text-white shadow-sm disabled:bg-gray-700 disabled:!text-white disabled:cursor-not-allowed"
               >
                 {loading ? 'Signing in...' : 'Sign in'}
               </button>

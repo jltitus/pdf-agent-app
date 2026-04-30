@@ -451,33 +451,42 @@ export default function AdminPage() {
     setIssueReports(data as IssueReport[])
   }
 
-  async function loadUserAnalytics() {
-    const { data } = await supabase
-      .from('chat_history')
-      .select('id, user_id, question, answer_mode, category, created_at')
-      .order('created_at', { ascending: false })
-      .limit(200)
+async function loadUserAnalytics() {
+  const token = await getToken()
 
-    const rows = data ?? []
-    const uniqueUserIds = new Set(rows.map((row) => row.user_id).filter(Boolean))
-    const modeCounts: Record<string, number> = {}
-    const categoryCounts: Record<string, number> = {}
-
-    rows.forEach((row) => {
-      const mode = row.answer_mode || 'general'
-      const cat = row.category || 'Uncategorized'
-      modeCounts[mode] = (modeCounts[mode] ?? 0) + 1
-      categoryCounts[cat] = (categoryCounts[cat] ?? 0) + 1
-    })
-
+  if (!token) {
     setUserAnalytics({
-      totalQuestions: rows.length,
-      uniqueUsers: uniqueUserIds.size,
-      modeCounts,
-      categoryCounts,
-      recentActivity: rows.slice(0, 10),
+      totalQuestions: 0,
+      uniqueUsers: 0,
+      modeCounts: {},
+      categoryCounts: {},
+      recentActivity: [],
     })
+    return
   }
+
+  const response = await fetch('/api/admin-analytics', {
+    method: 'GET',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
+  const result = await response.json().catch(() => ({}))
+
+  if (!response.ok) {
+    setMessage(`Could not load analytics: ${result.error ?? 'Unknown analytics error.'}`)
+    return
+  }
+
+  setUserAnalytics({
+    totalQuestions: result.totalQuestions ?? 0,
+    uniqueUsers: result.uniqueUsers ?? 0,
+    modeCounts: result.modeCounts ?? {},
+    categoryCounts: result.categoryCounts ?? {},
+    recentActivity: result.recentActivity ?? [],
+  })
+}
 
   function formatDate(value?: string | null) {
     if (!value) return '—'
