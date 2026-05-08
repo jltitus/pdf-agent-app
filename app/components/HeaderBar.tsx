@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '../../lib/supabase/client'
 
+
 type UserInfo = {
   email?: string | null
   name?: string | null
@@ -94,7 +95,12 @@ export default function HeaderBar() {
                 <span className="text-[11px]">Chat</span>
               </span>
             </Link>
-
+<Link href="/publications" className={navClass('/publications')}>
+  <span className="flex flex-col items-center leading-tight">
+    <span>📚</span>
+    <span className="text-[11px]">Publications</span>
+  </span>
+</Link>
             <Link href="/help" className={navClass('/help')}>
               <span className="flex flex-col items-center leading-tight">
                 <span className="text-lg">❓</span>
