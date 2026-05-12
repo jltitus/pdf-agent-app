@@ -100,7 +100,7 @@ export async function POST(request: Request) {
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ''
 
       const { error: emailError } = await resend.emails.send({
-        from: 'MFP Agent <onboarding@resend.dev>',
+        from: 'MFP Agent <mfp@titus225.com>',
         to: process.env.ADMIN_NOTIFICATION_EMAIL,
         subject: 'New Access Request',
         html: `

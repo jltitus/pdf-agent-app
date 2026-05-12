@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     const resend = new Resend(process.env.RESEND_API_KEY)
 
     const { error } = await resend.emails.send({
-      from: 'MFP Agent <onboarding@resend.dev>',
+      from: 'MFP Agent <mfp@titus225.com>',
       to: process.env.ADMIN_NOTIFICATION_EMAIL,
       subject: `New Issue Report: ${issueType}`,
       html: `

@@ -16,7 +16,7 @@ async function sendOnboardingEmail({
   const resend = new Resend(process.env.RESEND_API_KEY)
 
   await resend.emails.send({
-    from: 'MFP Agent <onboarding@resend.dev>',
+    from: 'MFP Agent <mfp@titus225.com>',
     to: email,
     bcc: process.env.ADMIN_NOTIFICATION_EMAIL,
     subject: 'MFP Publication Agent setup link resent',
