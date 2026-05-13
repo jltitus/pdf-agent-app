@@ -550,12 +550,130 @@ export default function ChatPage() {
                   >
                     {loading ? 'Searching...' : 'Send'}
                   </button>
-                </div>
-              </form>
+                </div></form>
+<div className="flex-1 space-y-4 overflow-y-auto p-4">
+  {conversationTurns.length === 0 ? (
+    <div className="rounded-2xl bg-gray-50 p-5">
+      <h3 className="font-bold text-primary">Try asking:</h3>
+      <div className="mt-3 flex flex-wrap gap-2">
+        {[
+          'How do I safely dry herbs?',
+          'What does SP 50 814 say about smoked fish?',
+          'What about storage?',
+          'Can I use low-temperature pasteurization for pickles?',
+        ].map((sample) => (
+          <button
+            key={sample}
+            type="button"
+            onClick={() => setQuestion(sample)}
+            className="rounded-full border border-gray-300 bg-white px-3 py-2 text-sm hover:bg-gray-100"
+          >
+            {sample}
+          </button>
+        ))}
+      </div>
+    </div>
+  ) : (
+    conversationTurns.map((turn, index) => (
+      <article key={`${turn.question}-${index}`} className="rounded-2xl border bg-white p-4 shadow-sm">
+        <div className="rounded-xl bg-blue-50 p-3">
+          <p className="text-xs font-semibold uppercase text-gray-500">Question</p>
+          <p className="mt-1 font-medium text-primary">{turn.question}</p>
+        </div>
 
+        <div className="mt-4">
+          <p className="text-xs font-semibold uppercase text-gray-500">Answer</p>
+          <div className="mt-2 whitespace-pre-wrap text-sm leading-6 text-primary">
+            {turn.answer}
+          </div>
+        </div>
 
+        {turn.evidenceStrength && (
+          <div className="mt-4 rounded-lg border bg-gray-50 p-3 text-sm">
+            <p className="font-semibold">Evidence: {turn.evidenceStrength.label}</p>
+            <p className="text-xs text-gray-600">{turn.evidenceStrength.description}</p>
+          </div>
+        )}
+
+        {turn.sources && turn.sources.length > 0 && (
+          <div className="mt-4 space-y-2">
+            <p className="text-sm font-bold">Sources</p>
+
+            {turn.sources.map((source, sourceIndex) => (
+              <div key={`${source.filename}-${sourceIndex}`} className="rounded-xl border bg-white p-3">
+                <p className="text-sm font-medium leading-tight">{source.title}</p>
+                <p className="mt-1 text-[10px] text-gray-400">{source.filename}</p>
+
+                {source.pages && source.pages.length > 0 && (
+                  <p className="mt-1 text-xs text-gray-600">
+                    Pages: {source.pages.join(', ')}
+                  </p>
+                )}
+
+                <a
+                  href={`/api/view-source?file=${encodeURIComponent(source.filename)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 inline-flex rounded-lg border px-3 py-2 text-xs hover:bg-gray-50"
+                >
+                  Open source
+                </a>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="mt-4 flex flex-wrap gap-2 border-t pt-4">
+          <button
+            type="button"
+            onClick={() => submitFeedback(index, 'helpful')}
+            className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50"
+          >
+            Helpful
+          </button>
+
+          <button
+            type="button"
+            onClick={() => submitFeedback(index, 'not_helpful')}
+            className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50"
+          >
+            Not helpful
+          </button>
+
+          <button
+            type="button"
+            onClick={() => submitFeedback(index, 'missing_source')}
+            className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50"
+          >
+            Missing source
+          </button>
+
+          <Link
+            href={`/report-issue?question=${encodeURIComponent(turn.question)}`}
+            className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50"
+          >
+            Report issue
+          </Link>
+
+          <button
+            type="button"
+            onClick={() => regenerateTurn(index)}
+            className="rounded-lg border px-3 py-2 text-sm hover:bg-gray-50"
+          >
+            Regenerate
+          </button>
+        </div>
+
+        {turn.feedbackSubmitted && (
+          <p className="mt-2 text-xs text-green-700">
+            Feedback saved: {turn.feedbackSubmitted.replaceAll('_', ' ')}
+          </p>
+        )}
+      </article>
+    ))
+  )}
+</div>
             </section>
-
             <aside className="space-y-4">
               <section className="rounded-2xl border border-gray-300 bg-white p-4 text-primary shadow-sm">
                 <div className="mb-3 flex items-center gap-2">
@@ -611,8 +729,7 @@ export default function ChatPage() {
               </section>
             </aside>
           </div>
-        </div>
-
+          </div>
         <form
           onSubmit={askQuestion}
           className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-300 bg-white p-3 text-primary shadow-lg md:hidden"

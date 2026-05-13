@@ -123,7 +123,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
   const [message, setMessage] = useState('')
-
+const [deletingUserEmail, setDeletingUserEmail] = useState<string | null>(null)
   const [documents, setDocuments] = useState<DocumentRow[]>([])
   const [documentSearch, setDocumentSearch] = useState('')
   const [documentStatusFilter, setDocumentStatusFilter] = useState<
@@ -1098,7 +1098,58 @@ async function loadUserAnalytics() {
       setUpdatingUserEmail(null)
     }
   }
+async function deleteUser(request: AccessRequest) {
+  const confirmed = window.confirm(
+    `Delete ${request.full_name || request.email}? This removes their login account and profile. Chat history, feedback, and issue reports will remain for reporting.`
+  )
 
+  if (!confirmed) return
+
+  const secondConfirm = window.confirm(
+    'This cannot be undone. Are you sure you want to permanently delete this user?'
+  )
+
+  if (!secondConfirm) return
+
+  setDeletingUserEmail(request.email)
+  setMessage('Deleting user...')
+
+  try {
+    const token = await getToken()
+
+    if (!token) {
+      setMessage('You must be signed in.')
+      setDeletingUserEmail(null)
+      return
+    }
+
+    const res = await fetch('/api/delete-user', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        email: request.email,
+      }),
+    })
+
+    const result = await res.json().catch(() => ({}))
+
+    if (!res.ok) {
+      setMessage(result.error ?? 'Delete user failed.')
+      setDeletingUserEmail(null)
+      return
+    }
+
+    setMessage(result.message ?? 'User deleted.')
+    setDeletingUserEmail(null)
+    await loadData()
+  } catch (error: any) {
+    setMessage(`Delete user failed: ${error.message ?? 'Network or server error.'}`)
+    setDeletingUserEmail(null)
+  }
+}
   async function saveTrustedAnswer(item: NoAnswerItem) {
     setMessage('Saving trusted answer...')
 
@@ -1473,28 +1524,365 @@ async function loadUserAnalytics() {
             </>
           )}
 
-          {activeTab === 'access' && (
-            <section className={`${cardClass} space-y-6`}>
-              <div><h2 className="text-2xl font-bold text-primary">Access & Invites</h2><p className="text-sm text-secondary">Approve access requests, send direct invites, or resend setup links.</p></div>
-              <form onSubmit={sendDirectInvite} className={`${subCardClass} space-y-3`}>
-                <div><h3 className="font-semibold text-primary">Send direct invite</h3><p className="text-sm text-secondary">Use this when you want to invite someone without asking them to complete the request form first.</p></div>
-                <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto] md:items-end">
-                  <div><label className={labelClass}>Full name</label><input value={inviteFullName} onChange={(e) => setInviteFullName(e.target.value)} className={inputClass} required /></div>
-                  <div><label className={labelClass}>Email</label><input type="email" value={inviteEmail} onChange={(e) => { setInviteEmail(e.target.value); setInviteEmailWarning('') }} className={`${inputClass} ${inviteEmailWarning ? 'border-red-300 bg-red-50' : ''}`} required />{inviteEmailWarning && <p className="mt-1 text-xs font-medium text-red-700">{inviteEmailWarning}</p>}</div>
-                  <button type="submit" disabled={sendingInvite} className={primaryButton}>{sendingInvite ? 'Sending...' : 'Send invite'}</button>
+
+      {activeTab === 'access' && (
+        <section className={`${cardClass} space-y-6`}>
+          <div>
+            <h2 className="text-2xl font-bold text-primary">
+              Access & Invites
+            </h2>
+
+            <p className="text-sm text-secondary">
+              Approve access requests, send direct invites, or resend setup links.
+            </p>
+          </div>
+
+          <form
+            onSubmit={sendDirectInvite}
+            className={`${subCardClass} space-y-3`}
+          >
+            <div>
+              <h3 className="font-semibold text-primary">
+                Send direct invite
+              </h3>
+
+              <p className="text-sm text-secondary">
+                Use this when you want to invite someone without asking them to
+                complete the request form first.
+              </p>
+            </div>
+
+            <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto] md:items-end">
+              <div>
+                <label className={labelClass}>Full name</label>
+
+                <input
+                  value={inviteFullName}
+                  onChange={(e) => setInviteFullName(e.target.value)}
+                  className={inputClass}
+                  required
+                />
+              </div>
+
+              <div>
+                <label className={labelClass}>Email</label>
+
+                <input
+                  type="email"
+                  value={inviteEmail}
+                  onChange={(e) => {
+                    setInviteEmail(e.target.value)
+                    setInviteEmailWarning('')
+                  }}
+                  className={`${inputClass} ${
+                    inviteEmailWarning ? 'border-red-300 bg-red-50' : ''
+                  }`}
+                  required
+                />
+
+                {inviteEmailWarning && (
+                  <p className="mt-1 text-xs text-red-700">
+                    {inviteEmailWarning}
+                  </p>
+                )}
+              </div>
+
+              <button
+                type="submit"
+                disabled={sendingInvite}
+                className={primaryButton}
+              >
+                {sendingInvite ? 'Sending...' : 'Send invite'}
+              </button>
+            </div>
+          </form>
+
+          <div>
+            <h3 className="font-semibold text-primary">
+              Pending access requests
+            </h3>
+
+            {pendingRequests.length === 0 ? (
+              <p className="mt-2 text-sm text-secondary">
+                No pending access requests.
+              </p>
+            ) : (
+              <div className="mt-3 overflow-x-auto rounded-lg border border-gray-300">
+                <table className="w-full text-sm text-primary">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="p-3 text-left">Name</th>
+                      <th className="p-3 text-left">Email</th>
+                      <th className="p-3 text-left">Reason</th>
+                      <th className="p-3 text-left">Submitted</th>
+                      <th className="p-3 text-left">Actions</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {pendingRequests.map((request) => (
+                      <tr
+                        key={request.id}
+                        className="border-t border-gray-300 align-top"
+                      >
+                        <td className="p-3 font-medium">
+                          {request.full_name}
+                        </td>
+
+                        <td className="p-3 text-xs text-secondary">
+                          {request.email}
+                        </td>
+
+                        <td className="p-3 text-xs text-secondary">
+                          {request.reason || '—'}
+                        </td>
+
+                        <td className="p-3 text-xs text-secondary">
+                          {new Date(request.created_at).toLocaleString()}
+                        </td>
+
+                        <td className="p-3">
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              onClick={() => approveAccessRequest(request.id)}
+                              className={primaryButton}
+                            >
+                              Approve
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => declineRequest(request.id)}
+                              className={smallSecondaryButton}
+                            >
+                              Decline
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+
+          <div>
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+              <div>
+                <h3 className="font-semibold text-primary">
+                  Users & Invites Directory
+                </h3>
+
+                <p className="text-sm text-secondary">
+                  Search everyone who has requested access or been invited.
+                </p>
+              </div>
+
+<div className="flex flex-col gap-2 md:flex-row">
+  <input
+    type="text"
+    value={userInviteSearch}
+    onChange={(e) => setUserInviteSearch(e.target.value)}
+    placeholder="Search name, email, or reason..."
+    className={inputClass}
+  />
+
+  <select
+    value={userInviteStatusFilter}
+    onChange={(e) => setUserInviteStatusFilter(e.target.value as any)}
+    className={inputClass}
+  >
+    <option value="all">All statuses</option>
+    <option value="approved">Approved</option>
+    <option value="pending">Pending</option>
+    <option value="declined">Declined</option>
+  </select>
+</div>
+            </div>
+
+            <div className="mt-4 grid gap-3 md:grid-cols-4">
+              {[
+                ['Total records', accessRequests.length],
+                ['Pending', pendingRequests.length],
+                ['Approved', approvedRequests.length],
+                ['Showing', filteredInviteDirectory.length],
+              ].map(([label, value]) => (
+                <div
+                  key={String(label)}
+                  className="rounded-xl border border-gray-300 bg-white p-3"
+                >
+                  <p className="text-xs text-secondary">{label}</p>
+
+                  <p className="text-2xl font-bold text-primary">{value}</p>
                 </div>
-              </form>
-              <div>
-                <h3 className="font-semibold text-primary">Pending access requests</h3>
-                {pendingRequests.length === 0 ? <p className="mt-2 text-sm text-secondary">No pending access requests.</p> : <div className="mt-3 overflow-x-auto rounded-lg border border-gray-300"><table className="w-full text-sm text-primary"><thead className="bg-gray-50"><tr><th className="p-3 text-left">Name</th><th className="p-3 text-left">Email</th><th className="p-3 text-left">Date</th><th className="p-3 text-left">Action</th></tr></thead><tbody>{pendingRequests.map((request) => <tr key={request.id} className="border-t border-gray-300"><td className="p-3">{request.full_name}</td><td className="p-3">{request.email}</td><td className="p-3 text-xs text-muted">{new Date(request.created_at).toLocaleString()}</td><td className="p-3"><div className="flex gap-2"><button onClick={() => approveAccessRequest(request.id)} disabled={approvingId === request.id || decliningId === request.id} className="rounded bg-blue-600 px-3 py-1 text-xs font-semibold !text-white disabled:opacity-60">{approvingId === request.id ? 'Approving...' : 'Approve'}</button><button type="button" onClick={() => declineRequest(request.id)} disabled={approvingId === request.id || decliningId === request.id} className={smallSecondaryButton}>{decliningId === request.id ? 'Declining...' : 'Decline'}</button></div></td></tr>)}</tbody></table></div>}
+              ))}
+            </div>
+
+            {accessRequests.length === 0 ? (
+              <p className="mt-2 text-sm text-secondary">
+                No users or invites yet.
+              </p>
+            ) : filteredInviteDirectory.length === 0 ? (
+              <p className="mt-3 rounded-lg border border-gray-300 p-3 text-sm text-secondary">
+                No users or invites match your search/filter.
+              </p>
+            ) : (
+              <div className="mt-3 max-h-[420px] overflow-y-auto rounded-lg border border-gray-300">
+                <table className="w-full text-sm text-primary">
+                  <thead className="sticky top-0 bg-gray-50">
+                    <tr>
+                      <th className="p-3 text-left">Name</th>
+                      <th className="p-3 text-left">Email</th>
+                      <th className="p-3 text-left">Status</th>
+                      <th className="p-3 text-left">User</th>
+                      <th className="p-3 text-left">Last activity</th>
+                      <th className="p-3 text-left">Actions</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {filteredInviteDirectory.map((request) => (
+                      <tr
+                        key={request.id}
+                        className="border-t border-gray-300 align-top"
+                      >
+                        <td className="p-3">
+                          <p className="font-semibold text-primary">
+                            {request.full_name}
+                          </p>
+
+                          {request.reason && (
+                            <p className="mt-1 line-clamp-2 text-xs text-muted">
+                              {request.reason}
+                            </p>
+                          )}
+                        </td>
+
+                        <td className="p-3 text-xs text-secondary">
+                          {request.email}
+                        </td>
+
+                        <td className="p-3">
+                          <span
+                            className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                              request.status === 'approved'
+                                ? 'bg-green-100 text-green-700'
+                                : request.status === 'pending'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-gray-100 text-secondary'
+                            }`}
+                          >
+                            {request.status}
+                          </span>
+                        </td>
+
+                        <td className="p-3">
+                          <span
+                            className={`rounded-full px-2 py-1 text-xs font-semibold ${
+                              request.profile_is_active === false
+                                ? 'bg-red-100 text-red-700'
+                                : request.profile_is_active === true
+                                ? 'bg-green-100 text-green-700'
+                                : 'bg-gray-100 text-secondary'
+                            }`}
+                          >
+                            {request.profile_is_active === false
+                              ? 'inactive'
+                              : request.profile_is_active === true
+                              ? request.profile_role || 'active'
+                              : 'no profile'}
+                          </span>
+                        </td>
+
+                        <td className="p-3 text-xs text-muted">
+                          {request.last_activity_at
+                            ? new Date(
+                                request.last_activity_at
+                              ).toLocaleString()
+                            : 'No activity'}
+
+                          {request.last_question && (
+                            <p className="mt-1 line-clamp-2 text-[11px] text-secondary">
+                              {request.last_question}
+                            </p>
+                          )}
+                        </td>
+
+                        <td className="p-3">
+                          <div className="flex flex-wrap gap-2">
+                            {request.status === 'approved' && (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={() => resendInvite(request)}
+                                  disabled={resendingInviteId === request.id}
+                                  className={smallSecondaryButton}
+                                >
+                                  {resendingInviteId === request.id
+                                    ? 'Resending...'
+                                    : 'Resend'}
+                                </button>
+
+                                {request.profile_is_active === false ? (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      updateUserStatus(request, true)
+                                    }
+                                    disabled={
+                                      updatingUserEmail === request.email
+                                    }
+                                    className="rounded-lg border border-gray-300 px-3 py-1 text-xs font-semibold text-green-700 hover:bg-green-50 disabled:opacity-60"
+                                  >
+                                    {updatingUserEmail === request.email
+                                      ? 'Updating...'
+                                      : 'Reactivate'}
+                                  </button>
+                                ) : (
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      updateUserStatus(request, false)
+                                    }
+                                    disabled={
+                                      updatingUserEmail === request.email
+                                    }
+                                    className="rounded-lg border border-gray-300 px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
+                                  >
+                                    {updatingUserEmail === request.email
+                                      ? 'Updating...'
+                                      : 'Deactivate'}
+                                  </button>
+                                )}
+
+                                <button
+                                  type="button"
+                                  onClick={() => deleteUser(request)}
+                                  disabled={
+                                    deletingUserEmail === request.email
+                                  }
+                                  className="rounded-lg border border-red-300 bg-white px-3 py-1 text-xs font-semibold text-red-800 hover:bg-red-50 disabled:opacity-60"
+                                >
+                                  {deletingUserEmail === request.email
+                                    ? 'Deleting...'
+                                    : 'Delete'}
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-              <div>
-                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between"><div><h3 className="font-semibold text-primary">Users & Invites Directory</h3><p className="text-sm text-secondary">Search everyone who has requested access or been invited.</p></div><div className="grid w-full gap-2 md:max-w-xl md:grid-cols-[1fr_170px]"><input value={userInviteSearch} onChange={(e) => setUserInviteSearch(e.target.value)} placeholder="Search name, email, or reason..." className={inputClass} /><select value={userInviteStatusFilter} onChange={(e) => setUserInviteStatusFilter(e.target.value as any)} className={inputClass}><option value="all">All statuses</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="declined">Declined</option></select></div></div>
-                <div className="mt-4 grid gap-3 md:grid-cols-4">{[['Total records', accessRequests.length], ['Pending', pendingRequests.length], ['Approved', approvedRequests.length], ['Showing', filteredInviteDirectory.length]].map(([label, value]) => <div key={label} className="rounded-xl border border-gray-300 bg-gray-50 p-3"><p className="text-xs font-medium text-muted">{label}</p><p className="text-xl font-bold text-primary">{value}</p></div>)}</div>
-                {accessRequests.length === 0 ? <p className="mt-2 text-sm text-secondary">No users or invites yet.</p> : filteredInviteDirectory.length === 0 ? <p className="mt-3 rounded-lg border border-gray-300 p-3 text-sm text-secondary">No users or invites match your search/filter.</p> : <div className="mt-3 max-h-[420px] overflow-y-auto rounded-lg border border-gray-300"><table className="w-full text-sm text-primary"><thead className="sticky top-0 bg-gray-50"><tr><th className="p-3 text-left">Name</th><th className="p-3 text-left">Email</th><th className="p-3 text-left">Status</th><th className="p-3 text-left">User</th><th className="p-3 text-left">Last activity</th><th className="p-3 text-left">Action</th></tr></thead><tbody>{filteredInviteDirectory.map((request) => <tr key={request.id} className="border-t border-gray-300 align-top"><td className="p-3"><p className="font-semibold text-primary">{request.full_name}</p>{request.reason && <p className="mt-1 line-clamp-2 text-xs text-muted">{request.reason}</p>}</td><td className="p-3 text-xs text-secondary">{request.email}</td><td className="p-3"><span className={`rounded-full px-2 py-1 text-xs font-semibold ${request.status === 'approved' ? 'bg-green-100 text-green-700' : request.status === 'pending' ? 'bg-yellow-100 text-yellow-800' : 'bg-gray-100 text-secondary'}`}>{request.status}</span></td><td className="p-3"><span className={`rounded-full px-2 py-1 text-xs font-semibold ${request.profile_is_active === false ? 'bg-red-100 text-red-700' : request.profile_is_active === true ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-secondary'}`}>{request.profile_is_active === false ? 'inactive' : request.profile_is_active === true ? request.profile_role || 'active' : 'no profile'}</span></td><td className="p-3 text-xs text-muted">{request.last_activity_at ? new Date(request.last_activity_at).toLocaleString() : 'No activity'}{request.last_question && <p className="mt-1 line-clamp-2 max-w-[220px] text-secondary">{request.last_question}</p>}</td><td className="p-3"><div className="flex flex-wrap gap-2">{request.status === 'pending' && <><button type="button" onClick={() => approveAccessRequest(request.id)} disabled={approvingId === request.id || decliningId === request.id} className="rounded bg-blue-600 px-3 py-1 text-xs font-semibold !text-white disabled:opacity-60">{approvingId === request.id ? 'Approving...' : 'Approve'}</button><button type="button" onClick={() => declineRequest(request.id)} disabled={approvingId === request.id || decliningId === request.id} className={smallSecondaryButton}>{decliningId === request.id ? 'Declining...' : 'Decline'}</button></>}{request.status === 'approved' && <><button type="button" onClick={() => resendInvite(request)} disabled={resendingInviteId === request.id} className={smallSecondaryButton}>{resendingInviteId === request.id ? 'Resending...' : 'Resend'}</button>{request.profile_is_active === false ? <button type="button" onClick={() => updateUserStatus(request, true)} disabled={updatingUserEmail === request.email} className="rounded-lg border border-gray-300 px-3 py-1 text-xs font-semibold text-green-700 hover:bg-green-50 disabled:opacity-60">{updatingUserEmail === request.email ? 'Updating...' : 'Reactivate'}</button> : <button type="button" onClick={() => updateUserStatus(request, false)} disabled={updatingUserEmail === request.email} className="rounded-lg border border-gray-300 px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60">{updatingUserEmail === request.email ? 'Updating...' : 'Deactivate'}</button>}</>}</div></td></tr>)}</tbody></table></div>}
-              </div>
-            </section>
-          )}
+            )}
+          </div>
+        </section>
+      )}
+
 
           {activeTab === 'documents' && (
             <>
