@@ -28,26 +28,80 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
   }
 
-  const { data: profile } = await supabaseAdmin
+  const { data: adminProfile } = await supabaseAdmin
     .from('profiles')
     .select('role, is_active')
     .eq('id', user.id)
     .single()
 
-  if (profile?.role !== 'admin' || !profile?.is_active) {
+  if (adminProfile?.role !== 'admin' || !adminProfile?.is_active) {
     return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
   }
 
-  const { data, error } = await supabaseAdmin
+  const { data: requests, error: requestsError } = await supabaseAdmin
     .from('access_requests')
     .select('*')
     .order('created_at', { ascending: false })
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
+  if (requestsError) {
+    return NextResponse.json({ error: requestsError.message }, { status: 500 })
   }
 
-  return NextResponse.json({ requests: data ?? [] })
+  const { data: authUsersResult, error: authUsersError } =
+    await supabaseAdmin.auth.admin.listUsers({ page: 1, perPage: 1000 })
+
+  if (authUsersError) {
+    return NextResponse.json({ error: authUsersError.message }, { status: 500 })
+  }
+
+  const authUsers = authUsersResult.users ?? []
+  const authUserByEmail = new Map(
+    authUsers
+      .filter((authUser: any) => authUser.email)
+      .map((authUser: any) => [authUser.email.toLowerCase(), authUser])
+  )
+
+  const userIds = authUsers.map((authUser: any) => authUser.id)
+
+  const { data: profiles } = await supabaseAdmin
+    .from('profiles')
+    .select('id, role, is_active')
+    .in('id', userIds)
+
+  const profileById = new Map(
+    (profiles ?? []).map((profile: any) => [profile.id, profile])
+  )
+
+  const { data: chatRows } = await supabaseAdmin
+    .from('chat_history')
+    .select('user_id, question, created_at')
+    .in('user_id', userIds)
+    .order('created_at', { ascending: false })
+
+  const latestChatByUserId = new Map<string, any>()
+
+  for (const row of chatRows ?? []) {
+    if (!latestChatByUserId.has(row.user_id)) {
+      latestChatByUserId.set(row.user_id, row)
+    }
+  }
+
+  const enrichedRequests = (requests ?? []).map((request: any) => {
+    const normalizedEmail = String(request.email ?? '').trim().toLowerCase()
+    const authUser = authUserByEmail.get(normalizedEmail)
+    const profile = authUser ? profileById.get(authUser.id) : null
+    const latestChat = authUser ? latestChatByUserId.get(authUser.id) : null
+
+    return {
+      ...request,
+      profile_is_active: profile?.is_active ?? null,
+      profile_role: profile?.role ?? null,
+      last_activity_at: latestChat?.created_at ?? null,
+      last_question: latestChat?.question ?? null,
+    }
+  })
+
+  return NextResponse.json({ requests: enrichedRequests })
 }
 
 export async function POST(request: Request) {
