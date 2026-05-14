@@ -152,83 +152,116 @@ export default function DashboardPage() {
             </section>
           )}
 
-          {/* ACTION CARDS */}
-          <section className="grid gap-6 md:grid-cols-3">
-            <Link href="/chat" className="rounded-2xl border border-gray-300 bg-white p-6 shadow-sm hover:bg-gray-50">
-              <h2 className="text-xl font-bold">Ask the Agent</h2>
-              <p className="mt-1 text-sm text-secondary">
-                Search publications and get grounded answers.
-              </p>
-            </Link>
+{/* ACTION CARDS */}
+<section className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+  {[
+    { href: '/chat', icon: '🔎', title: 'Ask the Agent', text: 'Search publications and get sourced answers.' },
+    { href: '/publications', icon: '📚', title: 'Publications', text: 'Browse PDFs and versions.' },
+    { href: '/request-access', icon: '👥', title: 'Access', text: 'Share access with others.' },
+    ...(profile?.role === 'admin'
+      ? [{ href: '/admin', icon: '⚙️', title: 'Admin', text: 'Manage content and users.' }]
+      : []),
+  ].map((card) => (
+    <Link
+      key={card.href}
+      href={card.href}
+      className="rounded-2xl border border-gray-300 bg-white p-4 shadow-sm transition hover:bg-gray-50"
+    >
+      <div className="flex items-center gap-3">
+        <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gray-50 text-2xl">
+          {card.icon}
+        </div>
 
-            <Link href="/request-access" className="rounded-2xl border border-gray-300 bg-white p-6 shadow-sm hover:bg-gray-50">
-              <h2 className="text-xl font-bold">Request Access</h2>
-              <p className="mt-1 text-sm text-secondary">
-                Share access with others.
-              </p>
-            </Link>
+        <div>
+          <h2 className="text-lg font-bold text-primary">{card.title}</h2>
+          <p className="mt-1 text-xs text-secondary">{card.text}</p>
+        </div>
+      </div>
+    </Link>
+  ))}
+</section>
 
-            {profile?.role === 'admin' && (
-              <Link href="/admin" className="rounded-2xl border border-gray-300 bg-white p-6 shadow-sm hover:bg-gray-50">
-                <h2 className="text-xl font-bold">Admin</h2>
-                <p className="mt-1 text-sm text-secondary">
-                  Manage publications and users.
-                </p>
-              </Link>
-            )}
-          </section>
+{/* HISTORY + FEEDBACK */}
+<section className="grid gap-4 lg:grid-cols-2">
+  <section className="rounded-2xl border border-gray-300 bg-white p-4 shadow-sm">
+    <div className="mb-3 flex items-center justify-between gap-3">
+      <div className="flex items-center gap-2">
+  <img src="/questions-dash.png" alt="" className="h-6 w-6" />
+  <h2 className="text-xl font-bold">Recent Questions</h2>
+</div>
 
-          {/* HISTORY */}
-          <section className="rounded-2xl border border-gray-300 bg-white p-6 shadow-sm">
-            <h2 className="text-2xl font-bold mb-4">Recent Questions</h2>
+      <Link
+        href="/chat"
+        className="rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white"
+      >
+        Go to chat
+      </Link>
+    </div>
 
-            {history.length === 0 ? (
-              <p className="text-sm text-secondary">
-                No questions yet.
-              </p>
-            ) : (
-              history.map((item) => (
-                <div key={item.id} className="border-t pt-3 mt-3">
-                  <p className="font-medium">{item.question}</p>
-                  <p className="text-xs text-muted mt-1">
-                    {new Date(item.created_at).toLocaleString()}
-                  </p>
-                </div>
-              ))
-            )}
-          </section>
-
-          {/* FEEDBACK */}
-          <section className="rounded-2xl border border-gray-300 bg-white p-6 shadow-sm">
-            <h2 className="text-2xl font-bold mb-4">Recent Feedback</h2>
-
-            {feedback.length === 0 ? (
-              <p className="text-sm text-secondary">No feedback yet.</p>
-            ) : (
-              feedback.map((item) => (
-                <div key={item.id} className="border-t pt-3 mt-3">
-                  <p className="font-medium">
-                    {item.feedback_type.replaceAll('_', ' ')}
-                  </p>
-                  {item.question && (
-                    <p className="text-sm text-secondary">{item.question}</p>
-                  )}
-                  <p className="text-xs text-muted mt-1">
-                    {new Date(item.created_at).toLocaleString()}
-                  </p>
-                </div>
-              ))
-            )}
-          </section>
-
-          {/* ABOUT */}
-          <section className="rounded-2xl border border-gray-300 bg-white p-6 shadow-sm">
-            <h2 className="text-xl font-bold mb-2">About this tool</h2>
-            <p className="text-sm text-secondary">
-              This agent answers only from active uploaded publications. Always review sources
-              before relying on answers.
+    {history.length === 0 ? (
+      <p className="text-sm text-secondary">No questions yet.</p>
+    ) : (
+      <div className="divide-y divide-gray-200">
+        {history.map((item) => (
+          <Link
+            key={item.id}
+            href="/chat"
+            className="block py-3 hover:bg-gray-50"
+          >
+            <p className="line-clamp-2 text-sm font-medium text-primary">
+              {item.question}
             </p>
-          </section>
+            <p className="mt-1 text-xs text-muted">
+              {new Date(item.created_at).toLocaleString()}
+            </p>
+          </Link>
+        ))}
+      </div>
+    )}
+  </section>
+
+  <section className="rounded-2xl border border-gray-300 bg-white p-4 shadow-sm">
+  <div className="mb-3 flex items-center gap-2">
+  <img src="/questions.png" alt="" className="h-6 w-6" />
+  <h2 className="text-xl font-bold">Recent Feedback</h2>
+</div>
+
+    {feedback.length === 0 ? (
+      <p className="text-sm text-secondary">No feedback yet.</p>
+    ) : (
+      <div className="divide-y divide-gray-200">
+        {feedback.map((item) => (
+          <div key={item.id} className="py-3">
+            <p className="text-sm font-medium capitalize">
+              {item.feedback_type.replaceAll('_', ' ')}
+            </p>
+
+            {item.question && (
+              <p className="mt-1 line-clamp-2 text-sm text-secondary">
+                {item.question}
+              </p>
+            )}
+
+            <p className="mt-1 text-xs text-muted">
+              {new Date(item.created_at).toLocaleString()}
+            </p>
+          </div>
+        ))}
+      </div>
+    )}
+  </section>
+</section>
+
+{/* ABOUT */}
+<section className="rounded-2xl border border-gray-300 bg-white p-4 shadow-sm">
+  <div className="flex items-center gap-2">
+  <img src="/info.png" alt="" className="h-6 w-6" />
+  <h2 className="text-lg font-bold">About this tool</h2>
+</div>
+  <p className="mt-2 text-sm text-secondary">
+    This agent answers only from active uploaded publications. Always review sources before relying on answers.
+  </p>
+</section>
         </div>
       </main>
     </>
