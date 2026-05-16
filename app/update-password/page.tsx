@@ -16,33 +16,44 @@ function UpdatePasswordContent() {
   const [sessionReady, setSessionReady] = useState(false)
 
   useEffect(() => {
-    async function prepareSession() {
-      const code = searchParams.get('code')
+  async function prepareSession() {
+    setMessage('Checking your password reset link...')
 
-      if (code) {
-        const { error } = await supabase.auth.exchangeCodeForSession(code)
+    const code = searchParams.get('code')
 
-        if (error) {
-          setMessage('This password link is expired or invalid. Please request a new password reset link.')
-          setSessionReady(false)
-          return
-        }
-      }
+    if (code) {
+      const { error } = await supabase.auth.exchangeCodeForSession(code)
 
-      const { data } = await supabase.auth.getSession()
-
-      if (!data.session) {
-        setMessage('This password link is missing a valid session. Please request a new password reset link and open it in the same browser.')
+      if (error) {
+        setMessage(
+          'This password link is expired or invalid. Please request a new password reset link.'
+        )
         setSessionReady(false)
         return
       }
-
-      setMessage('')
-      setSessionReady(true)
     }
 
-    prepareSession()
-  }, [searchParams, supabase.auth])
+    // Give Supabase a few tries to finish establishing the recovery session
+    for (let attempt = 0; attempt < 10; attempt++) {
+      const { data } = await supabase.auth.getSession()
+
+      if (data.session) {
+        setMessage('')
+        setSessionReady(true)
+        return
+      }
+
+      await new Promise((resolve) => setTimeout(resolve, 300))
+    }
+
+    setMessage(
+      'This password link is missing a valid session. Please request a new password reset link and open it in the same browser.'
+    )
+    setSessionReady(false)
+  }
+
+  prepareSession()
+}, [searchParams, supabase.auth])
 
   async function updatePassword(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
