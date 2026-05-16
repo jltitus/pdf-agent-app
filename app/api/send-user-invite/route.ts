@@ -114,7 +114,7 @@ export async function POST(request: Request) {
 
       const { error: resetError } = await supabaseAdmin.auth.resetPasswordForEmail(
         normalizedEmail,
-        { redirectTo: `${siteUrl}/update-password` }
+        { redirectTo: `${siteUrl}/update-password`, }
       )
 
       if (resetError) {

@@ -94,9 +94,9 @@ export async function POST(request: Request) {
 
     const normalizedEmail = String(accessRequest.email).trim().toLowerCase()
 
-    await supabaseAdmin.auth.resetPasswordForEmail(normalizedEmail, {
-      redirectTo: `${siteUrl}/update-password`,
-    })
+await supabaseAdmin.auth.resetPasswordForEmail(normalizedEmail, {
+  redirectTo: `${siteUrl}/update-password`,
+})
 
     const now = new Date().toISOString()
 
