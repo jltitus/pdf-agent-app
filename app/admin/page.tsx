@@ -148,6 +148,11 @@ const [deletingUserEmail, setDeletingUserEmail] = useState<string | null>(null)
   const [feedbackFilter, setFeedbackFilter] = useState<
     'all' | 'helpful' | 'not_helpful' | 'missing_source'
   >('all')
+  const [feedbackSearch, setFeedbackSearch] = useState('')
+  const [issueSearch, setIssueSearch] = useState('')
+  const [issueStatusFilter, setIssueStatusFilter] = useState<
+    'all' | 'new' | 'reviewed' | 'resolved' | 'enhancement_candidate'
+  >('all')
 
   const [feedbackCounts, setFeedbackCounts] = useState({
     helpful: 0,
@@ -1267,7 +1272,17 @@ async function deleteUser(request: AccessRequest) {
     await loadIssueReports()
   }
 
-  const filteredFeedback = feedbackFilter === 'all' ? feedback : feedback.filter((item) => item.feedback_type === feedbackFilter)
+  const filteredFeedback = feedback.filter((item) => {
+    const search = feedbackSearch.trim().toLowerCase()
+    const matchesType = feedbackFilter === 'all' || item.feedback_type === feedbackFilter
+    const matchesSearch =
+      !search ||
+      (item.question ?? '').toLowerCase().includes(search) ||
+      (item.answer ?? '').toLowerCase().includes(search) ||
+      item.feedback_type.toLowerCase().includes(search)
+
+    return matchesType && matchesSearch
+  })
   const pendingRequests = accessRequests.filter((request) => request.status === 'pending')
   const approvedRequests = accessRequests.filter((request) => request.status === 'approved')
 
@@ -1306,6 +1321,20 @@ async function deleteUser(request: AccessRequest) {
       return acc
     }, {})
   ).sort((a, b) => b[1] - a[1])
+
+  const filteredIssueReports = issueReports.filter((issue) => {
+    const search = issueSearch.trim().toLowerCase()
+    const normalizedStatus = issue.status === 'open' ? 'new' : issue.status
+    const matchesStatus = issueStatusFilter === 'all' || normalizedStatus === issueStatusFilter
+    const matchesSearch =
+      !search ||
+      issue.issue_type.toLowerCase().includes(search) ||
+      issue.description.toLowerCase().includes(search) ||
+      (issue.related_question ?? '').toLowerCase().includes(search) ||
+      (issue.user_email ?? '').toLowerCase().includes(search)
+
+    return matchesStatus && matchesSearch
+  })
 
   const totalPages = documents.reduce((sum, doc) => sum + (doc.page_count ?? 0), 0)
 
@@ -2149,13 +2178,81 @@ async function deleteUser(request: AccessRequest) {
           {activeTab === 'feedback' && (
             <>
               <section className={`${cardClass} space-y-5`}>
-                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between"><div><h2 className="text-2xl font-bold text-primary">Feedback Insights</h2><p className="text-sm text-secondary">Spot weak answers, missing sources, issue trends, and repeated content gaps.</p></div><div className="flex flex-wrap gap-2"><select value={feedbackFilter} onChange={(e) => setFeedbackFilter(e.target.value as any)} className={inputClass}><option value="all">All feedback</option><option value="helpful">Helpful</option><option value="not_helpful">Not helpful</option><option value="missing_source">Missing source</option></select><button type="button" onClick={exportFeedbackCSV} className={secondaryButton}>Export CSV</button></div></div>
+                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold text-primary">Feedback Insights</h2>
+                    <p className="text-sm text-secondary">Spot weak answers, missing sources, issue trends, and repeated content gaps.</p>
+                  </div>
+                  <div className="grid gap-2 sm:grid-cols-[minmax(180px,1fr)_180px_auto]">
+                    <input
+                      type="text"
+                      value={feedbackSearch}
+                      onChange={(e) => setFeedbackSearch(e.target.value)}
+                      placeholder="Search feedback..."
+                      className={inputClass}
+                    />
+                    <select value={feedbackFilter} onChange={(e) => setFeedbackFilter(e.target.value as any)} className={inputClass}>
+                      <option value="all">All feedback</option>
+                      <option value="helpful">Helpful</option>
+                      <option value="not_helpful">Not helpful</option>
+                      <option value="missing_source">Missing source</option>
+                    </select>
+                    <button type="button" onClick={exportFeedbackCSV} className={secondaryButton}>Export CSV</button>
+                  </div>
+                </div>
                 <div className="grid grid-cols-2 gap-3 md:grid-cols-6">{[['Helpful', feedbackCounts.helpful, 'green'], ['Not helpful', feedbackCounts.not_helpful, 'red'], ['Missing source', feedbackCounts.missing_source, 'yellow'], ['Open issues', openIssues.length, 'red'], ['Reviewed', reviewedIssues.length, 'yellow'], ['Resolved', resolvedIssues.length, 'green'], ['Enhancements', enhancementCandidateIssues.length, 'blue']].map(([label, value, color]) => <div key={label} className={`rounded-xl border p-3 ${color === 'green' ? 'border-green-300 bg-green-50' : color === 'red' ? 'border-red-300 bg-red-50' : color === 'blue' ? 'border-blue-300 bg-blue-50' : 'border-yellow-300 bg-yellow-50'}`}><p className="text-xs font-medium text-secondary">{label}</p><p className={`text-2xl font-bold ${color === 'green' ? 'text-green-700' : color === 'red' ? 'text-red-700' : color === 'blue' ? 'text-blue-700' : 'text-yellow-800'}`}>{value}</p></div>)}</div>
                 <div className="grid gap-4 lg:grid-cols-2">
                   <section className={subCardClass}><h3 className="font-semibold text-primary">Top problem questions</h3><p className="text-xs text-secondary">Questions marked not helpful or missing source most often.</p>{topProblemQuestions.length === 0 ? <p className="mt-3 text-sm text-secondary">No problem questions yet.</p> : <div className="mt-3 space-y-2">{topProblemQuestions.map((item, index) => <div key={`${item.question}-${index}`} className="rounded-lg border border-gray-300 bg-white p-3"><div className="flex items-start justify-between gap-3"><p className="line-clamp-2 text-sm font-semibold text-primary">{item.question}</p><span className="shrink-0 rounded-full border border-gray-300 px-2 py-1 text-xs text-secondary">{item.count}x</span></div><p className="mt-1 text-xs text-muted">{Array.from(item.types).join(', ')}</p></div>)}</div>}</section>
                   <section className={subCardClass}><h3 className="font-semibold text-primary">Most common issue types</h3><p className="text-xs text-secondary">Issue report categories submitted by testers.</p>{issueTypeCounts.length === 0 ? <p className="mt-3 text-sm text-secondary">No issue types yet.</p> : <div className="mt-3 space-y-2">{issueTypeCounts.map(([issueType, count]) => <div key={issueType} className="flex items-center justify-between rounded-lg border border-gray-300 bg-white p-3 text-sm text-primary"><span>{issueType}</span><span className="rounded-full border border-gray-300 px-2 py-1 text-xs text-secondary">{count}</span></div>)}</div>}</section>
                 </div>
-                <section className={subCardClass}><h3 className="font-semibold text-primary">Recent feedback</h3><p className="text-xs text-secondary">Filtered list for quick review and export.</p>{filteredFeedback.length === 0 ? <p className="mt-3 text-sm text-secondary">No feedback submitted yet.</p> : <div className="mt-3 divide-y divide-gray-300 rounded-lg border border-gray-300 bg-white">{filteredFeedback.map((item) => <div key={item.id} className="flex flex-col gap-2 p-3 md:flex-row md:items-start md:justify-between"><div><p className="text-sm font-semibold text-primary">{item.question || 'No question saved'}</p>{item.answer && <p className="mt-1 line-clamp-2 text-xs text-muted">{item.answer}</p>}<p className="mt-1 text-xs text-muted">{new Date(item.created_at).toLocaleString()}</p></div><span className="w-fit rounded bg-gray-100 px-2 py-1 text-xs font-semibold text-secondary">{item.feedback_type.replaceAll('_', ' ')}</span></div>)}</div>}</section>
+                <section className={subCardClass}>
+                  <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <h3 className="font-semibold text-primary">Recent feedback</h3>
+                      <p className="text-xs text-secondary">Filtered list for quick review and export.</p>
+                    </div>
+                    <span className="w-fit rounded-full border border-gray-300 bg-white px-2 py-1 text-xs font-semibold text-secondary">
+                      {filteredFeedback.length} showing
+                    </span>
+                  </div>
+
+                  {filteredFeedback.length === 0 ? (
+                    <p className="mt-3 rounded-xl border border-gray-300 bg-white p-3 text-sm text-secondary">
+                      No feedback matches the current search/filter.
+                    </p>
+                  ) : (
+                    <div className="mt-3 grid gap-3">
+                      {filteredFeedback.map((item) => (
+                        <article key={item.id} className="rounded-2xl border border-gray-300 bg-white p-4 shadow-sm">
+                          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                            <div className="min-w-0 flex-1">
+                              <p className="whitespace-pre-wrap text-sm font-semibold text-primary">
+                                {item.question || 'No question saved'}
+                              </p>
+
+                              {item.answer && (
+                                <div className="mt-3 rounded-xl bg-gray-50 p-3">
+                                  <p className="text-xs font-semibold uppercase tracking-wide text-muted">Answer excerpt</p>
+                                  <p className="mt-1 line-clamp-4 whitespace-pre-wrap text-xs text-muted">
+                                    {item.answer}
+                                  </p>
+                                </div>
+                              )}
+
+                              <p className="mt-2 text-xs text-muted">
+                                {new Date(item.created_at).toLocaleString()}
+                              </p>
+                            </div>
+
+                            <span className="w-fit rounded-full bg-gray-100 px-2 py-1 text-xs font-semibold text-secondary">
+                              {item.feedback_type.replaceAll('_', ' ')}
+                            </span>
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  )}
+                </section>
               </section>
 
               <section className={`${cardClass} space-y-4`}>
@@ -2171,11 +2268,36 @@ async function deleteUser(request: AccessRequest) {
                   </span>
                 </div>
 
+                <div className="grid gap-2 sm:grid-cols-[minmax(180px,1fr)_220px]">
+                  <input
+                    type="text"
+                    value={issueSearch}
+                    onChange={(e) => setIssueSearch(e.target.value)}
+                    placeholder="Search issue type, user, question, or description..."
+                    className={inputClass}
+                  />
+                  <select
+                    value={issueStatusFilter}
+                    onChange={(e) => setIssueStatusFilter(e.target.value as any)}
+                    className={inputClass}
+                  >
+                    <option value="all">All issue statuses</option>
+                    <option value="new">New</option>
+                    <option value="reviewed">Reviewed</option>
+                    <option value="enhancement_candidate">Enhancement candidate</option>
+                    <option value="resolved">Resolved</option>
+                  </select>
+                </div>
+
                 {issueReports.length === 0 ? (
                   <p className="text-sm text-secondary">No issue reports submitted yet.</p>
+                ) : filteredIssueReports.length === 0 ? (
+                  <p className="rounded-xl border border-gray-300 bg-white p-3 text-sm text-secondary">
+                    No issue reports match the current search/filter.
+                  </p>
                 ) : (
                   <div className="grid gap-3">
-                    {issueReports.map((item) => (
+                    {filteredIssueReports.map((item) => (
                       <article key={item.id} className="rounded-2xl border border-gray-300 bg-white p-4 shadow-sm">
                         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                           <div className="min-w-0 flex-1">
