@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import Link from 'next/link'
+import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '../../lib/supabase/client'
-
 
 type UserInfo = {
   email?: string | null
@@ -55,100 +55,109 @@ export default function HeaderBar() {
   function navClass(path: string) {
     const active = pathname === path
 
-    return active
-      ? 'rounded-lg bg-black px-3 py-2 text-sm font-semibold !text-white shadow'
-      : 'rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-primary shadow-sm hover:bg-gray-100'
+    return [
+      'flex min-h-14 items-center justify-center rounded-xl border px-2 py-2 text-center text-xs font-semibold shadow-sm transition sm:min-h-11 sm:px-3 sm:text-sm',
+      active
+        ? 'border-black bg-black text-white'
+        : 'border-gray-300 bg-white text-primary hover:bg-gray-100',
+    ].join(' ')
   }
 
   return (
     <header className="sticky top-0 z-50 border-b border-gray-300 bg-gradient-to-r from-blue-100 via-blue-50 to-green-100 text-primary shadow-sm">
-      <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6">
-        <div className="flex flex-col gap-3">
-          <Link href="/dashboard" className="flex items-center gap-3">
+      <div className="mx-auto max-w-6xl px-3 py-3 sm:px-6">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <Link href="/dashboard" className="flex min-w-0 items-center gap-3">
             <img
               src="/jar-logosm.png"
               alt="MFP Publication Agent logo"
-              className="h-10 w-10 object-contain"
+              className="h-10 w-10 shrink-0 object-contain"
             />
 
-            <div>
-              <h1 className="text-lg font-bold leading-tight text-primary sm:text-xl">
+            <div className="min-w-0">
+              <h1 className="truncate text-base font-bold leading-tight text-primary sm:text-xl">
                 MFP Publication Agent
               </h1>
-              <p className="text-xs font-semibold tracking-wide text-secondary">
+              <p className="text-[10px] font-semibold tracking-wide text-secondary sm:text-xs">
                 MASTER FOOD PRESERVERS
               </p>
             </div>
           </Link>
 
-          <nav className="grid grid-cols-4 gap-2">
+          <nav aria-label="Main navigation" className="grid grid-cols-3 gap-2 sm:grid-cols-6 lg:w-auto">
             <Link href="/dashboard" className={navClass('/dashboard')}>
-              <span className="flex flex-col items-center leading-tight">
-                <span>🏠</span>
-                <span className="text-[11px]">Home</span>
+              <span className="flex flex-col items-center gap-1 leading-tight sm:flex-row">
+                <span aria-hidden="true">🏠</span>
+                <span>Home</span>
               </span>
             </Link>
 
             <Link href="/chat" className={navClass('/chat')}>
-              <span className="flex flex-col items-center leading-tight">
-                <span>💬</span>
-                <span className="text-[11px]">Chat</span>
+              <span className="flex flex-col items-center gap-1 leading-tight sm:flex-row">
+                <Image
+                  src="/chat-icon.png"
+                  alt=""
+                  width={18}
+                  height={18}
+                  className="h-5 w-5 object-contain"
+                />
+                <span>Chat</span>
               </span>
             </Link>
-<Link href="/publications" className={navClass('/publications')}>
-  <span className="flex flex-col items-center leading-tight">
-    <span>📚</span>
-    <span className="text-[11px]">Publications</span>
-  </span>
-</Link>
+
+            <Link href="/publications" className={navClass('/publications')}>
+              <span className="flex flex-col items-center gap-1 leading-tight sm:flex-row">
+                <span aria-hidden="true">📚</span>
+                <span>Publications</span>
+              </span>
+            </Link>
+
             <Link href="/help" className={navClass('/help')}>
-              <span className="flex flex-col items-center leading-tight">
-                <span className="text-lg">❓</span>
-                <span className="text-[11px]">Help</span>
+              <span className="flex flex-col items-center gap-1 leading-tight sm:flex-row">
+                <span aria-hidden="true">❓</span>
+                <span>Help</span>
               </span>
             </Link>
 
             {isAdmin ? (
               <Link href="/admin" className={navClass('/admin')}>
-                <span className="flex flex-col items-center leading-tight">
-                  <span>⚙️</span>
-                  <span className="text-[11px]">Admin</span>
+                <span className="flex flex-col items-center gap-1 leading-tight sm:flex-row">
+                  <span aria-hidden="true">⚙️</span>
+                  <span>Admin</span>
                 </span>
               </Link>
             ) : (
               <Link href="/request-access" className={navClass('/request-access')}>
-                <span className="flex flex-col items-center leading-tight">
-                  <span>➕</span>
-                  <span className="text-[11px]">Access</span>
+                <span className="flex flex-col items-center gap-1 leading-tight sm:flex-row">
+                  <span aria-hidden="true">➕</span>
+                  <span>Access</span>
                 </span>
               </Link>
             )}
-          </nav>
 
-          {userInfo && (
-            <div className="flex flex-wrap items-center justify-between gap-2 border-t border-gray-300 pt-2 text-xs text-primary sm:text-sm">
-              <div className="flex min-w-0 items-center gap-2">
-                <span className="truncate font-medium text-primary">
-                  {userInfo.name}
-                </span>
-
-                {isAdmin && (
-                  <span className="shrink-0 rounded-full border border-gray-300 bg-white px-2 py-0.5 text-xs font-semibold text-secondary">
-                    admin
-                  </span>
-                )}
-              </div>
-
+            {userInfo && (
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="shrink-0 font-semibold text-primary underline hover:text-black"
+                className="flex min-h-14 items-center justify-center rounded-xl border border-gray-300 bg-white px-2 py-2 text-xs font-semibold text-primary shadow-sm transition hover:bg-gray-100 sm:min-h-11 sm:px-3 sm:text-sm"
               >
                 Sign out
               </button>
-            </div>
-          )}
+            )}
+          </nav>
         </div>
+
+        {userInfo && (
+          <div className="mt-3 flex min-w-0 items-center gap-2 border-t border-gray-300 pt-2 text-xs text-primary sm:text-sm">
+            <span className="truncate font-medium text-primary">{userInfo.name}</span>
+
+            {isAdmin && (
+              <span className="shrink-0 rounded-full border border-gray-300 bg-white px-2 py-0.5 text-xs font-semibold text-secondary">
+                admin
+              </span>
+            )}
+          </div>
+        )}
       </div>
     </header>
   )

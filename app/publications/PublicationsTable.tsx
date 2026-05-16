@@ -1,6 +1,5 @@
 'use client'
 
-import { useMemo, useState } from 'react'
 import Link from 'next/link'
 
 type DocumentRow = {
@@ -13,180 +12,163 @@ type DocumentRow = {
   is_active: boolean
 }
 
-type SortOption =
-  | 'title-asc'
-  | 'title-desc'
-  | 'category-asc'
-  | 'uploaded-desc'
-  | 'uploaded-asc'
-
-export default function PublicationsTable({
-  documents,
-}: {
+type PublicationsTableProps = {
   documents: DocumentRow[]
-}) {
-  const [categoryFilter, setCategoryFilter] = useState('All')
-  const [sortOption, setSortOption] = useState<SortOption>('title-asc')
+}
 
-  const categories = useMemo(() => {
-    const uniqueCategories = Array.from(
-      new Set(
-        documents.map((doc) => doc.category || 'Uncategorized')
-      )
-    )
+function formatDate(value?: string | null) {
+  if (!value) return 'Not listed'
 
-    return ['All', ...uniqueCategories.sort()]
-  }, [documents])
+  const date = new Date(value)
 
-  const filteredAndSortedDocuments = useMemo(() => {
-    let filtered = [...documents]
+  if (Number.isNaN(date.getTime())) {
+    return 'Not listed'
+  }
 
-    if (categoryFilter !== 'All') {
-      filtered = filtered.filter(
-        (doc) => (doc.category || 'Uncategorized') === categoryFilter
-      )
-    }
+  return new Intl.DateTimeFormat('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+  }).format(date)
+}
 
-    filtered.sort((a, b) => {
-      const titleA = a.title || a.filename
-      const titleB = b.title || b.filename
-      const categoryA = a.category || 'Uncategorized'
-      const categoryB = b.category || 'Uncategorized'
-      const uploadedA = a.uploaded_at
-        ? new Date(a.uploaded_at).getTime()
-        : 0
-      const uploadedB = b.uploaded_at
-        ? new Date(b.uploaded_at).getTime()
-        : 0
+function displayValue(value?: string | null) {
+  return value && value.trim().length > 0 ? value : 'Not listed'
+}
 
-      switch (sortOption) {
-        case 'title-desc':
-          return titleB.localeCompare(titleA)
-        case 'category-asc':
-          return categoryA.localeCompare(categoryB)
-        case 'uploaded-desc':
-          return uploadedB - uploadedA
-        case 'uploaded-asc':
-          return uploadedA - uploadedB
-        case 'title-asc':
-        default:
-          return titleA.localeCompare(titleB)
-      }
-    })
+function getPublicationTitle(document: DocumentRow) {
+  return document.title || document.filename || 'Untitled publication'
+}
 
-    return filtered
-  }, [documents, categoryFilter, sortOption])
+function getPdfHref(document: DocumentRow) {
+  return `/api/view-source?file=${encodeURIComponent(document.filename)}`
+}
 
+export default function PublicationsTable({ documents }: PublicationsTableProps) {
   return (
     <section className="space-y-4">
-      <div className="rounded-2xl border bg-white p-4 shadow-sm">
-        <div className="grid gap-4 md:grid-cols-3">
-          <div>
-            <label className="mb-1 block text-sm font-semibold">
-              Filter by category
-            </label>
-            <select
-              value={categoryFilter}
-              onChange={(event) => setCategoryFilter(event.target.value)}
-              className="w-full rounded-lg border px-3 py-2 text-sm"
-            >
-              {categories.map((category) => (
-                <option key={category} value={category}>
-                  {category}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-semibold">
-              Sort by
-            </label>
-            <select
-              value={sortOption}
-              onChange={(event) =>
-                setSortOption(event.target.value as SortOption)
-              }
-              className="w-full rounded-lg border px-3 py-2 text-sm"
-            >
-              <option value="title-asc">Title A-Z</option>
-              <option value="title-desc">Title Z-A</option>
-              <option value="category-asc">Category A-Z</option>
-              <option value="uploaded-desc">Newest uploaded</option>
-              <option value="uploaded-asc">Oldest uploaded</option>
-            </select>
-          </div>
-
-          <div className="flex items-end text-sm text-gray-600">
-            Showing {filteredAndSortedDocuments.length} of {documents.length}{' '}
-            publications
-          </div>
-        </div>
+      <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm sm:p-5">
+        <h2 className="text-lg font-bold text-primary">Publications</h2>
+        <p className="text-sm text-secondary">
+          {documents.length} active publication{documents.length === 1 ? '' : 's'}
+        </p>
       </div>
 
-      {filteredAndSortedDocuments.length === 0 ? (
-        <section className="rounded-2xl border bg-white p-6 shadow-sm">
-          <p className="text-gray-600">
-            No publications match the selected filters.
-          </p>
-        </section>
-      ) : (
-        <section className="rounded-2xl border bg-white shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="p-3 text-left">Publication</th>
-                  <th className="p-3 text-left">Category</th>
-                  <th className="p-3 text-left">Version</th>
-                  <th className="p-3 text-left">Uploaded</th>
-                </tr>
-              </thead>
+      <div className="grid gap-3 lg:hidden">
+        {documents.map((document) => (
+          <article
+            key={document.id}
+            className="w-full rounded-2xl border border-gray-200 bg-white p-4 shadow-sm"
+          >
+            <div className="space-y-3">
+              <div>
+                <h3 className="break-words text-base font-bold leading-snug text-primary">
+                  {getPublicationTitle(document)}
+                </h3>
+                <p className="mt-1 break-words text-xs leading-5 text-muted">
+                  {document.filename}
+                </p>
+              </div>
 
-              <tbody>
-                {filteredAndSortedDocuments.map((doc) => {
-                  const pdfUrl = `/api/view-source?file=${encodeURIComponent(
-                    doc.filename
-                  )}`
+              <dl className="space-y-2 text-sm">
+                <div className="rounded-xl bg-gray-50 p-3">
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-muted">
+                    Category
+                  </dt>
+                  <dd className="mt-1 break-words font-medium text-primary">
+                    {displayValue(document.category)}
+                  </dd>
+                </div>
 
-                  return (
-                    <tr key={doc.id} className="border-t align-top">
-                      <td className="p-3">
-                        <Link
-                          href={pdfUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="font-semibold text-blue-700 hover:underline"
-                        >
-                          {doc.title || doc.filename}
-                        </Link>
+                <div className="rounded-xl bg-gray-50 p-3">
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-muted">
+                    Version
+                  </dt>
+                  <dd className="mt-1 break-words font-medium text-primary">
+                    {displayValue(document.version)}
+                  </dd>
+                </div>
 
-                        <p className="mt-1 text-xs text-gray-500">
-                          {doc.filename}
-                        </p>
-                      </td>
+                <div className="rounded-xl bg-gray-50 p-3">
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-muted">
+                    Date
+                  </dt>
+                  <dd className="mt-1 font-medium text-primary">
+                    {formatDate(document.uploaded_at)}
+                  </dd>
+                </div>
+              </dl>
 
-                      <td className="p-3 text-gray-600">
-                        {doc.category || 'Uncategorized'}
-                      </td>
+              <Link
+                href={getPdfHref(document)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-black px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-800"
+              >
+                Open PDF
+              </Link>
+            </div>
+          </article>
+        ))}
+      </div>
 
-                      <td className="p-3 text-gray-600">
-                        {doc.version || 'Not listed'}
-                      </td>
+      <div className="hidden overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm lg:block">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-muted">
+                Publication
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-muted">
+                Category
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-muted">
+                Version
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wide text-muted">
+                Date
+              </th>
+              <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wide text-muted">
+                PDF
+              </th>
+            </tr>
+          </thead>
 
-                      <td className="p-3 text-gray-600">
-                        {doc.uploaded_at
-                          ? new Date(doc.uploaded_at).toLocaleDateString()
-                          : 'Unknown'}
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-        </section>
-      )}
+          <tbody className="divide-y divide-gray-100">
+            {documents.map((document) => (
+              <tr key={document.id} className="hover:bg-gray-50">
+                <td className="max-w-md px-4 py-4">
+                  <div className="font-semibold text-primary">
+                    {getPublicationTitle(document)}
+                  </div>
+                  <div className="mt-1 break-words text-xs text-muted">
+                    {document.filename}
+                  </div>
+                </td>
+                <td className="px-4 py-4 text-sm text-secondary">
+                  {displayValue(document.category)}
+                </td>
+                <td className="px-4 py-4 text-sm text-secondary">
+                  {displayValue(document.version)}
+                </td>
+                <td className="px-4 py-4 text-sm text-secondary">
+                  {formatDate(document.uploaded_at)}
+                </td>
+                <td className="px-4 py-4 text-right">
+                  <Link
+                    href={getPdfHref(document)}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex min-h-10 items-center justify-center rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-primary shadow-sm hover:bg-gray-100"
+                  >
+                    Open PDF
+                  </Link>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </section>
   )
 }

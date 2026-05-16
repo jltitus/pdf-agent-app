@@ -17,3 +17,22 @@
 - Publications
 - Admin
 - PDF Processing
+
+## UI Responsiveness
+
+- Shared navigation is handled by `app/components/HeaderBar.tsx`.
+- The header uses a mobile-first layout with wrapped navigation buttons for small screens.
+- The Publications page uses `app/publications/page.tsx` for server-side document loading and `app/publications/PublicationsTable.tsx` for responsive display.
+- Publications render as cards on mobile and as a table on medium and larger screens.
+
+## Responsive Publications UI
+
+The Publications page uses a mobile-first responsive layout.
+
+- `app/publications/page.tsx` loads active publication records from Supabase.
+- `app/publications/PublicationsTable.tsx` displays publications as cards on mobile and tablet widths.
+- On large desktop screens, publications display in a table.
+- Publication cards and table rows show title, filename, category, version, date, and an Open PDF action.
+- PDF links use the existing `/api/view-source?file=` route.
+- Shared navigation is handled by `app/components/HeaderBar.tsx`.
+- The Chat navigation item uses `public/chat-icon.png`.
