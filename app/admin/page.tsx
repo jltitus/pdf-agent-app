@@ -245,7 +245,7 @@ const [deletingUserEmail, setDeletingUserEmail] = useState<string | null>(null)
     'rounded-lg bg-black px-4 py-2 text-sm font-semibold !text-white shadow-sm disabled:bg-gray-700 disabled:!text-white disabled:cursor-not-allowed'
   const blueButton =
     'rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold !text-white shadow-sm hover:bg-blue-700 disabled:bg-blue-300 disabled:!text-white disabled:cursor-not-allowed'
-  const cardClass = 'rounded-2xl border border-gray-300 bg-white p-6 shadow-sm'
+  const cardClass = 'rounded-2xl border border-gray-300 bg-white p-4 shadow-sm sm:p-6'
   const subCardClass = 'rounded-xl border border-gray-300 bg-gray-50 p-4'
 
   useEffect(() => {
@@ -1247,7 +1247,7 @@ async function deleteUser(request: AccessRequest) {
     await loadTrustedAnswers()
   }
 
-  async function updateIssueStatus(item: IssueReport, status: 'open' | 'reviewed' | 'resolved') {
+  async function updateIssueStatus(item: IssueReport, status: 'new' | 'reviewed' | 'resolved' | 'enhancement_candidate') {
     setUpdatingIssueId(item.id)
     setMessage(`Updating issue to ${status}...`)
 
@@ -1282,9 +1282,10 @@ async function deleteUser(request: AccessRequest) {
     return matchesSearch && matchesStatus
   })
 
-  const openIssues = issueReports.filter((issue) => issue.status === 'open')
+  const openIssues = issueReports.filter((issue) => issue.status === 'new' || issue.status === 'open')
   const reviewedIssues = issueReports.filter((issue) => issue.status === 'reviewed')
   const resolvedIssues = issueReports.filter((issue) => issue.status === 'resolved')
+  const enhancementCandidateIssues = issueReports.filter((issue) => issue.status === 'enhancement_candidate')
 
   const problemFeedback = feedback.filter((item) => item.feedback_type === 'not_helpful' || item.feedback_type === 'missing_source')
 
@@ -1335,6 +1336,39 @@ async function deleteUser(request: AccessRequest) {
     if (documentHealthView === 'zero_pages') return sorted.filter((doc) => !doc.page_count || doc.page_count === 0)
     return sorted.slice(0, 15)
   })()
+
+  function getIssueStatusDisplay(status: string) {
+    if (status === 'open') return 'new'
+    if (status === 'enhancement_candidate') return 'enhancement candidate'
+    return status.replaceAll('_', ' ')
+  }
+
+  function getIssueStatusClass(status: string) {
+    if (status === 'new' || status === 'open') return 'bg-red-100 text-red-700'
+    if (status === 'reviewed') return 'bg-yellow-100 text-yellow-800'
+    if (status === 'enhancement_candidate') return 'bg-blue-100 text-blue-700'
+    if (status === 'resolved') return 'bg-green-100 text-green-700'
+    return 'bg-gray-100 text-secondary'
+  }
+
+  function getAccessStatusClass(status: string) {
+    if (status === 'approved') return 'bg-green-100 text-green-700'
+    if (status === 'pending') return 'bg-yellow-100 text-yellow-800'
+    if (status === 'declined') return 'bg-red-100 text-red-700'
+    return 'bg-gray-100 text-secondary'
+  }
+
+  function getProfileStatusClass(request: AccessRequest) {
+    if (request.profile_is_active === false) return 'bg-red-100 text-red-700'
+    if (request.profile_is_active === true) return 'bg-green-100 text-green-700'
+    return 'bg-gray-100 text-secondary'
+  }
+
+  function getProfileStatusLabel(request: AccessRequest) {
+    if (request.profile_is_active === false) return 'inactive'
+    if (request.profile_is_active === true) return request.profile_role || 'active'
+    return 'no profile'
+  }
 
   function exportFeedbackCSV() {
     if (feedback.length === 0) return
@@ -1411,9 +1445,9 @@ async function deleteUser(request: AccessRequest) {
     <>
       <HeaderBar />
       <main className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 text-primary">
-        <div className="mx-auto max-w-6xl space-y-8 px-6 py-8">
+        <div className="mx-auto max-w-6xl space-y-6 px-3 py-5 sm:space-y-8 sm:px-6 sm:py-8">
           <div>
-            <h1 className="text-3xl font-bold text-primary">Admin: Manage PDF Agent</h1>
+            <h1 className="text-2xl font-bold text-primary sm:text-3xl">Admin: Manage PDF Agent</h1>
             <p className="mt-1 text-secondary">
               Upload, process, replace, archive, delete, approve or decline access requests, and review tester feedback.
             </p>
@@ -1432,7 +1466,7 @@ async function deleteUser(request: AccessRequest) {
             </section>
           )}
 
-          <div className="sticky top-[150px] z-40 rounded-2xl border border-gray-300 bg-white/95 p-2 shadow-sm backdrop-blur">
+          <div className="sticky top-[155px] z-40 rounded-2xl border border-gray-300 bg-white/95 p-2 shadow-sm backdrop-blur sm:top-[145px] lg:top-[92px]">
             <div className="flex gap-2 overflow-x-auto">
               {[
                 { key: 'overview', label: 'Overview' },
@@ -1445,7 +1479,7 @@ async function deleteUser(request: AccessRequest) {
                   key={tab.key}
                   type="button"
                   onClick={() => setActiveTab(tab.key as any)}
-                  className={`shrink-0 rounded-lg px-4 py-2 text-sm font-semibold ${activeTab === tab.key ? 'bg-black !text-white' : 'border border-gray-300 bg-white text-primary hover:bg-gray-100'}`}
+                  className={`shrink-0 rounded-lg px-3 py-2 text-xs font-semibold sm:px-4 sm:text-sm ${activeTab === tab.key ? 'bg-black !text-white' : 'border border-gray-300 bg-white text-primary hover:bg-gray-100'}`}
                 >
                   {tab.label}
                 </button>
@@ -1603,68 +1637,139 @@ async function deleteUser(request: AccessRequest) {
             </h3>
 
             {pendingRequests.length === 0 ? (
-              <p className="mt-2 text-sm text-secondary">
+              <p className="mt-2 rounded-xl border border-gray-300 bg-white p-4 text-sm text-secondary">
                 No pending access requests.
               </p>
             ) : (
-              <div className="mt-3 overflow-x-auto rounded-lg border border-gray-300">
-                <table className="w-full text-sm text-primary">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="p-3 text-left">Name</th>
-                      <th className="p-3 text-left">Email</th>
-                      <th className="p-3 text-left">Reason</th>
-                      <th className="p-3 text-left">Submitted</th>
-                      <th className="p-3 text-left">Actions</th>
-                    </tr>
-                  </thead>
+              <>
+                <div className="mt-3 grid gap-3 lg:hidden">
+                  {pendingRequests.map((request) => (
+                    <article
+                      key={request.id}
+                      className="rounded-2xl border border-gray-300 bg-white p-4 shadow-sm"
+                    >
+                      <div className="flex flex-col gap-3">
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h4 className="text-base font-bold text-primary">
+                              {request.full_name}
+                            </h4>
 
-                  <tbody>
-                    {pendingRequests.map((request) => (
-                      <tr
-                        key={request.id}
-                        className="border-t border-gray-300 align-top"
-                      >
-                        <td className="p-3 font-medium">
-                          {request.full_name}
-                        </td>
-
-                        <td className="p-3 text-xs text-secondary">
-                          {request.email}
-                        </td>
-
-                        <td className="p-3 text-xs text-secondary">
-                          {request.reason || '—'}
-                        </td>
-
-                        <td className="p-3 text-xs text-secondary">
-                          {new Date(request.created_at).toLocaleString()}
-                        </td>
-
-                        <td className="p-3">
-                          <div className="flex flex-wrap gap-2">
-                            <button
-                              type="button"
-                              onClick={() => approveAccessRequest(request.id)}
-                              className={primaryButton}
-                            >
-                              Approve
-                            </button>
-
-                            <button
-                              type="button"
-                              onClick={() => declineRequest(request.id)}
-                              className={smallSecondaryButton}
-                            >
-                              Decline
-                            </button>
+                            <span className={`rounded-full px-2 py-1 text-xs font-semibold ${getAccessStatusClass(request.status)}`}>
+                              {request.status}
+                            </span>
                           </div>
-                        </td>
+
+                          <p className="mt-1 break-words text-sm text-secondary">
+                            {request.email}
+                          </p>
+                        </div>
+
+                        <dl className="grid gap-2 text-sm">
+                          <div className="rounded-xl bg-gray-50 p-3">
+                            <dt className="text-xs font-semibold uppercase tracking-wide text-muted">
+                              Reason
+                            </dt>
+                            <dd className="mt-1 whitespace-pre-wrap text-primary">
+                              {request.reason || '—'}
+                            </dd>
+                          </div>
+
+                          <div className="rounded-xl bg-gray-50 p-3">
+                            <dt className="text-xs font-semibold uppercase tracking-wide text-muted">
+                              Submitted
+                            </dt>
+                            <dd className="mt-1 text-primary">
+                              {new Date(request.created_at).toLocaleString()}
+                            </dd>
+                          </div>
+                        </dl>
+
+                        <div className="grid grid-cols-2 gap-2 border-t border-gray-200 pt-3">
+                          <button
+                            type="button"
+                            onClick={() => approveAccessRequest(request.id)}
+                            disabled={approvingId === request.id || decliningId === request.id}
+                            className="min-h-11 rounded-lg bg-black px-3 py-2 text-sm font-semibold !text-white shadow-sm disabled:bg-gray-700"
+                          >
+                            {approvingId === request.id ? 'Approving...' : 'Approve'}
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => declineRequest(request.id)}
+                            disabled={approvingId === request.id || decliningId === request.id}
+                            className="min-h-11 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-gray-100 disabled:opacity-60"
+                          >
+                            {decliningId === request.id ? 'Declining...' : 'Decline'}
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+
+                <div className="mt-3 hidden overflow-x-auto rounded-lg border border-gray-300 lg:block">
+                  <table className="w-full text-sm text-primary">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="p-3 text-left">Name</th>
+                        <th className="p-3 text-left">Email</th>
+                        <th className="p-3 text-left">Reason</th>
+                        <th className="p-3 text-left">Submitted</th>
+                        <th className="p-3 text-left">Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+
+                    <tbody>
+                      {pendingRequests.map((request) => (
+                        <tr
+                          key={request.id}
+                          className="border-t border-gray-300 align-top"
+                        >
+                          <td className="p-3 font-medium">
+                            {request.full_name}
+                          </td>
+
+                          <td className="p-3 text-xs text-secondary">
+                            {request.email}
+                          </td>
+
+                          <td className="p-3 text-xs text-secondary">
+                            {request.reason || '—'}
+                          </td>
+
+                          <td className="p-3 text-xs text-secondary">
+                            {new Date(request.created_at).toLocaleString()}
+                          </td>
+
+                          <td className="p-3">
+                            <div className="flex flex-wrap gap-2">
+                              <button
+                                type="button"
+                                onClick={() => approveAccessRequest(request.id)}
+                                disabled={approvingId === request.id || decliningId === request.id}
+                                className={primaryButton}
+                              >
+                                {approvingId === request.id ? 'Approving...' : 'Approve'}
+                              </button>
+
+                              <button
+                                type="button"
+                                onClick={() => declineRequest(request.id)}
+                                disabled={approvingId === request.id || decliningId === request.id}
+                                className={smallSecondaryButton}
+                              >
+                                {decliningId === request.id ? 'Declining...' : 'Decline'}
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </>
             )}
           </div>
 
@@ -1729,7 +1834,103 @@ async function deleteUser(request: AccessRequest) {
                 No users or invites match your search/filter.
               </p>
             ) : (
-              <div className="mt-3 max-h-[420px] overflow-y-auto rounded-lg border border-gray-300">
+              <>
+                <div className="mt-3 grid gap-3 lg:hidden">
+                  {filteredInviteDirectory.map((request) => (
+                    <article
+                      key={request.id}
+                      className="rounded-2xl border border-gray-300 bg-white p-4 shadow-sm"
+                    >
+                      <div className="space-y-3">
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <h4 className="text-base font-bold text-primary">
+                              {request.full_name}
+                            </h4>
+                            <span className={`rounded-full px-2 py-1 text-xs font-semibold ${getAccessStatusClass(request.status)}`}>
+                              {request.status}
+                            </span>
+                            <span className={`rounded-full px-2 py-1 text-xs font-semibold ${getProfileStatusClass(request)}`}>
+                              {getProfileStatusLabel(request)}
+                            </span>
+                          </div>
+                          <p className="mt-1 break-words text-sm text-secondary">
+                            {request.email}
+                          </p>
+                        </div>
+
+                        {request.reason && (
+                          <div className="rounded-xl bg-gray-50 p-3 text-sm text-secondary">
+                            <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+                              Reason
+                            </p>
+                            <p className="mt-1 line-clamp-3">{request.reason}</p>
+                          </div>
+                        )}
+
+                        <div className="rounded-xl bg-gray-50 p-3 text-sm">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+                            Last activity
+                          </p>
+                          <p className="mt-1 text-primary">
+                            {request.last_activity_at
+                              ? new Date(request.last_activity_at).toLocaleString()
+                              : 'No activity'}
+                          </p>
+                          {request.last_question && (
+                            <p className="mt-1 line-clamp-3 text-xs text-secondary">
+                              {request.last_question}
+                            </p>
+                          )}
+                        </div>
+
+                        {request.status === 'approved' && (
+                          <div className="grid gap-2 border-t border-gray-200 pt-3 sm:grid-cols-3">
+                            <button
+                              type="button"
+                              onClick={() => resendInvite(request)}
+                              disabled={resendingInviteId === request.id}
+                              className="min-h-11 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-gray-100 disabled:opacity-60"
+                            >
+                              {resendingInviteId === request.id ? 'Resending...' : 'Resend'}
+                            </button>
+
+                            {request.profile_is_active === false ? (
+                              <button
+                                type="button"
+                                onClick={() => updateUserStatus(request, true)}
+                                disabled={updatingUserEmail === request.email}
+                                className="min-h-11 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-green-700 hover:bg-green-50 disabled:opacity-60"
+                              >
+                                {updatingUserEmail === request.email ? 'Updating...' : 'Reactivate'}
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() => updateUserStatus(request, false)}
+                                disabled={updatingUserEmail === request.email}
+                                className="min-h-11 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
+                              >
+                                {updatingUserEmail === request.email ? 'Updating...' : 'Deactivate'}
+                              </button>
+                            )}
+
+                            <button
+                              type="button"
+                              onClick={() => deleteUser(request)}
+                              disabled={deletingUserEmail === request.email}
+                              className="min-h-11 rounded-lg border border-red-300 bg-white px-3 py-2 text-sm font-semibold text-red-800 hover:bg-red-50 disabled:opacity-60"
+                            >
+                              {deletingUserEmail === request.email ? 'Deleting...' : 'Delete'}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </article>
+                  ))}
+                </div>
+
+                <div className="mt-3 hidden max-h-[420px] overflow-y-auto rounded-lg border border-gray-300 lg:block">
                 <table className="w-full text-sm text-primary">
                   <thead className="sticky top-0 bg-gray-50">
                     <tr>
@@ -1766,13 +1967,7 @@ async function deleteUser(request: AccessRequest) {
 
                         <td className="p-3">
                           <span
-                            className={`rounded-full px-2 py-1 text-xs font-semibold ${
-                              request.status === 'approved'
-                                ? 'bg-green-100 text-green-700'
-                                : request.status === 'pending'
-                                ? 'bg-yellow-100 text-yellow-800'
-                                : 'bg-gray-100 text-secondary'
-                            }`}
+                            className={`rounded-full px-2 py-1 text-xs font-semibold ${getAccessStatusClass(request.status)}`}
                           >
                             {request.status}
                           </span>
@@ -1780,19 +1975,9 @@ async function deleteUser(request: AccessRequest) {
 
                         <td className="p-3">
                           <span
-                            className={`rounded-full px-2 py-1 text-xs font-semibold ${
-                              request.profile_is_active === false
-                                ? 'bg-red-100 text-red-700'
-                                : request.profile_is_active === true
-                                ? 'bg-green-100 text-green-700'
-                                : 'bg-gray-100 text-secondary'
-                            }`}
+                            className={`rounded-full px-2 py-1 text-xs font-semibold ${getProfileStatusClass(request)}`}
                           >
-                            {request.profile_is_active === false
-                              ? 'inactive'
-                              : request.profile_is_active === true
-                              ? request.profile_role || 'active'
-                              : 'no profile'}
+                            {getProfileStatusLabel(request)}
                           </span>
                         </td>
 
@@ -1877,7 +2062,8 @@ async function deleteUser(request: AccessRequest) {
                     ))}
                   </tbody>
                 </table>
-              </div>
+                </div>
+              </>
             )}
           </div>
         </section>
@@ -1964,7 +2150,7 @@ async function deleteUser(request: AccessRequest) {
             <>
               <section className={`${cardClass} space-y-5`}>
                 <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between"><div><h2 className="text-2xl font-bold text-primary">Feedback Insights</h2><p className="text-sm text-secondary">Spot weak answers, missing sources, issue trends, and repeated content gaps.</p></div><div className="flex flex-wrap gap-2"><select value={feedbackFilter} onChange={(e) => setFeedbackFilter(e.target.value as any)} className={inputClass}><option value="all">All feedback</option><option value="helpful">Helpful</option><option value="not_helpful">Not helpful</option><option value="missing_source">Missing source</option></select><button type="button" onClick={exportFeedbackCSV} className={secondaryButton}>Export CSV</button></div></div>
-                <div className="grid grid-cols-2 gap-3 md:grid-cols-6">{[['Helpful', feedbackCounts.helpful, 'green'], ['Not helpful', feedbackCounts.not_helpful, 'red'], ['Missing source', feedbackCounts.missing_source, 'yellow'], ['Open issues', openIssues.length, 'red'], ['Reviewed', reviewedIssues.length, 'yellow'], ['Resolved', resolvedIssues.length, 'green']].map(([label, value, color]) => <div key={label} className={`rounded-xl border p-3 ${color === 'green' ? 'border-green-300 bg-green-50' : color === 'red' ? 'border-red-300 bg-red-50' : 'border-yellow-300 bg-yellow-50'}`}><p className="text-xs font-medium text-secondary">{label}</p><p className={`text-2xl font-bold ${color === 'green' ? 'text-green-700' : color === 'red' ? 'text-red-700' : 'text-yellow-800'}`}>{value}</p></div>)}</div>
+                <div className="grid grid-cols-2 gap-3 md:grid-cols-6">{[['Helpful', feedbackCounts.helpful, 'green'], ['Not helpful', feedbackCounts.not_helpful, 'red'], ['Missing source', feedbackCounts.missing_source, 'yellow'], ['Open issues', openIssues.length, 'red'], ['Reviewed', reviewedIssues.length, 'yellow'], ['Resolved', resolvedIssues.length, 'green'], ['Enhancements', enhancementCandidateIssues.length, 'blue']].map(([label, value, color]) => <div key={label} className={`rounded-xl border p-3 ${color === 'green' ? 'border-green-300 bg-green-50' : color === 'red' ? 'border-red-300 bg-red-50' : color === 'blue' ? 'border-blue-300 bg-blue-50' : 'border-yellow-300 bg-yellow-50'}`}><p className="text-xs font-medium text-secondary">{label}</p><p className={`text-2xl font-bold ${color === 'green' ? 'text-green-700' : color === 'red' ? 'text-red-700' : color === 'blue' ? 'text-blue-700' : 'text-yellow-800'}`}>{value}</p></div>)}</div>
                 <div className="grid gap-4 lg:grid-cols-2">
                   <section className={subCardClass}><h3 className="font-semibold text-primary">Top problem questions</h3><p className="text-xs text-secondary">Questions marked not helpful or missing source most often.</p>{topProblemQuestions.length === 0 ? <p className="mt-3 text-sm text-secondary">No problem questions yet.</p> : <div className="mt-3 space-y-2">{topProblemQuestions.map((item, index) => <div key={`${item.question}-${index}`} className="rounded-lg border border-gray-300 bg-white p-3"><div className="flex items-start justify-between gap-3"><p className="line-clamp-2 text-sm font-semibold text-primary">{item.question}</p><span className="shrink-0 rounded-full border border-gray-300 px-2 py-1 text-xs text-secondary">{item.count}x</span></div><p className="mt-1 text-xs text-muted">{Array.from(item.types).join(', ')}</p></div>)}</div>}</section>
                   <section className={subCardClass}><h3 className="font-semibold text-primary">Most common issue types</h3><p className="text-xs text-secondary">Issue report categories submitted by testers.</p>{issueTypeCounts.length === 0 ? <p className="mt-3 text-sm text-secondary">No issue types yet.</p> : <div className="mt-3 space-y-2">{issueTypeCounts.map(([issueType, count]) => <div key={issueType} className="flex items-center justify-between rounded-lg border border-gray-300 bg-white p-3 text-sm text-primary"><span>{issueType}</span><span className="rounded-full border border-gray-300 px-2 py-1 text-xs text-secondary">{count}</span></div>)}</div>}</section>
@@ -1972,7 +2158,112 @@ async function deleteUser(request: AccessRequest) {
                 <section className={subCardClass}><h3 className="font-semibold text-primary">Recent feedback</h3><p className="text-xs text-secondary">Filtered list for quick review and export.</p>{filteredFeedback.length === 0 ? <p className="mt-3 text-sm text-secondary">No feedback submitted yet.</p> : <div className="mt-3 divide-y divide-gray-300 rounded-lg border border-gray-300 bg-white">{filteredFeedback.map((item) => <div key={item.id} className="flex flex-col gap-2 p-3 md:flex-row md:items-start md:justify-between"><div><p className="text-sm font-semibold text-primary">{item.question || 'No question saved'}</p>{item.answer && <p className="mt-1 line-clamp-2 text-xs text-muted">{item.answer}</p>}<p className="mt-1 text-xs text-muted">{new Date(item.created_at).toLocaleString()}</p></div><span className="w-fit rounded bg-gray-100 px-2 py-1 text-xs font-semibold text-secondary">{item.feedback_type.replaceAll('_', ' ')}</span></div>)}</div>}</section>
               </section>
 
-              <section className={`${cardClass} space-y-4`}><div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between"><div><h2 className="text-2xl font-bold text-primary">Issue Reports</h2><p className="text-sm text-secondary">Review tester-reported problems, questions, and source concerns.</p></div><span className="w-fit rounded-full border border-gray-300 bg-gray-50 px-3 py-1 text-xs font-semibold text-secondary">{openIssues.length} open</span></div>{issueReports.length === 0 ? <p className="text-sm text-secondary">No issue reports submitted yet.</p> : <div className="space-y-3">{issueReports.map((item) => <div key={item.id} className="rounded-lg border border-gray-300 p-4"><div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between"><div><div className="flex flex-wrap items-center gap-2"><p className="text-sm font-semibold text-primary">{item.issue_type}</p><span className={`rounded-full px-2 py-1 text-xs font-semibold ${item.status === 'open' ? 'bg-red-100 text-red-700' : item.status === 'reviewed' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-700'}`}>{item.status}</span></div><p className="mt-1 text-xs text-muted">{item.user_email || 'Unknown user'} • {new Date(item.created_at).toLocaleString()}</p>{item.related_question && <p className="mt-3 text-sm text-primary"><strong>Related question:</strong> {item.related_question}</p>}<p className="mt-2 whitespace-pre-wrap text-sm text-primary">{item.description}</p></div><div className="flex shrink-0 flex-wrap gap-2">{item.status !== 'reviewed' && <button type="button" onClick={() => updateIssueStatus(item, 'reviewed')} disabled={updatingIssueId === item.id} className={smallSecondaryButton}>Mark reviewed</button>}{item.status !== 'resolved' && <button type="button" onClick={() => updateIssueStatus(item, 'resolved')} disabled={updatingIssueId === item.id} className={smallSecondaryButton}>Mark resolved</button>}{item.status !== 'open' && <button type="button" onClick={() => updateIssueStatus(item, 'open')} disabled={updatingIssueId === item.id} className={smallSecondaryButton}>Reopen</button>}</div></div></div>)}</div>}</section>
+              <section className={`${cardClass} space-y-4`}>
+                <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold text-primary">Issue Reports</h2>
+                    <p className="text-sm text-secondary">
+                      Review tester-reported problems, questions, source concerns, and enhancement candidates.
+                    </p>
+                  </div>
+                  <span className="w-fit rounded-full border border-gray-300 bg-gray-50 px-3 py-1 text-xs font-semibold text-secondary">
+                    {openIssues.length} new
+                  </span>
+                </div>
+
+                {issueReports.length === 0 ? (
+                  <p className="text-sm text-secondary">No issue reports submitted yet.</p>
+                ) : (
+                  <div className="grid gap-3">
+                    {issueReports.map((item) => (
+                      <article key={item.id} className="rounded-2xl border border-gray-300 bg-white p-4 shadow-sm">
+                        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                          <div className="min-w-0 flex-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <h3 className="text-sm font-bold text-primary">
+                                {item.issue_type}
+                              </h3>
+                              <span className={`rounded-full px-2 py-1 text-xs font-semibold ${getIssueStatusClass(item.status)}`}>
+                                {getIssueStatusDisplay(item.status)}
+                              </span>
+                            </div>
+
+                            <p className="mt-1 text-xs text-muted">
+                              {item.user_email || 'Unknown user'} • {new Date(item.created_at).toLocaleString()}
+                            </p>
+
+                            {item.related_question && (
+                              <div className="mt-3 rounded-xl bg-gray-50 p-3">
+                                <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+                                  Related question
+                                </p>
+                                <p className="mt-1 whitespace-pre-wrap text-sm text-primary">
+                                  {item.related_question}
+                                </p>
+                              </div>
+                            )}
+
+                            <div className="mt-3 rounded-xl bg-gray-50 p-3">
+                              <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+                                Description
+                              </p>
+                              <p className="mt-1 whitespace-pre-wrap text-sm text-primary">
+                                {item.description}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="grid shrink-0 grid-cols-2 gap-2 sm:grid-cols-4 lg:w-56 lg:grid-cols-1">
+                            {item.status !== 'reviewed' && (
+                              <button
+                                type="button"
+                                onClick={() => updateIssueStatus(item, 'reviewed')}
+                                disabled={updatingIssueId === item.id}
+                                className="min-h-11 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-gray-100 disabled:opacity-60"
+                              >
+                                Mark reviewed
+                              </button>
+                            )}
+
+                            {item.status !== 'enhancement_candidate' && (
+                              <button
+                                type="button"
+                                onClick={() => updateIssueStatus(item, 'enhancement_candidate')}
+                                disabled={updatingIssueId === item.id}
+                                className="min-h-11 rounded-lg border border-blue-300 bg-white px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50 disabled:opacity-60"
+                              >
+                                Enhancement
+                              </button>
+                            )}
+
+                            {item.status !== 'resolved' && (
+                              <button
+                                type="button"
+                                onClick={() => updateIssueStatus(item, 'resolved')}
+                                disabled={updatingIssueId === item.id}
+                                className="min-h-11 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-gray-100 disabled:opacity-60"
+                              >
+                                Mark resolved
+                              </button>
+                            )}
+
+                            {item.status !== 'new' && item.status !== 'open' && (
+                              <button
+                                type="button"
+                                onClick={() => updateIssueStatus(item, 'new')}
+                                disabled={updatingIssueId === item.id}
+                                className="min-h-11 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-gray-100 disabled:opacity-60"
+                              >
+                                Reopen
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                )}
+              </section>
 
               <section className={`${cardClass} space-y-4`}><div><h2 className="text-2xl font-bold text-primary">Content Gaps</h2><p className="text-sm text-secondary">Questions the agent could not answer and frequently requested topics.</p></div><div className="grid gap-4 lg:grid-cols-2"><div><h3 className="font-semibold text-primary">Top repeated gaps</h3>{contentGaps.length === 0 ? <p className="mt-2 text-sm text-secondary">No gaps yet.</p> : <div className="mt-3 space-y-2">{contentGaps.map((gap, index) => <div key={index} className="rounded-lg border border-gray-300 p-3"><div className="flex justify-between gap-3"><p className="text-sm font-semibold text-primary">{gap.question}</p><span className="text-xs text-muted">{gap.count}x</span></div><p className="mt-1 text-xs text-muted">Mode: {gap.answer_mode || 'general'}{gap.category ? ` • Category: ${gap.category}` : ''}</p></div>)}</div>}</div><div><h3 className="font-semibold text-primary">Latest not found</h3>{noAnswerItems.length === 0 ? <p className="mt-2 text-sm text-secondary">No not-found questions yet.</p> : <div className="mt-3 space-y-2">{noAnswerItems.slice(0, 8).map((item) => <div key={item.id} className="rounded-lg border border-gray-300 p-3"><p className="text-sm font-semibold text-primary">{item.question}</p><p className="mt-1 text-xs text-muted">Mode: {item.answer_mode || 'general'}{item.category ? ` • Category: ${item.category}` : ''} • {new Date(item.created_at).toLocaleString()}</p><button type="button" onClick={() => saveTrustedAnswer(item)} className={`mt-2 ${smallSecondaryButton}`}>Save as trusted</button></div>)}</div>}</div></div></section>
             </>
