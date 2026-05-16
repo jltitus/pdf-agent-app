@@ -18,6 +18,7 @@ export default function HeaderBar() {
 
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   useEffect(() => {
     async function loadUser() {
@@ -56,17 +57,21 @@ export default function HeaderBar() {
     const active = pathname === path
 
     return [
-      'flex min-h-14 items-center justify-center rounded-xl border px-2 py-2 text-center text-xs font-semibold shadow-sm transition sm:min-h-11 sm:px-3 sm:text-sm',
+      'flex min-h-11 items-center justify-center rounded-xl border px-3 py-2 text-center text-sm font-semibold shadow-sm transition',
       active
         ? 'border-black bg-black text-white'
         : 'border-gray-300 bg-white text-primary hover:bg-gray-100',
     ].join(' ')
   }
 
+  function closeMobileMenu() {
+    setMobileMenuOpen(false)
+  }
+
   return (
     <header className="sticky top-0 z-50 border-b border-gray-300 bg-gradient-to-r from-blue-100 via-blue-50 to-green-100 text-primary shadow-sm">
       <div className="mx-auto max-w-6xl px-3 py-3 sm:px-6">
-        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex items-center justify-between gap-3">
           <Link href="/dashboard" className="flex min-w-0 items-center gap-3">
             <img
               src="/jar-logosm.png"
@@ -84,16 +89,26 @@ export default function HeaderBar() {
             </div>
           </Link>
 
-          <nav aria-label="Main navigation" className="grid grid-cols-3 gap-2 sm:grid-cols-6 lg:w-auto">
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen((current) => !current)}
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-gray-300 bg-white px-3 py-2 text-xl font-bold text-primary shadow-sm hover:bg-gray-100 lg:hidden"
+            aria-label="Open navigation menu"
+            aria-expanded={mobileMenuOpen}
+          >
+            {mobileMenuOpen ? '×' : '☰'}
+          </button>
+
+          <nav
+            aria-label="Main navigation"
+            className="hidden items-center gap-2 lg:flex"
+          >
             <Link href="/dashboard" className={navClass('/dashboard')}>
-              <span className="flex flex-col items-center gap-1 leading-tight sm:flex-row">
-                <span aria-hidden="true">🏠</span>
-                <span>Home</span>
-              </span>
+              🏠 Home
             </Link>
 
             <Link href="/chat" className={navClass('/chat')}>
-              <span className="flex flex-col items-center gap-1 leading-tight sm:flex-row">
+              <span className="flex items-center gap-2">
                 <Image
                   src="/chat-icon.png"
                   alt=""
@@ -101,37 +116,25 @@ export default function HeaderBar() {
                   height={18}
                   className="h-5 w-5 object-contain"
                 />
-                <span>Chat</span>
+                Chat
               </span>
             </Link>
 
             <Link href="/publications" className={navClass('/publications')}>
-              <span className="flex flex-col items-center gap-1 leading-tight sm:flex-row">
-                <span aria-hidden="true">📚</span>
-                <span>Publications</span>
-              </span>
+              📚 Publications
             </Link>
 
             <Link href="/help" className={navClass('/help')}>
-              <span className="flex flex-col items-center gap-1 leading-tight sm:flex-row">
-                <span aria-hidden="true">❓</span>
-                <span>Help</span>
-              </span>
+              ❓ Help
             </Link>
 
             {isAdmin ? (
               <Link href="/admin" className={navClass('/admin')}>
-                <span className="flex flex-col items-center gap-1 leading-tight sm:flex-row">
-                  <span aria-hidden="true">⚙️</span>
-                  <span>Admin</span>
-                </span>
+                ⚙️ Admin
               </Link>
             ) : (
               <Link href="/request-access" className={navClass('/request-access')}>
-                <span className="flex flex-col items-center gap-1 leading-tight sm:flex-row">
-                  <span aria-hidden="true">➕</span>
-                  <span>Access</span>
-                </span>
+                ➕ Access
               </Link>
             )}
 
@@ -139,7 +142,7 @@ export default function HeaderBar() {
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="flex min-h-14 items-center justify-center rounded-xl border border-gray-300 bg-white px-2 py-2 text-xs font-semibold text-primary shadow-sm transition hover:bg-gray-100 sm:min-h-11 sm:px-3 sm:text-sm"
+                className="flex min-h-11 items-center justify-center rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-primary shadow-sm transition hover:bg-gray-100"
               >
                 Sign out
               </button>
@@ -147,9 +150,78 @@ export default function HeaderBar() {
           </nav>
         </div>
 
+        {mobileMenuOpen && (
+          <nav
+            aria-label="Mobile navigation"
+            className="mt-3 grid grid-cols-2 gap-2 lg:hidden"
+          >
+            <Link
+              href="/dashboard"
+              className={navClass('/dashboard')}
+              onClick={closeMobileMenu}
+            >
+              🏠 Home
+            </Link>
+
+            <Link
+              href="/chat"
+              className={navClass('/chat')}
+              onClick={closeMobileMenu}
+            >
+              💬 Chat
+            </Link>
+
+            <Link
+              href="/publications"
+              className={navClass('/publications')}
+              onClick={closeMobileMenu}
+            >
+              📚 Publications
+            </Link>
+
+            <Link
+              href="/help"
+              className={navClass('/help')}
+              onClick={closeMobileMenu}
+            >
+              ❓ Help
+            </Link>
+
+            {isAdmin ? (
+              <Link
+                href="/admin"
+                className={navClass('/admin')}
+                onClick={closeMobileMenu}
+              >
+                ⚙️ Admin
+              </Link>
+            ) : (
+              <Link
+                href="/request-access"
+                className={navClass('/request-access')}
+                onClick={closeMobileMenu}
+              >
+                ➕ Access
+              </Link>
+            )}
+
+            {userInfo && (
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="flex min-h-11 items-center justify-center rounded-xl border border-gray-300 bg-white px-3 py-2 text-center text-sm font-semibold text-primary shadow-sm transition hover:bg-gray-100"
+              >
+                Sign out
+              </button>
+            )}
+          </nav>
+        )}
+
         {userInfo && (
           <div className="mt-3 flex min-w-0 items-center gap-2 border-t border-gray-300 pt-2 text-xs text-primary sm:text-sm">
-            <span className="truncate font-medium text-primary">{userInfo.name}</span>
+            <span className="truncate font-medium text-primary">
+              {userInfo.name}
+            </span>
 
             {isAdmin && (
               <span className="shrink-0 rounded-full border border-gray-300 bg-white px-2 py-0.5 text-xs font-semibold text-secondary">
