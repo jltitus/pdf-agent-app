@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '../../lib/supabase/client'
 
-export default function UpdatePasswordPage() {
+function UpdatePasswordContent() {
   const supabase = createClient()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -23,9 +23,7 @@ export default function UpdatePasswordPage() {
         const { error } = await supabase.auth.exchangeCodeForSession(code)
 
         if (error) {
-          setMessage(
-            'This password link is expired or invalid. Please request a new password reset link.'
-          )
+          setMessage('This password link is expired or invalid. Please request a new password reset link.')
           setSessionReady(false)
           return
         }
@@ -34,9 +32,7 @@ export default function UpdatePasswordPage() {
       const { data } = await supabase.auth.getSession()
 
       if (!data.session) {
-        setMessage(
-          'This password link is missing a valid session. Please request a new password reset link and open it in the same browser.'
-        )
+        setMessage('This password link is missing a valid session. Please request a new password reset link and open it in the same browser.')
         setSessionReady(false)
         return
       }
@@ -73,31 +69,15 @@ export default function UpdatePasswordPage() {
     }
 
     await supabase.auth.signOut()
-
     setMessage('Password updated. Redirecting to login...')
 
-    setTimeout(() => {
-      router.push('/login')
-    }, 1200)
+    setTimeout(() => router.push('/login'), 1200)
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-green-50 p-8">
-      <div className="w-full max-w-md rounded-2xl border bg-white p-6 shadow-sm space-y-5">
-        <div className="flex items-center gap-3">
-          <img
-            src="/jar-logosm.png"
-            alt="MFP Publication Agent logo"
-            className="h-10 w-10 object-contain"
-          />
-
-          <div>
-            <h1 className="text-2xl font-bold">Set New Password</h1>
-            <p className="text-sm text-gray-600">
-              Create your password for the MFP Publication Agent.
-            </p>
-          </div>
-        </div>
+    <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-green-50 p-8">
+      <div className="w-full max-w-md space-y-5 rounded-2xl border bg-white p-6 shadow-sm">
+        <h1 className="text-2xl font-bold">Set New Password</h1>
 
         {message && (
           <div className="rounded-lg border bg-gray-50 p-3 text-sm text-gray-700">
@@ -146,5 +126,21 @@ export default function UpdatePasswordPage() {
         )}
       </div>
     </main>
+  )
+}
+
+export default function UpdatePasswordPage() {
+  return (
+    <Suspense
+      fallback={
+        <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-green-50 p-8">
+          <div className="rounded-2xl border bg-white p-6 shadow-sm">
+            Checking password reset link...
+          </div>
+        </main>
+      }
+    >
+      <UpdatePasswordContent />
+    </Suspense>
   )
 }
