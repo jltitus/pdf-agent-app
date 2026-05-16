@@ -89,7 +89,7 @@ export default function LoginPage() {
 
                 <div className="rounded-2xl border border-gray-300 bg-white/70 p-5">
                   <div className="flex gap-4">
-                    <img src="/questions.png" alt="" className="h-10 w-10" />
+                    <img src="/feedback.png" alt="" className="h-10 w-10" />
                     <div>
                       <h2 className="font-bold text-primary">Review sources</h2>
                       <p className="mt-1 text-sm text-secondary">

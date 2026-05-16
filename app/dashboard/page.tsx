@@ -222,7 +222,7 @@ export default function DashboardPage() {
 
   <section className="rounded-2xl border border-gray-300 bg-white p-4 shadow-sm">
   <div className="mb-3 flex items-center gap-2">
-  <img src="/questions.png" alt="" className="h-6 w-6" />
+  <img src="/feedback.png" alt="" className="h-6 w-6" />
   <h2 className="text-xl font-bold">Recent Feedback</h2>
 </div>
 

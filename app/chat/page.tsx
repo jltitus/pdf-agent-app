@@ -677,7 +677,7 @@ export default function ChatPage() {
             <aside className="space-y-4">
               <section className="rounded-2xl border border-gray-300 bg-white p-4 text-primary shadow-sm">
                 <div className="mb-3 flex items-center gap-2">
-                  <img src="/questions.png" alt="" className="h-6 w-6" />
+                  <img src="/feedback.png" alt="" className="h-6 w-6" />
                   <div>
                     <h2 className="text-lg font-bold text-primary">
                       Recent questions
