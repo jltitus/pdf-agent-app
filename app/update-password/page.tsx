@@ -1,10 +1,11 @@
 'use client'
 
-import { Suspense, useEffect, useState } from 'react'
+import { Suspense, useEffect, useRef, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '../../lib/supabase/client'
 
 function UpdatePasswordContent() {
+  const hasPreparedSession = useRef(false)
   const supabase = createClient()
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -17,6 +18,9 @@ function UpdatePasswordContent() {
 
   useEffect(() => {
   async function prepareSession() {
+    if (hasPreparedSession.current) return
+    hasPreparedSession.current = true
+
     setMessage('Checking your password reset link...')
 
     const code = searchParams.get('code')
@@ -25,6 +29,14 @@ function UpdatePasswordContent() {
       const { error } = await supabase.auth.exchangeCodeForSession(code)
 
       if (error) {
+        const { data } = await supabase.auth.getSession()
+
+        if (data.session) {
+          setMessage('')
+          setSessionReady(true)
+          return
+        }
+
         setMessage(
           'This password link is expired or invalid. Please request a new password reset link.'
         )
@@ -33,7 +45,6 @@ function UpdatePasswordContent() {
       }
     }
 
-    // Give Supabase a few tries to finish establishing the recovery session
     for (let attempt = 0; attempt < 10; attempt++) {
       const { data } = await supabase.auth.getSession()
 
@@ -53,7 +64,7 @@ function UpdatePasswordContent() {
   }
 
   prepareSession()
-}, [searchParams, supabase.auth])
+}, [searchParams])
 
   async function updatePassword(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
