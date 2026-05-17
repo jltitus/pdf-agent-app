@@ -1465,16 +1465,26 @@ async function deleteUser(request: AccessRequest) {
   }
 
   if (!isAdmin) {
-    return (
-      <>
-        <HeaderBar />
-        <main className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 p-8 text-primary">
+  return (
+    <>
+      <HeaderBar />
+      <main className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 px-4 py-8 text-primary">
+        <section className="mx-auto max-w-lg rounded-2xl border border-gray-300 bg-white p-6 shadow-sm">
           <h1 className="text-2xl font-bold text-primary">Access denied</h1>
-          <p className="mt-2 text-secondary">You must be an admin to manage this app.</p>
-        </main>
-      </>
-    )
-  }
+          <p className="mt-2 text-sm leading-6 text-secondary">
+            You must be signed in with an active admin account to manage this app.
+          </p>
+          <a
+            href="/dashboard"
+            className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-black px-4 py-2 text-sm font-semibold !text-white"
+          >
+            Back to dashboard
+          </a>
+        </section>
+      </main>
+    </>
+  )
+}
 
   return (
     <>
