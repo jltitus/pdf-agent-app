@@ -160,25 +160,23 @@ export default function PublicationsTable({
         </div>
       </div>
 
-      {/* MOBILE CARDS */}
-
       <div className="grid gap-3 lg:hidden">
         {documents.map((document) => (
           <article
-  key={document.id}
-  className="min-w-0 w-full overflow-hidden rounded-2xl border border-gray-200 bg-white p-4 shadow-sm"
->
+            key={document.id}
+            className="min-w-0 w-full overflow-hidden rounded-2xl border border-gray-200 bg-white p-4 shadow-sm"
+          >
             <div className="min-w-0 space-y-3">
               <div>
                 <div className="space-y-3">
-  <h3 className="break-words text-base font-bold leading-snug text-primary">
-    {getPublicationTitle(document)}
-  </h3>
+                  <h3 className="break-words text-base font-bold leading-snug text-primary">
+                    {getPublicationTitle(document)}
+                  </h3>
 
-  <div>
-    {favoriteButton(document.id)}
-  </div>
-</div>
+                  <div>
+                    {favoriteButton(document.id)}
+                  </div>
+                </div>
 
                 <p className="mt-1 break-words text-xs leading-5 text-muted">
                   {document.filename}
@@ -231,8 +229,6 @@ export default function PublicationsTable({
           </article>
         ))}
       </div>
-
-      {/* DESKTOP TABLE */}
 
       <div className="hidden overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm lg:block">
         <table className="min-w-full divide-y divide-gray-200">
