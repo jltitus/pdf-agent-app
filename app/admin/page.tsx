@@ -91,8 +91,19 @@ type IssueReport = {
 type UserAnalytics = {
   totalQuestions: number
   uniqueUsers: number
+
   modeCounts: Record<string, number>
   categoryCounts: Record<string, number>
+
+  confidenceCounts: {
+    high: number
+    medium: number
+    low: number
+    not_found: number
+  }
+
+  trustedAnswerUsage: number
+
   recentActivity: {
     id: string
     user_id: string
@@ -100,6 +111,8 @@ type UserAnalytics = {
     answer_mode?: string | null
     category?: string | null
     created_at: string
+    evidence_label?: string | null
+    used_trusted_answer?: boolean | null
   }[]
 }
 
@@ -183,13 +196,24 @@ const [deletingUserEmail, setDeletingUserEmail] = useState<string | null>(null)
   const [trustedEditQuestion, setTrustedEditQuestion] = useState('')
   const [trustedEditAnswer, setTrustedEditAnswer] = useState('')
 
-  const [userAnalytics, setUserAnalytics] = useState<UserAnalytics>({
-    totalQuestions: 0,
-    uniqueUsers: 0,
-    modeCounts: {},
-    categoryCounts: {},
-    recentActivity: [],
-  })
+ const [userAnalytics, setUserAnalytics] = useState<UserAnalytics>({
+  totalQuestions: 0,
+  uniqueUsers: 0,
+
+  modeCounts: {},
+  categoryCounts: {},
+
+  confidenceCounts: {
+    high: 0,
+    medium: 0,
+    low: 0,
+    not_found: 0,
+  },
+
+  trustedAnswerUsage: 0,
+
+  recentActivity: [],
+})
 
   const [title, setTitle] = useState('')
   const [category, setCategory] = useState('')
@@ -467,12 +491,23 @@ async function loadUserAnalytics() {
 
   if (!token) {
     setUserAnalytics({
-      totalQuestions: 0,
-      uniqueUsers: 0,
-      modeCounts: {},
-      categoryCounts: {},
-      recentActivity: [],
-    })
+  totalQuestions: 0,
+  uniqueUsers: 0,
+
+  modeCounts: {},
+  categoryCounts: {},
+
+  confidenceCounts: {
+    high: 0,
+    medium: 0,
+    low: 0,
+    not_found: 0,
+  },
+
+  trustedAnswerUsage: 0,
+
+  recentActivity: [],
+})
     return
   }
 
@@ -493,9 +528,19 @@ async function loadUserAnalytics() {
   setUserAnalytics({
     totalQuestions: result.totalQuestions ?? 0,
     uniqueUsers: result.uniqueUsers ?? 0,
-    modeCounts: result.modeCounts ?? {},
-    categoryCounts: result.categoryCounts ?? {},
-    recentActivity: result.recentActivity ?? [],
+modeCounts: result.modeCounts ?? {},
+categoryCounts: result.categoryCounts ?? {},
+
+confidenceCounts: result.confidenceCounts ?? {
+  high: 0,
+  medium: 0,
+  low: 0,
+  not_found: 0,
+},
+
+trustedAnswerUsage: result.trustedAnswerUsage ?? 0,
+
+recentActivity: result.recentActivity ?? [],
   })
 }
 
@@ -1584,6 +1629,57 @@ className={`min-h-11 rounded-lg px-3 py-2 text-xs font-semibold sm:px-4 sm:text-
                     <div className="rounded-2xl border border-gray-300 p-4"><p className="text-sm text-secondary">Questions asked</p><p className="text-2xl font-bold text-primary">{userAnalytics.totalQuestions}</p></div>
                     <div className="rounded-2xl border border-gray-300 p-4"><p className="text-sm text-secondary">Unique users</p><p className="text-2xl font-bold text-primary">{userAnalytics.uniqueUsers}</p></div>
                   </div>
+                  <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
+  <div className="rounded-2xl border border-green-300 bg-green-50 p-4">
+    <p className="text-xs text-green-700">
+      High confidence
+    </p>
+
+    <p className="text-2xl font-bold text-green-800">
+      {userAnalytics.confidenceCounts.high}
+    </p>
+  </div>
+
+  <div className="rounded-2xl border border-yellow-300 bg-yellow-50 p-4">
+    <p className="text-xs text-yellow-700">
+      Medium confidence
+    </p>
+
+    <p className="text-2xl font-bold text-yellow-800">
+      {userAnalytics.confidenceCounts.medium}
+    </p>
+  </div>
+
+  <div className="rounded-2xl border border-orange-300 bg-orange-50 p-4">
+    <p className="text-xs text-orange-700">
+      Low confidence
+    </p>
+
+    <p className="text-2xl font-bold text-orange-800">
+      {userAnalytics.confidenceCounts.low}
+    </p>
+  </div>
+
+  <div className="rounded-2xl border border-red-300 bg-red-50 p-4">
+    <p className="text-xs text-red-700">
+      Not found
+    </p>
+
+    <p className="text-2xl font-bold text-red-800">
+      {userAnalytics.confidenceCounts.not_found}
+    </p>
+  </div>
+
+  <div className="rounded-2xl border border-blue-300 bg-blue-50 p-4">
+    <p className="text-xs text-blue-700">
+      Trusted answers used
+    </p>
+
+    <p className="text-2xl font-bold text-blue-800">
+      {userAnalytics.trustedAnswerUsage}
+    </p>
+  </div>
+</div>
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="rounded-2xl border border-gray-300 p-4">
                       <h3 className="font-bold text-primary">Answer modes</h3>
