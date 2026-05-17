@@ -1,7 +1,15 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import {
+  getRequestIp,
+  getRequestUserAgent,
+  logAuditEvent,
+} from '../../../lib/audit/logAuditEvent'
 
 export async function POST(request: Request) {
+  const ipAddress = getRequestIp(request)
+  const userAgent = getRequestUserAgent(request)
+
   try {
     const { documentId, isActive } = await request.json()
 
@@ -40,6 +48,20 @@ export async function POST(request: Request) {
       .single()
 
     if (profile?.role !== 'admin' || !profile?.is_active) {
+      await logAuditEvent({
+        supabaseAdmin,
+        actorUserId: user.id,
+        actorEmail: user.email,
+        actorRole: profile?.role ?? null,
+        action: 'document_status_update_denied',
+        targetType: 'document',
+        targetId: documentId,
+        status: 'failure',
+        ipAddress,
+        userAgent,
+        metadata: { isActive },
+      })
+
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
@@ -49,8 +71,39 @@ export async function POST(request: Request) {
       .eq('id', documentId)
 
     if (updateError) {
+      await logAuditEvent({
+        supabaseAdmin,
+        actorUserId: user.id,
+        actorEmail: user.email,
+        actorRole: profile.role,
+        action: 'document_status_update_failed',
+        targetType: 'document',
+        targetId: documentId,
+        status: 'failure',
+        ipAddress,
+        userAgent,
+        metadata: {
+          isActive,
+          error: updateError.message,
+        },
+      })
+
       return NextResponse.json({ error: updateError.message }, { status: 500 })
     }
+
+    await logAuditEvent({
+      supabaseAdmin,
+      actorUserId: user.id,
+      actorEmail: user.email,
+      actorRole: profile.role,
+      action: isActive ? 'document_unarchived' : 'document_archived',
+      targetType: 'document',
+      targetId: documentId,
+      status: 'success',
+      ipAddress,
+      userAgent,
+      metadata: { isActive },
+    })
 
     return NextResponse.json({ success: true })
   } catch (error: any) {
