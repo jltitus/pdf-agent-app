@@ -157,3 +157,13 @@ Documentation updates needed:
 ## Admin Improvements
 - Added centralized release governance workflow
 - Added operational deployment verification process
+
+## Version 1.8.x
+
+### Release Communication Improvements
+- Added first-login “What’s New” experience
+- Added dismissible release update banner
+- Added automatic version-aware update notifications
+- Added persistent dismissal state using browser local storage
+- Added direct navigation to `/whats-new`
+- Improved release communication visibility for users

@@ -353,3 +353,25 @@ Run:
 
 ```bash
 npm run build
+
+## Release Communication Workflow
+
+After production deployment:
+
+1. Update:
+   - `NEXT_PUBLIC_APP_VERSION`
+   - release notes
+   - `/whats-new`
+
+2. Verify:
+   - release banner appears
+   - dismiss behavior works
+   - mobile responsiveness remains intact
+
+3. Smoke test:
+   - `/dashboard`
+   - `/chat`
+   - `/publications`
+   - `/whats-new`
+
+4. Confirm release communication visibility before announcing deployment.

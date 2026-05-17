@@ -39,3 +39,12 @@ The Admin dashboard now displays:
 - last chat
 - question counts
 - mobile-friendly usage metrics
+
+### app/components/WhatsNewBanner.tsx
+Displays version-aware release communication banner after deployments.
+
+Features:
+- dismissible banner
+- automatic version detection
+- local storage persistence
+- links to release notes page

@@ -231,3 +231,26 @@ The `/whats-new` route exposes production-ready release summaries to end users.
 5. Execute smoke tests
 6. Publish release notes
 7. Communicate changes to users
+
+## Release Communication Experience
+
+The application includes a lightweight release communication system designed to surface new functionality to users after deployments.
+
+### Components
+- `app/components/WhatsNewBanner.tsx`
+- `app/whats-new/page.tsx`
+
+### Behavior
+- Displays release update banner after application version changes
+- Uses `NEXT_PUBLIC_APP_VERSION`
+- Stores dismissal state in browser local storage
+- Automatically redisplays after future version changes
+
+### Persistence
+Current implementation uses:
+- `localStorage.mfpDismissedVersion`
+
+Future enhancement options:
+- per-user server-side tracking
+- release acknowledgment analytics
+- forced-read release notices
