@@ -9,6 +9,11 @@ type Source = {
   title: string;
   filename: string;
   pages?: number[];
+  excerpts?: string[];
+  relevanceScore?: number;
+  relevanceReasons?: string[];
+  category?: string | null;
+  version?: string | null;
 };
 
 type EvidenceStrength = {
@@ -46,6 +51,7 @@ savedChat?: boolean
   suggestedFollowUps?: string[]
   sourceSuggestionOpen?: boolean
   sourceSuggestionText?: string
+expandedSources?: number[]
 }
 
 type SearchState = "idle" | "searching" | "reviewing" | "generating";
@@ -79,7 +85,18 @@ function evidenceBadgeClass(label?: EvidenceStrength["label"]) {
     return "border-yellow-300 bg-yellow-50 text-yellow-900";
   return "border-red-300 bg-red-50 text-red-800";
 }
+function toggleExpandedSource(
+  turn: ConversationTurn,
+  sourceIndex: number,
+) {
+  const expanded = turn.expandedSources ?? []
 
+  if (expanded.includes(sourceIndex)) {
+    return expanded.filter((index) => index !== sourceIndex)
+  }
+
+  return [...expanded, sourceIndex]
+}
 function answerNeedsSourceSuggestion(turn: ConversationTurn) {
   const lowerAnswer = turn.answer.toLowerCase();
 
@@ -921,7 +938,7 @@ setMessage('');
                                 turn.evidenceStrength.label,
                               )}`}
                             >
-                              {turn.evidenceStrength.label} evidence
+                              {turn.evidenceStrength.label} confidence
                             </span>
                           )}
                         </div>
@@ -934,8 +951,8 @@ setMessage('');
                       {turn.evidenceStrength && (
                         <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm">
                           <p className="font-bold text-primary">
-                            Evidence: {turn.evidenceStrength.label}
-                          </p>
+  Answer confidence: {turn.evidenceStrength.label}
+</p>
                           <p className="mt-1 text-xs leading-5 text-secondary">
                             {turn.evidenceStrength.description}
                           </p>
@@ -953,49 +970,190 @@ setMessage('');
                         </div>
 
                         {turn.sources && turn.sources.length > 0 ? (
-                          <div className="mt-2 space-y-2">
-                            {turn.sources.map((source, sourceIndex) => (
-                              <div
-                                key={`${source.filename}-${sourceIndex}`}
-                                className="rounded-xl border border-gray-200 bg-white p-3 shadow-sm"
-                              >
-                                <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                                  <div>
-                                    <p className="text-sm font-bold leading-tight text-primary">
-                                      {source.title}
-                                    </p>
-                                    <p className="mt-1 break-words text-[11px] text-muted">
-                                      {source.filename}
-                                    </p>
-                                  </div>
+  <div className="mt-2 space-y-3">
+    {turn.sources.map((source, sourceIndex) => {
+      const expanded =
+        turn.expandedSources?.includes(sourceIndex) ?? false
 
-                                  {sourceIndex === 0 && (
-                                    <span className="w-fit rounded-full border border-green-300 bg-green-50 px-2 py-1 text-xs font-bold text-green-800">
-                                      Primary
-                                    </span>
-                                  )}
-                                </div>
+      return (
+        <div
+          key={`${source.filename}-${sourceIndex}`}
+          className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
+        >
+          <div className="p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="text-sm font-bold leading-tight text-primary">
+                    {source.title}
+                  </p>
 
-                                {source.pages && source.pages.length > 0 && (
-                                  <p className="mt-2 text-xs font-semibold text-secondary">
-                                    Pages: {source.pages.join(", ")}
-                                  </p>
-                                )}
+                  {sourceIndex === 0 && (
+                    <span className="w-fit rounded-full border border-green-300 bg-green-50 px-2 py-1 text-[11px] font-bold text-green-800">
+                      Primary source
+                    </span>
+                  )}
 
-                                <a
-                                  href={`/api/view-source?file=${encodeURIComponent(
-                                    source.filename,
-                                  )}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="mt-3 inline-flex min-h-10 items-center justify-center rounded-xl border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-primary hover:bg-gray-50"
-                                >
-                                  📄 Open source
-                                </a>
-                              </div>
-                            ))}
-                          </div>
-                        ) : (
+                  {source.relevanceScore &&
+                    source.relevanceScore >= 45 && (
+                      <span className="w-fit rounded-full border border-blue-300 bg-blue-50 px-2 py-1 text-[11px] font-bold text-blue-800">
+                        High relevance
+                      </span>
+                    )}
+                </div>
+
+                <p className="mt-1 break-words text-[11px] text-muted">
+                  {source.filename}
+                </p>
+
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {source.category && (
+                    <span className="rounded-full bg-gray-100 px-2 py-1 text-[11px] font-semibold text-secondary">
+                      {source.category}
+                    </span>
+                  )}
+
+                  {source.version && (
+                    <span className="rounded-full bg-gray-100 px-2 py-1 text-[11px] font-semibold text-secondary">
+                      Version {source.version}
+                    </span>
+                  )}
+
+                  {source.pages && source.pages.length > 0 && (
+                    <span className="rounded-full bg-gray-100 px-2 py-1 text-[11px] font-semibold text-secondary">
+                      Pages: {source.pages.join(", ")}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {source.relevanceReasons &&
+              source.relevanceReasons.length > 0 && (
+                <div className="mt-3 rounded-xl border border-blue-100 bg-blue-50 p-3">
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-blue-900">
+                    Why this source matched
+                  </p>
+
+                  <ul className="mt-2 space-y-1 text-xs leading-5 text-blue-950">
+                    {(source.relevanceReasons ?? []).map((reason) => (
+                      <li key={reason}>• {reason}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+            {source.excerpts &&
+              source.excerpts.length > 0 && (
+                <div className="mt-3">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setConversationTurns((prev) =>
+                        prev.map((existingTurn, turnIndex) =>
+                          turnIndex === index
+                            ? {
+                                ...existingTurn,
+                                expandedSources: toggleExpandedSource(
+                                  existingTurn,
+                                  sourceIndex,
+                                ),
+                              }
+                            : existingTurn,
+                        ),
+                      )
+                    }
+                    className="inline-flex min-h-10 items-center justify-center rounded-xl border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-primary hover:bg-gray-50"
+                  >
+                    {expanded
+                      ? "Hide supporting excerpts"
+                      : "Show supporting excerpts"}
+                  </button>
+
+                  {expanded && (
+  <div className="mt-3 space-y-3">
+    <p className="rounded-lg bg-yellow-50 px-3 py-2 text-xs leading-5 text-yellow-900">
+      These excerpts are pulled directly from the indexed publication text and may include document metadata.
+    </p>
+                      {(source.excerpts ?? []).map((excerpt, excerptIndex) => (
+                        <div
+                          key={`${source.filename}-${excerptIndex}`}
+                          className="rounded-xl border border-gray-300 bg-gray-50 p-4 shadow-sm"
+                        >
+                          <p className="text-[11px] font-bold uppercase tracking-wide text-muted">
+                            Source excerpt
+                          </p>
+
+                         <div className="mt-2 rounded-xl border border-gray-200 bg-white p-4">
+  <div className="space-y-2 text-sm">
+    <div>
+      <span className="font-bold text-primary">Title:</span>{" "}
+      <span className="text-secondary">{source.title}</span>
+    </div>
+
+    <div>
+      <span className="font-bold text-primary">File name:</span>{" "}
+      <span className="break-all text-secondary">
+        {source.filename}
+      </span>
+    </div>
+
+    {source.category && (
+      <div>
+        <span className="font-bold text-primary">Category:</span>{" "}
+        <span className="text-secondary">{source.category}</span>
+      </div>
+    )}
+
+    {source.pages && source.pages.length > 0 && (
+      <div>
+        <span className="font-bold text-primary">
+          Page number{source.pages.length > 1 ? "s" : ""}:
+        </span>{" "}
+        <span className="text-secondary">
+          {(source.pages ?? []).join(", ")}
+        </span>
+      </div>
+    )}
+
+    <div className="pt-2">
+      <p className="mb-1 font-bold text-primary">
+        Excerpt:
+      </p>
+
+      <div className="rounded-lg border-l-4 border-gray-300 bg-gray-50 p-3">
+        <p className="line-clamp-6 whitespace-pre-wrap text-sm leading-7 text-primary">
+          {excerpt}
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+
+            <div className="mt-4">
+              <a
+                href={`/api/view-source?file=${encodeURIComponent(
+                  source.filename,
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex min-h-10 items-center justify-center rounded-xl border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-primary hover:bg-gray-50"
+              >
+                📄 Open source
+              </a>
+            </div>
+          </div>
+        </div>
+      )
+    })}
+  </div>
+) : (
                           <div className="mt-2 rounded-xl border border-yellow-200 bg-yellow-50 p-3 text-sm leading-6 text-yellow-900">
                             No source was found for this answer. Try a broader
                             search or suggest a source for admin review.
