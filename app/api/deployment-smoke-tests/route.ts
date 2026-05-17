@@ -102,9 +102,54 @@ export async function POST(request: NextRequest) {
 
   const body = await request.json().catch(() => null)
 
-  if (!body?.deploymentId || !body?.routePath) {
+  if (!body?.deploymentId) {
     return NextResponse.json(
-      { error: 'Deployment ID and route path are required.' },
+      { error: 'Deployment ID is required.' },
+      { status: 400 }
+    )
+  }
+
+  const routes = Array.isArray(body.routes) ? body.routes : []
+  const isBulkCreate = routes.length > 0
+
+  if (isBulkCreate) {
+    const cleanRoutes = routes
+      .filter((route: unknown) => typeof route === 'string')
+      .map((route: string) => route.trim())
+      .filter(Boolean)
+
+    if (cleanRoutes.length === 0) {
+      return NextResponse.json(
+        { error: 'At least one valid route is required.' },
+        { status: 400 }
+      )
+    }
+
+    const inserts = cleanRoutes.map((routePath: string) => ({
+      deployment_id: body.deploymentId,
+      route_path: routePath,
+      test_status: 'pending',
+      notes: null,
+    }))
+
+    const { data, error: insertError } = await supabase
+      .from('deployment_smoke_tests')
+      .insert(inserts)
+      .select('*')
+
+    if (insertError) {
+      return NextResponse.json(
+        { error: insertError.message },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json({ smokeTests: data ?? [] })
+  }
+
+  if (!body?.routePath) {
+    return NextResponse.json(
+      { error: 'Route path is required.' },
       { status: 400 }
     )
   }
