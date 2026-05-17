@@ -483,3 +483,36 @@ The UI now safely handles older stored chat history records that may not contain
 - page arrays
 
 Fallback rendering guards prevent runtime rendering failures for older stored conversations.
+
+# Phase 10A Step 3 — AI Quality Analytics Layer
+
+## Admin Retrieval Quality Monitoring
+
+The admin dashboard now includes AI answer quality aggregation metrics sourced from chat history retrieval metadata.
+
+### Confidence Aggregation
+
+Analytics aggregate retrieval evidence strength into four categories:
+- High confidence
+- Medium confidence
+- Low confidence
+- Not found
+
+These metrics are derived from stored evidence metadata associated with AI chat responses.
+
+### Evidence Metadata Compatibility
+
+The analytics workflow now supports:
+- object-based evidence metadata
+- string-based evidence metadata
+- older historical records without structured evidence objects
+
+Defensive parsing guards prevent runtime failures from inconsistent historical data structures.
+
+### Operational Purpose
+
+The AI quality analytics layer is intended to help administrators:
+- identify retrieval weaknesses
+- identify unsupported-answer trends
+- prioritize trusted-answer creation opportunities
+- monitor grounding quality over time

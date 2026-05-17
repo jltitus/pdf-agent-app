@@ -564,3 +564,32 @@ Verify on iPhone and Android widths:
 - expanded excerpts remain readable
 - buttons remain tappable
 - fixed chat input remains usable while excerpts are expanded
+
+## Phase 10A Step 3 Admin Analytics QA
+
+After analytics or retrieval-monitoring changes, verify:
+
+### Admin Overview
+- overview page loads successfully
+- confidence cards display correctly
+- analytics values populate correctly
+- no API 500 errors occur
+
+### Retrieval Quality Metrics
+Verify:
+- high confidence counts increment
+- medium confidence counts increment
+- low confidence counts increment
+- not found counts increment
+
+### Backward Compatibility
+Verify:
+- older chat history records still load
+- mixed evidence metadata formats do not break analytics
+- analytics continue functioning with missing metadata
+
+### Mobile Validation
+Verify on iPhone and Android widths:
+- analytics cards stack correctly
+- no horizontal overflow occurs
+- admin dashboard remains navigable

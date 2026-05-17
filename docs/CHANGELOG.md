@@ -302,3 +302,24 @@ Documentation updates needed:
 ### Reliability
 - Preserved existing retrieval architecture and OpenAI Responses API behavior.
 - Preserved existing trusted-answer workflows and feedback workflows.
+
+## Phase 10A Step 3 — Admin AI Quality Analytics
+
+### Added
+- Added AI answer confidence analytics to the admin dashboard.
+- Added overview metrics for:
+  - high confidence answers
+  - medium confidence answers
+  - low confidence answers
+  - not found responses
+- Added AI quality visibility improvements for retrieval monitoring.
+- Added confidence aggregation from evidence strength metadata.
+
+### Improved
+- Improved admin visibility into retrieval quality trends.
+- Improved operational monitoring for unsupported-answer frequency.
+- Improved admin dashboard mobile responsiveness for analytics cards.
+
+### Reliability
+- Added backward-compatible handling for older chat history records with inconsistent evidence metadata structures.
+- Added defensive analytics parsing for string and object-based evidence formats.
