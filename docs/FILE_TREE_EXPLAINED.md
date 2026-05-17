@@ -110,3 +110,18 @@ Features:
 - mobile hamburger menu
 - active route highlighting
 - auth-aware navigation
+
+## Phase 10A Chat Retrieval Improvements
+
+### `app/api/chat/route.ts`
+Enhanced AI retrieval workflow for:
+- semantic source ranking
+- weighted evidence scoring
+- improved trusted-answer matching
+- retrieval deduplication
+- compacted conversation memory
+- safer unsupported-answer detection
+- improved OpenAI token efficiency
+
+### `app/chat/page.tsx`
+Updated mobile chat input behavior to prevent horizontal overflow and mobile Send button drift while typing.

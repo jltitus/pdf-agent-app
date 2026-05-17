@@ -494,3 +494,43 @@ Private profiles should never appear in search results.
 - Publication cards
 - Profile cards
 - Community search
+
+## Phase 10A Chat Retrieval QA
+
+After retrieval or evidence-scoring changes, verify:
+
+### Chat Retrieval
+- Answers remain document-grounded
+- Sources remain relevant
+- Evidence labels display correctly
+- Unsupported questions return safe fallback responses
+
+### Trusted Answers
+Verify:
+- trusted answers still return immediately
+- trusted-answer confidence messaging appears
+- follow-up suggestions still generate
+
+### Mobile Chat UX
+Verify on iPhone and Android widths:
+- mobile Send button remains visible while typing
+- no horizontal page drift occurs
+- no forced pinch/zoom occurs
+- fixed bottom chat bar remains usable
+
+### Recommended Production Tests
+
+General:
+- standard publication question
+
+Recipe:
+- recipe mode question
+
+Safety:
+- food safety question
+
+Unsupported:
+- intentionally unsupported question
+
+Follow-up:
+- conversational follow-up question

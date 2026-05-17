@@ -394,3 +394,50 @@ Desktop:
 Mobile:
 - Hamburger menu navigation
 - Responsive card-based layout preserved
+
+# Phase 10A Retrieval & Evidence Architecture
+
+## Retrieval Ranking Improvements
+
+The chat retrieval workflow now includes semantic source ranking and weighted evidence scoring.
+
+### Ranking Signals
+Sources are ranked using:
+- matching page counts
+- supporting excerpt counts
+- semantic similarity to:
+  - publication title
+  - filename
+  - retrieved excerpts
+- category alignment
+
+### Evidence Scoring
+Evidence strength now considers:
+- supporting page density
+- supporting excerpt density
+- number of corroborating publications
+- overall source relevance score
+
+Evidence levels:
+- Strong
+- Moderate
+- Limited
+- Not found
+
+### Conversation Context Optimization
+
+Follow-up conversation context is now compacted before being sent to OpenAI to reduce token usage while preserving conversational continuity.
+
+Improvements include:
+- reduced retained turn count
+- compacted answer summaries
+- reduced prompt payload size
+
+### Retrieval Depth
+
+OpenAI Responses API file search retrieval depth increased from:
+- 5 results
+to:
+- 7 results
+
+to improve grounding and citation quality.

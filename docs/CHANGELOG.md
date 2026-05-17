@@ -252,3 +252,28 @@ Documentation updates needed:
 - Public/private community visibility enforcement
 - Saved content scoped to authenticated users
 - Favorites and saved chats protected by authenticated API routes
+
+## Phase 10A — AI Retrieval Ranking & Evidence Improvements
+
+### Improved
+- Improved AI retrieval ranking and source prioritization.
+- Added semantic weighting for publication relevance.
+- Improved evidence scoring using:
+  - matching pages
+  - excerpt density
+  - publication relevance
+  - category alignment
+- Improved trusted-answer semantic matching reliability.
+- Reduced noisy or weak source retrieval.
+- Improved unsupported-answer detection and fallback handling.
+- Reduced conversation token usage by compacting follow-up context.
+- Increased OpenAI file search retrieval depth from 5 to 7 results for better grounding quality.
+
+### Mobile UX
+- Fixed mobile chat input overflow causing Send button drift on iPhone/mobile keyboard open.
+- Improved fixed mobile bottom chat bar responsiveness.
+
+### Reliability
+- Preserved strict document-grounded answering behavior.
+- Preserved conservative safety-answer handling.
+- Preserved existing chat history, saved answers, trusted answers, and feedback workflows.
