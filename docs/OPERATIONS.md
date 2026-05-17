@@ -270,3 +270,76 @@ Before deployment, run:
 cd ~/Documents/pdf-agent-project/pdf-agent-app
 nvm use 24
 npm run build
+
+# MFP Publication Agent Operational Playbook
+
+## 1. Architecture Overview
+
+The MFP Publication Agent is a Next.js 16 App Router application using TypeScript, Tailwind CSS, Supabase, OpenAI, Resend, and Vercel. Core areas include authentication, chat, publications, admin, and PDF processing. The current architecture documentation identifies these as the major app areas. :contentReference[oaicite:0]{index=0}
+
+Primary user workflows:
+- Users sign in through Supabase Auth.
+- Users ask publication questions in `/chat`.
+- The app retrieves relevant publication content and returns cited answers.
+- Admins manage PDFs, access requests, feedback, issues, analytics, trusted answers, and enhancements.
+- Uploaded PDFs are processed into searchable page-level records.
+
+## 2. Folder Structure Explanation
+
+The app uses the Next.js App Router structure. The current file tree includes `/app`, `/app/api`, `/app/admin`, `/app/chat`, `/app/publications`, `/docs`, `/lib/supabase`, and `/public`. :contentReference[oaicite:1]{index=1}
+
+Key folders:
+- `/app` — pages, layouts, and route groups
+- `/app/api` — server-side API routes
+- `/app/admin` — admin dashboard and admin review pages
+- `/app/chat` — main AI chat interface
+- `/app/publications` — active publication library
+- `/lib/supabase` — Supabase browser/server clients
+- `/public` — icons, logos, screenshots, and static assets
+- `/docs` — architecture, database, routes, changelog, and operations documentation
+
+## 3. Supabase Setup
+
+Supabase supports:
+- Authentication
+- User profiles
+- Access requests
+- Documents
+- Document pages
+- Chat history
+- Feedback
+- Issue reports
+- Trusted answers
+- Admin notes
+- Enhancement requests
+- Storage bucket for PDFs
+
+Important tables currently documented include `profiles`, `access_requests`, `admin_notes`, `enhancement_requests`, and `issue_reports`. The `profiles` table also includes activity tracking fields such as `last_activity_at`, `last_login_at`, `last_chat_at`, and `total_questions_asked`. :contentReference[oaicite:2]{index=2}
+
+## 4. Resend Setup
+
+Resend is used for branded app emails, including:
+- User invitation emails
+- Resent setup links
+- Access approval messages
+- Issue notifications
+
+Operational checks:
+- Confirm Resend API key is present in Vercel and `.env.local`.
+- Confirm sender domain is verified.
+- Confirm invitation emails are delivered after access approval.
+- Confirm password setup/reset links route users to `/update-password`.
+
+## 5. Vercel Deployment
+
+Deployment is handled through Vercel.
+
+Standard deployment process:
+```bash
+cd ~/Documents/pdf-agent-project/pdf-agent-app
+nvm use 24
+npm run build
+git status
+git add .
+git commit -m "Update operational playbook"
+git push
