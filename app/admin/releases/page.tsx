@@ -31,6 +31,38 @@ type DeploymentHistory = {
   } | null
 }
 
+type EnhancementRequest = {
+  id: string
+  title: string
+  description: string | null
+  status: string
+  priority: string | null
+  category: string | null
+  release_status: string | null
+  created_at: string
+}
+
+type IssueReport = {
+  id: string
+  issue_type: string
+  description: string
+  related_question: string | null
+  status: string
+  user_email: string | null
+  created_at: string
+}
+
+type ReleaseItem = {
+  id: string
+  release_id: string
+  enhancement_request_id: string | null
+  issue_report_id: string | null
+  item_type: 'enhancement' | 'issue'
+  created_at: string
+  enhancement_requests?: EnhancementRequest | null
+  issue_reports?: IssueReport | null
+}
+
 const statusOptions: ReleaseStatus[] = [
   'planned',
   'development',
@@ -48,6 +80,9 @@ export default function AdminReleasesPage() {
 
   const [releases, setReleases] = useState<Release[]>([])
   const [deployments, setDeployments] = useState<DeploymentHistory[]>([])
+  const [releaseItems, setReleaseItems] = useState<ReleaseItem[]>([])
+  const [enhancements, setEnhancements] = useState<EnhancementRequest[]>([])
+  const [issues, setIssues] = useState<IssueReport[]>([])
 
   const [version, setVersion] = useState('')
   const [title, setTitle] = useState('')
@@ -57,6 +92,10 @@ export default function AdminReleasesPage() {
 
   const [editingId, setEditingId] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+
+  const [selectedReleaseId, setSelectedReleaseId] = useState('')
+  const [addingItemId, setAddingItemId] = useState<string | null>(null)
+  const [removingItemId, setRemovingItemId] = useState<string | null>(null)
 
   const [deploymentReleaseId, setDeploymentReleaseId] = useState('')
   const [deploymentEnvironment, setDeploymentEnvironment] = useState('production')
@@ -109,18 +148,21 @@ export default function AdminReleasesPage() {
   }
 
   async function loadData() {
-    await Promise.all([loadReleases(), loadDeployments()])
+    await Promise.all([
+      loadReleases(),
+      loadDeployments(),
+      loadReleaseItems(),
+      loadEnhancements(),
+      loadIssues(),
+    ])
   }
 
   async function loadReleases() {
     const token = await getToken()
-
     if (!token) return
 
     const response = await fetch('/api/releases', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { Authorization: `Bearer ${token}` },
     })
 
     const result = await response.json().catch(() => ({}))
@@ -135,13 +177,10 @@ export default function AdminReleasesPage() {
 
   async function loadDeployments() {
     const token = await getToken()
-
     if (!token) return
 
     const response = await fetch('/api/deployment-history', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+      headers: { Authorization: `Bearer ${token}` },
     })
 
     const result = await response.json().catch(() => ({}))
@@ -152,6 +191,53 @@ export default function AdminReleasesPage() {
     }
 
     setDeployments(result.deployments ?? [])
+  }
+
+  async function loadReleaseItems() {
+    const token = await getToken()
+    if (!token) return
+
+    const response = await fetch('/api/release-items', {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+
+    const result = await response.json().catch(() => ({}))
+
+    if (!response.ok) {
+      setMessage(result.error ?? 'Could not load release items.')
+      return
+    }
+
+    setReleaseItems(result.releaseItems ?? [])
+  }
+
+  async function loadEnhancements() {
+    const { data, error } = await supabase
+      .from('enhancement_requests')
+      .select('id, title, description, status, priority, category, release_status, created_at')
+      .order('created_at', { ascending: false })
+
+    if (error) {
+      setEnhancements([])
+      return
+    }
+
+    setEnhancements((data ?? []) as EnhancementRequest[])
+  }
+
+  async function loadIssues() {
+    const { data, error } = await supabase
+      .from('issue_reports')
+      .select('id, issue_type, description, related_question, status, user_email, created_at')
+      .order('created_at', { ascending: false })
+      .limit(100)
+
+    if (error) {
+      setIssues([])
+      return
+    }
+
+    setIssues((data ?? []) as IssueReport[])
   }
 
   function resetReleaseForm() {
@@ -225,6 +311,96 @@ export default function AdminReleasesPage() {
     }
   }
 
+  async function addItemToRelease(
+    releaseId: string,
+    itemType: 'enhancement' | 'issue',
+    itemId: string
+  ) {
+    setAddingItemId(itemId)
+    setMessage('Adding item to release...')
+
+    try {
+      const token = await getToken()
+
+      if (!token) {
+        setMessage('You must be signed in.')
+        setAddingItemId(null)
+        return
+      }
+
+      const response = await fetch('/api/release-items', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          releaseId,
+          itemType,
+          enhancementRequestId: itemType === 'enhancement' ? itemId : null,
+          issueReportId: itemType === 'issue' ? itemId : null,
+        }),
+      })
+
+      const result = await response.json().catch(() => ({}))
+
+      if (!response.ok) {
+        setMessage(result.error ?? 'Could not add item to release.')
+        setAddingItemId(null)
+        return
+      }
+
+      setMessage('Item added to release.')
+      setAddingItemId(null)
+      await loadData()
+    } catch (error: unknown) {
+      setMessage(error instanceof Error ? error.message : 'Could not add item.')
+      setAddingItemId(null)
+    }
+  }
+
+  async function removeItemFromRelease(releaseItemId: string) {
+    const confirmed = window.confirm('Remove this item from the release?')
+    if (!confirmed) return
+
+    setRemovingItemId(releaseItemId)
+    setMessage('Removing item from release...')
+
+    try {
+      const token = await getToken()
+
+      if (!token) {
+        setMessage('You must be signed in.')
+        setRemovingItemId(null)
+        return
+      }
+
+      const response = await fetch('/api/release-items', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ releaseItemId }),
+      })
+
+      const result = await response.json().catch(() => ({}))
+
+      if (!response.ok) {
+        setMessage(result.error ?? 'Could not remove release item.')
+        setRemovingItemId(null)
+        return
+      }
+
+      setMessage('Item removed from release.')
+      setRemovingItemId(null)
+      await loadData()
+    } catch (error: unknown) {
+      setMessage(error instanceof Error ? error.message : 'Could not remove item.')
+      setRemovingItemId(null)
+    }
+  }
+
   async function logDeployment(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setLoggingDeployment(true)
@@ -291,8 +467,32 @@ export default function AdminReleasesPage() {
   }
 
   const productionRelease = releases.find((release) => release.status === 'production')
-  const plannedReleases = releases.filter((release) => release.status !== 'archived')
+  const activeReleases = releases.filter((release) => release.status !== 'archived')
   const qaReleases = releases.filter((release) => release.status === 'qa')
+
+  const selectedRelease = releases.find((release) => release.id === selectedReleaseId)
+
+  const selectedReleaseItems = selectedReleaseId
+    ? releaseItems.filter((item) => item.release_id === selectedReleaseId)
+    : []
+
+  const attachedEnhancementIds = new Set(
+    releaseItems.map((item) => item.enhancement_request_id).filter(Boolean)
+  )
+
+  const attachedIssueIds = new Set(
+    releaseItems.map((item) => item.issue_report_id).filter(Boolean)
+  )
+
+  const availableEnhancements = enhancements.filter(
+    (item) => !attachedEnhancementIds.has(item.id)
+  )
+
+  const availableIssues = issues.filter(
+    (item) =>
+      !attachedIssueIds.has(item.id) &&
+      ['new', 'reviewed', 'enhancement_candidate', 'open'].includes(item.status)
+  )
 
   if (loading) {
     return (
@@ -331,7 +531,7 @@ export default function AdminReleasesPage() {
                 Admin: Releases
               </h1>
               <p className="mt-1 text-secondary">
-                Plan app versions, track release status, and record production deployments.
+                Plan app versions, attach enhancements and issue fixes, and record production deployments.
               </p>
             </div>
 
@@ -368,7 +568,7 @@ export default function AdminReleasesPage() {
                 Active releases
               </p>
               <p className="mt-1 text-xl font-bold text-primary">
-                {plannedReleases.length}
+                {activeReleases.length}
               </p>
             </div>
 
@@ -539,6 +739,215 @@ export default function AdminReleasesPage() {
                     </div>
                   </article>
                 ))}
+              </div>
+            )}
+          </section>
+
+          <section className={`${cardClass} space-y-4`}>
+            <div>
+              <h2 className="text-xl font-bold text-primary">Release planning</h2>
+              <p className="text-sm text-secondary">
+                Attach enhancements and issue fixes to a planned release.
+              </p>
+            </div>
+
+            <div>
+              <label className={labelClass}>Choose release to plan</label>
+              <select
+                value={selectedReleaseId}
+                onChange={(e) => setSelectedReleaseId(e.target.value)}
+                className={inputClass}
+              >
+                <option value="">Select release</option>
+                {releases
+                  .filter((release) => release.status !== 'archived')
+                  .map((release) => (
+                    <option key={release.id} value={release.id}>
+                      v{release.version} — {release.title || release.status}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
+            {!selectedRelease ? (
+              <p className="rounded-xl border border-gray-300 bg-gray-50 p-4 text-sm text-secondary">
+                Select a release to view and assign work items.
+              </p>
+            ) : (
+              <div className="space-y-5">
+                <div className="rounded-xl border border-blue-200 bg-blue-50 p-4">
+                  <h3 className="font-bold text-primary">
+                    Planning v{selectedRelease.version}
+                  </h3>
+                  <p className="text-sm text-secondary">
+                    {selectedRelease.title || 'Untitled release'}
+                  </p>
+                  <p className="mt-1 text-xs text-muted">
+                    {selectedReleaseItems.length} item(s) currently included
+                  </p>
+                </div>
+
+                <section className="rounded-2xl border border-gray-300 bg-white p-4">
+                  <h3 className="font-bold text-primary">Included in this release</h3>
+
+                  {selectedReleaseItems.length === 0 ? (
+                    <p className="mt-3 text-sm text-secondary">
+                      No enhancements or issues have been added yet.
+                    </p>
+                  ) : (
+                    <div className="mt-3 grid gap-3">
+                      {selectedReleaseItems.map((item) => {
+                        const enhancement = item.enhancement_requests
+                        const issue = item.issue_reports
+
+                        return (
+                          <article
+                            key={item.id}
+                            className="rounded-xl border border-gray-300 bg-gray-50 p-3"
+                          >
+                            <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                              <div>
+                                <span className="rounded-full bg-gray-200 px-2 py-1 text-xs font-semibold text-secondary">
+                                  {item.item_type}
+                                </span>
+
+                                {enhancement && (
+                                  <>
+                                    <h4 className="mt-2 font-semibold text-primary">
+                                      {enhancement.title}
+                                    </h4>
+                                    <p className="mt-1 text-sm text-secondary">
+                                      {enhancement.description || 'No description'}
+                                    </p>
+                                    <p className="mt-2 text-xs text-muted">
+                                      Priority: {enhancement.priority || 'medium'}
+                                      {enhancement.category ? ` • ${enhancement.category}` : ''}
+                                      {enhancement.release_status
+                                        ? ` • ${enhancement.release_status}`
+                                        : ''}
+                                    </p>
+                                  </>
+                                )}
+
+                                {issue && (
+                                  <>
+                                    <h4 className="mt-2 font-semibold text-primary">
+                                      {issue.issue_type}
+                                    </h4>
+                                    <p className="mt-1 text-sm text-secondary">
+                                      {issue.description}
+                                    </p>
+                                    {issue.related_question && (
+                                      <p className="mt-2 text-xs text-muted">
+                                        Related question: {issue.related_question}
+                                      </p>
+                                    )}
+                                  </>
+                                )}
+                              </div>
+
+                              <button
+                                type="button"
+                                onClick={() => removeItemFromRelease(item.id)}
+                                disabled={removingItemId === item.id}
+                                className="rounded-lg border border-red-300 bg-white px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
+                              >
+                                {removingItemId === item.id ? 'Removing...' : 'Remove'}
+                              </button>
+                            </div>
+                          </article>
+                        )
+                      })}
+                    </div>
+                  )}
+                </section>
+
+                <section className="grid gap-4 lg:grid-cols-2">
+                  <div className="rounded-2xl border border-gray-300 bg-white p-4">
+                    <h3 className="font-bold text-primary">Available enhancements</h3>
+                    <p className="text-sm text-secondary">
+                      Add approved or upcoming enhancements to this release.
+                    </p>
+
+                    {availableEnhancements.length === 0 ? (
+                      <p className="mt-3 rounded-xl border border-gray-300 bg-gray-50 p-3 text-sm text-secondary">
+                        No available enhancements.
+                      </p>
+                    ) : (
+                      <div className="mt-3 max-h-[460px] space-y-3 overflow-y-auto pr-1">
+                        {availableEnhancements.map((item) => (
+                          <article
+                            key={item.id}
+                            className="rounded-xl border border-gray-300 bg-gray-50 p-3"
+                          >
+                            <h4 className="font-semibold text-primary">{item.title}</h4>
+                            <p className="mt-1 line-clamp-3 text-sm text-secondary">
+                              {item.description || 'No description'}
+                            </p>
+                            <p className="mt-2 text-xs text-muted">
+                              Priority: {item.priority || 'medium'}
+                              {item.category ? ` • ${item.category}` : ''}
+                              {item.status ? ` • ${item.status}` : ''}
+                            </p>
+
+                            <button
+                              type="button"
+                              onClick={() =>
+                                addItemToRelease(selectedRelease.id, 'enhancement', item.id)
+                              }
+                              disabled={addingItemId === item.id}
+                              className="mt-3 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-gray-100 disabled:opacity-60"
+                            >
+                              {addingItemId === item.id ? 'Adding...' : 'Add to release'}
+                            </button>
+                          </article>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="rounded-2xl border border-gray-300 bg-white p-4">
+                    <h3 className="font-bold text-primary">Available issues</h3>
+                    <p className="text-sm text-secondary">
+                      Add issue fixes or bug reports to this release.
+                    </p>
+
+                    {availableIssues.length === 0 ? (
+                      <p className="mt-3 rounded-xl border border-gray-300 bg-gray-50 p-3 text-sm text-secondary">
+                        No available issues.
+                      </p>
+                    ) : (
+                      <div className="mt-3 max-h-[460px] space-y-3 overflow-y-auto pr-1">
+                        {availableIssues.map((item) => (
+                          <article
+                            key={item.id}
+                            className="rounded-xl border border-gray-300 bg-gray-50 p-3"
+                          >
+                            <h4 className="font-semibold text-primary">{item.issue_type}</h4>
+                            <p className="mt-1 line-clamp-3 text-sm text-secondary">
+                              {item.description}
+                            </p>
+                            <p className="mt-2 text-xs text-muted">
+                              Status: {item.status}
+                              {item.user_email ? ` • ${item.user_email}` : ''}
+                            </p>
+
+                            <button
+                              type="button"
+                              onClick={() =>
+                                addItemToRelease(selectedRelease.id, 'issue', item.id)
+                              }
+                              disabled={addingItemId === item.id}
+                              className="mt-3 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-gray-100 disabled:opacity-60"
+                            >
+                              {addingItemId === item.id ? 'Adding...' : 'Add to release'}
+                            </button>
+                          </article>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </section>
               </div>
             )}
           </section>
