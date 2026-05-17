@@ -308,3 +308,30 @@ Provides centralized operational visibility for:
 - operational quality
 - backlog monitoring
 - admin governance
+
+## Public Roadmap Architecture
+
+The application includes a user-facing roadmap system providing transparency into planned and released features.
+
+### Public Route
+- `/roadmap`
+
+### Public API
+- `/api/public-roadmap`
+
+### Visibility Model
+Enhancements are only displayed publicly when:
+- `enhancement_requests.is_public = true`
+
+### Roadmap Sections
+- Planned
+- In Progress
+- Released
+
+### Purpose
+Provides:
+- feature transparency
+- user communication
+- release visibility
+- roadmap governance
+- operational trust

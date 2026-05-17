@@ -410,3 +410,34 @@ Administrators can monitor operational health from:
 
 ```txt
 /admin/analytics
+\\## Public Roadmap Workflow
+
+### Publishing Features to Roadmap
+
+1. Open:
+   - `/admin/enhancements`
+
+2. Select enhancement
+
+3. Toggle:
+   - Public roadmap visibility
+
+4. Assign lifecycle status:
+   - planned
+   - in_progress
+   - resolved
+
+5. Verify feature appears on:
+   - `/roadmap`
+
+### Recommended Governance
+Only expose:
+- user-facing features
+- approved roadmap items
+- validated enhancements
+
+Do not expose:
+- security issues
+- internal-only tooling
+- sensitive operational changes
+- unresolved vulnerability details

@@ -152,3 +152,19 @@ Tracks post-deployment verification and smoke testing.
 - pass
 - fail
 - blocked
+
+## enhancement_requests
+
+### New fields
+
+| Field | Type | Purpose |
+|---|---|---|
+| `is_public` | boolean | Controls whether enhancement appears on public roadmap |
+
+### Public Roadmap Rules
+Only enhancements where:
+- `is_public = true`
+
+are exposed through:
+- `/roadmap`
+- `/api/public-roadmap`

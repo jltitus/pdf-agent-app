@@ -200,3 +200,21 @@ Documentation updates needed:
 - Added issue backlog visibility
 - Added deployment readiness indicators
 - Added operational status summaries
+
+## Version 1.8.x
+
+### Public Product Roadmap
+- Added public `/roadmap` page
+- Added roadmap visibility controls for enhancements
+- Added admin public/internal enhancement toggle
+- Added roadmap navigation link
+- Added user-visible feature planning transparency
+- Added roadmap grouping:
+  - Planned
+  - In Progress
+  - Released
+
+### Enhancement Governance
+- Added `is_public` enhancement visibility control
+- Improved enhancement lifecycle transparency
+- Improved communication of upcoming features
