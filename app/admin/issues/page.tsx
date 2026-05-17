@@ -16,6 +16,15 @@ type IssueReport = {
   created_at: string
 }
 
+type AdminNote = {
+  id: string
+  entity_type: string
+  entity_id: string
+  note_text: string
+  created_at: string
+  admin_user_id?: string | null
+}
+
 const inputClass =
   'w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-primary'
 const secondaryButton =
@@ -56,6 +65,9 @@ export default function AdminIssuesReviewPage() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'new' | 'reviewed' | 'resolved' | 'enhancement_candidate'>('all')
   const [updatingIssueId, setUpdatingIssueId] = useState<string | null>(null)
+  const [notesByIssueId, setNotesByIssueId] = useState<Record<string, AdminNote[]>>({})
+  const [noteDrafts, setNoteDrafts] = useState<Record<string, string>>({})
+  const [savingNoteId, setSavingNoteId] = useState<string | null>(null)
 
   useEffect(() => {
     async function init() {
@@ -84,6 +96,11 @@ export default function AdminIssuesReviewPage() {
     init()
   }, [supabase])
 
+  async function getToken() {
+    const { data } = await supabase.auth.getSession()
+    return data.session?.access_token
+  }
+
   async function loadIssueReports() {
     setMessage('')
 
@@ -99,7 +116,84 @@ export default function AdminIssuesReviewPage() {
       return
     }
 
-    setIssueReports((data ?? []) as IssueReport[])
+    const rows = (data ?? []) as IssueReport[]
+    setIssueReports(rows)
+    await loadAdminNotes(rows.map((item) => item.id))
+  }
+
+  async function loadAdminNotes(issueIds: string[]) {
+    if (issueIds.length === 0) {
+      setNotesByIssueId({})
+      return
+    }
+
+    const token = await getToken()
+    if (!token) return
+
+    const response = await fetch(`/api/admin-notes?entityType=issue_report&entityIds=${encodeURIComponent(issueIds.join(','))}`, {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${token}` },
+    })
+
+    const result = await response.json().catch(() => ({}))
+
+    if (!response.ok) {
+      setMessage(`Could not load admin notes: ${result.error ?? 'Unknown notes error.'}`)
+      return
+    }
+
+    const grouped = (result.notes ?? []).reduce((acc: Record<string, AdminNote[]>, note: AdminNote) => {
+      acc[note.entity_id] = acc[note.entity_id] ?? []
+      acc[note.entity_id].push(note)
+      return acc
+    }, {})
+
+    setNotesByIssueId(grouped)
+  }
+
+  async function saveAdminNote(issueId: string) {
+    const noteText = (noteDrafts[issueId] ?? '').trim()
+
+    if (!noteText) {
+      setMessage('Enter a note before saving.')
+      return
+    }
+
+    setSavingNoteId(issueId)
+    setMessage('Saving admin note...')
+
+    const token = await getToken()
+    if (!token) {
+      setMessage('You must be signed in.')
+      setSavingNoteId(null)
+      return
+    }
+
+    const response = await fetch('/api/admin-notes', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        entityType: 'issue_report',
+        entityId: issueId,
+        noteText,
+      }),
+    })
+
+    const result = await response.json().catch(() => ({}))
+
+    if (!response.ok) {
+      setMessage(`Could not save note: ${result.error ?? 'Unknown notes error.'}`)
+      setSavingNoteId(null)
+      return
+    }
+
+    setNoteDrafts((prev) => ({ ...prev, [issueId]: '' }))
+    setMessage('Admin note saved.')
+    setSavingNoteId(null)
+    await loadAdminNotes(issueReports.map((item) => item.id))
   }
 
   async function updateIssueStatus(item: IssueReport, status: Exclude<IssueStatus, 'open'>) {
@@ -305,6 +399,41 @@ export default function AdminIssuesReviewPage() {
                         <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-primary">
                           {item.description}
                         </p>
+                      </section>
+
+                      <section className="mt-3 rounded-xl border border-blue-100 bg-blue-50 p-3">
+                        <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-blue-800">Admin notes</p>
+                          <span className="text-xs text-blue-800">{notesByIssueId[item.id]?.length ?? 0} note{(notesByIssueId[item.id]?.length ?? 0) === 1 ? '' : 's'}</span>
+                        </div>
+
+                        {(notesByIssueId[item.id]?.length ?? 0) > 0 && (
+                          <div className="mt-3 space-y-2">
+                            {notesByIssueId[item.id].map((note) => (
+                              <div key={note.id} className="rounded-lg border border-blue-100 bg-white p-3">
+                                <p className="whitespace-pre-wrap text-sm text-primary">{note.note_text}</p>
+                                <p className="mt-1 text-xs text-muted">{formatDate(note.created_at)}</p>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        <div className="mt-3 grid gap-2">
+                          <textarea
+                            value={noteDrafts[item.id] ?? ''}
+                            onChange={(e) => setNoteDrafts((prev) => ({ ...prev, [item.id]: e.target.value }))}
+                            placeholder="Add internal notes, follow-up context, or reviewer decisions..."
+                            className="min-h-[88px] w-full rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm text-primary"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => saveAdminNote(item.id)}
+                            disabled={savingNoteId === item.id}
+                            className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-blue-700 px-3 py-2 text-sm font-semibold !text-white hover:bg-blue-800 disabled:bg-blue-300 sm:w-fit"
+                          >
+                            {savingNoteId === item.id ? 'Saving note...' : 'Save note'}
+                          </button>
+                        </div>
                       </section>
                     </div>
 
