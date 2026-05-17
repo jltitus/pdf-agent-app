@@ -564,3 +564,53 @@ The conversational layer improves retrieval continuity while preserving:
 - category filtering
 - evidence ranking
 - citation workflows
+
+# Phase 10A Step 5 — Semantic Topic Weighting Layer
+
+## Preservation Topic Detection
+
+The retrieval workflow now detects preservation-specific semantic topics from:
+- user questions
+- publication titles
+- filenames
+- excerpts
+- categories
+
+### Supported Topic Clusters
+Current semantic topic clusters include:
+- jam/jelly/preserves
+- freezing
+- drying/dehydration
+- water bath canning
+- pressure canning
+- pickling
+- salsa/tomatoes
+- fermentation
+- storage/shelf life
+- food safety
+
+## Topic-Aware Retrieval Weighting
+
+Source ranking now incorporates semantic topic overlap between:
+- user question
+- retrieved source metadata
+- retrieved excerpts
+
+Topic overlap adds weighted ranking boosts during source scoring.
+
+### Retrieval Goals
+The topic-weighting layer is intended to:
+- improve retrieval precision
+- reduce weakly related matches
+- improve citation relevance
+- improve follow-up continuity
+- reduce retrieval drift
+
+## Topic-Aware Trusted Answer Matching
+
+Trusted-answer similarity scoring now includes:
+- semantic topic overlap
+- preservation-topic continuity
+- semantic similarity boosting
+
+This improves trusted-answer recall while reducing unrelated trusted-answer matches.

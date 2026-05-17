@@ -632,3 +632,37 @@ Verify:
 - response speed remains acceptable
 - token usage does not significantly increase
 - no OpenAI API timeout regressions occur
+
+## Phase 10A Step 5 Semantic Retrieval QA
+
+After retrieval-ranking or semantic-topic changes, verify:
+
+### Topic-Aligned Retrieval
+Verify:
+- jam questions retrieve jam-related sources
+- drying questions retrieve drying-related sources
+- freezing questions retrieve freezing-related sources
+- canning questions retrieve canning-related sources
+
+### Topic Drift Prevention
+Verify:
+- unrelated publications are not promoted
+- weakly related retrievals are not over-ranked
+- unsupported topics still fallback safely
+
+### Trusted Answer Matching
+Verify:
+- semantically similar trusted answers still match correctly
+- unrelated trusted answers do not trigger incorrectly
+- trusted-answer responses remain grounded and appropriate
+
+### Citation Transparency
+Verify:
+- “Why this source matched” explanations include topic matches when appropriate
+- topic-aligned citations appear reasonable and relevant
+
+### Mobile Validation
+Verify:
+- citation cards remain readable
+- relevance explanations still render correctly
+- expanded excerpts still function correctly

@@ -349,3 +349,32 @@ Documentation updates needed:
 - Preserved trusted-answer workflow behavior.
 - Preserved citation rendering and evidence-strength workflows.
 - Preserved OpenAI Responses API vector search workflow.
+
+## Phase 10A Step 5 — Semantic Topic Weighting & Retrieval Improvements
+
+### Added
+- Added semantic preservation-topic detection for AI retrieval workflows.
+- Added topic-aware retrieval weighting for:
+  - jam/jelly/preserves
+  - freezing
+  - drying
+  - pickling
+  - fermentation
+  - salsa/tomatoes
+  - water bath canning
+  - pressure canning
+  - food safety
+  - storage/shelf life
+
+### Improved
+- Improved retrieval ranking quality for preservation-specific questions.
+- Improved source prioritization for semantically aligned publications.
+- Improved “Why this source matched” explanations using topic alignment reasoning.
+- Improved topic continuity during conversational follow-up questions.
+- Improved trusted-answer matching using semantic topic overlap.
+- Reduced unrelated or weakly related retrieval matches.
+
+### Reliability
+- Preserved strict document-grounded answer behavior.
+- Preserved unsupported-answer fallback workflows.
+- Preserved OpenAI Responses API vector search architecture.
