@@ -45,7 +45,15 @@ export default function LoginPage() {
     } else {
       window.localStorage.removeItem('mfp_saved_email')
     }
-
+await fetch('/api/track-user-activity', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    activityType: 'login',
+  }),
+})
     router.push('/dashboard')
   }
 

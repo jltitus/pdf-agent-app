@@ -64,9 +64,17 @@ export async function GET(request: Request) {
   const userIds = authUsers.map((authUser: any) => authUser.id)
 
   const { data: profiles } = await supabaseAdmin
-    .from('profiles')
-    .select('id, role, is_active')
-    .in('id', userIds)
+  .from('profiles')
+  .select(`
+    id,
+    role,
+    is_active,
+    last_activity_at,
+    last_login_at,
+    last_chat_at,
+    total_questions_asked
+  `)
+  .in('id', userIds)
 
   const profileById = new Map(
     (profiles ?? []).map((profile: any) => [profile.id, profile])
@@ -93,12 +101,30 @@ export async function GET(request: Request) {
     const latestChat = authUser ? latestChatByUserId.get(authUser.id) : null
 
     return {
-      ...request,
-      profile_is_active: profile?.is_active ?? null,
-      profile_role: profile?.role ?? null,
-      last_activity_at: latestChat?.created_at ?? null,
-      last_question: latestChat?.question ?? null,
-    }
+  ...request,
+
+  profile_is_active: profile?.is_active ?? null,
+  profile_role: profile?.role ?? null,
+
+  last_activity_at:
+    profile?.last_activity_at ??
+    latestChat?.created_at ??
+    null,
+
+  last_login_at:
+    profile?.last_login_at ?? null,
+
+  last_chat_at:
+    profile?.last_chat_at ??
+    latestChat?.created_at ??
+    null,
+
+  total_questions_asked:
+    profile?.total_questions_asked ?? 0,
+
+  last_question:
+    latestChat?.question ?? null,
+}
   })
 
   return NextResponse.json({ requests: enrichedRequests })

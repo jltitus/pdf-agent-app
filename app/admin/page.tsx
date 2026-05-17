@@ -35,9 +35,15 @@ type AccessRequest = {
   approved_at?: string | null
   last_invited_at?: string | null
   invite_count?: number | null
+
   profile_is_active?: boolean | null
   profile_role?: string | null
+
   last_activity_at?: string | null
+  last_login_at?: string | null
+  last_chat_at?: string | null
+  total_questions_asked?: number | null
+
   last_question?: string | null
 }
 
@@ -1920,7 +1926,26 @@ async function deleteUser(request: AccessRequest) {
                             </p>
                           )}
                         </div>
+<div className="mt-2 space-y-1 text-xs text-secondary">
+  <p>
+    <strong>Last login:</strong>{' '}
+    {request.last_login_at
+      ? new Date(request.last_login_at).toLocaleString()
+      : 'Never'}
+  </p>
 
+  <p>
+    <strong>Last chat:</strong>{' '}
+    {request.last_chat_at
+      ? new Date(request.last_chat_at).toLocaleString()
+      : 'Never'}
+  </p>
+
+  <p>
+    <strong>Total questions:</strong>{' '}
+    {request.total_questions_asked ?? 0}
+  </p>
+</div>
                         {request.status === 'approved' && (
                           <div className="grid gap-2 border-t border-gray-200 pt-3 sm:grid-cols-3">
                             <button
@@ -1976,6 +2001,7 @@ async function deleteUser(request: AccessRequest) {
                       <th className="p-3 text-left">Status</th>
                       <th className="p-3 text-left">User</th>
                       <th className="p-3 text-left">Last activity</th>
+                      <th className="p-3 text-left">Usage</th>
                       <th className="p-3 text-left">Actions</th>
                     </tr>
                   </thead>
@@ -2031,7 +2057,28 @@ async function deleteUser(request: AccessRequest) {
                             </p>
                           )}
                         </td>
+<td className="p-3 text-xs text-muted">
+  <div className="space-y-1">
+    <p>
+      <strong>Login:</strong>{' '}
+      {request.last_login_at
+        ? new Date(request.last_login_at).toLocaleDateString()
+        : '—'}
+    </p>
 
+    <p>
+      <strong>Chat:</strong>{' '}
+      {request.last_chat_at
+        ? new Date(request.last_chat_at).toLocaleDateString()
+        : '—'}
+    </p>
+
+    <p>
+      <strong>Questions:</strong>{' '}
+      {request.total_questions_asked ?? 0}
+    </p>
+  </div>
+</td>
                         <td className="p-3">
                           <div className="flex flex-wrap gap-2">
                             {request.status === 'approved' && (

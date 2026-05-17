@@ -218,13 +218,30 @@ export default function ChatPage() {
       }),
     });
 
-    const result = await res.json();
+const result = await res.json();
 
-    if (!res.ok) {
-      throw new Error(result.error ?? "Something went wrong.");
-    }
+if (!res.ok) {
+  throw new Error(result.error ?? "Something went wrong.");
+}
 
-    return result;
+const activityRes = await fetch('/api/track-user-activity', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+  },
+  body: JSON.stringify({
+    activityType: 'chat',
+  }),
+})
+
+if (!activityRes.ok) {
+  const activityError = await activityRes.json().catch(() => null)
+  console.error('Activity tracking failed:', activityError)
+}
+
+return result;
+
+
   }
 
   async function askQuestion(e: React.FormEvent<HTMLFormElement>) {
