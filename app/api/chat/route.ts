@@ -56,7 +56,130 @@ function getQuestionSimilarity(a: string, b: string) {
 
   return sharedWords.length / totalUniqueWords
 }
+function getPreservationTopics(text: string) {
+  const normalized = normalizeQuestion(text)
 
+  const topicMap: Record<string, string[]> = {
+    jam_jelly_preserves: [
+      'jam',
+      'jelly',
+      'preserve',
+      'preserves',
+      'pectin',
+      'fruit spread',
+      'marmalade',
+    ],
+    freezing: [
+      'freeze',
+      'freezing',
+      'freezer',
+      'frozen',
+    ],
+    drying: [
+      'dry',
+      'drying',
+      'dehydrate',
+      'dehydrating',
+      'dehydrator',
+    ],
+    water_bath_canning: [
+      'water bath',
+      'boiling water',
+      'boiling-water',
+      'high acid',
+    ],
+    pressure_canning: [
+      'pressure can',
+      'pressure canning',
+      'pressure canned',
+      'low acid',
+      'dial gauge',
+      'weighted gauge',
+    ],
+    pickling: [
+      'pickle',
+      'pickles',
+      'pickling',
+      'vinegar',
+      'brine',
+      'dill',
+    ],
+    salsa_tomatoes: [
+      'salsa',
+      'tomato',
+      'tomatoes',
+      'tomatillo',
+    ],
+    fermentation: [
+      'ferment',
+      'fermentation',
+      'fermented',
+      'kraut',
+      'sauerkraut',
+    ],
+    storage_shelf_life: [
+      'store',
+      'storage',
+      'shelf life',
+      'last',
+      'how long',
+      'refrigerate',
+      'refrigerator',
+    ],
+    food_safety: [
+      'safe',
+      'safety',
+      'botulism',
+      'spoilage',
+      'mold',
+      'unsafe',
+      'risk',
+    ],
+  }
+
+  return Object.entries(topicMap)
+    .filter(([, keywords]) =>
+      keywords.some((keyword) => normalized.includes(keyword))
+    )
+    .map(([topic]) => topic)
+}
+
+function getTopicOverlapScore(question: string, source: RankedSource) {
+  const questionTopics = getPreservationTopics(question)
+
+  if (questionTopics.length === 0) {
+    return {
+      score: 0,
+      reasons: [] as string[],
+    }
+  }
+
+  const sourceText = [
+    source.title,
+    source.filename,
+    source.category ?? '',
+    ...source.excerpts,
+  ].join(' ')
+
+  const sourceTopics = getPreservationTopics(sourceText)
+  const matchedTopics = questionTopics.filter((topic) =>
+    sourceTopics.includes(topic)
+  )
+
+  if (matchedTopics.length === 0) {
+    return {
+      score: 0,
+      reasons: [] as string[],
+    }
+  }
+
+  return {
+    score: matchedTopics.length * 18,
+    reasons: matchedTopics.map((topic) =>
+      `matches ${topic.replaceAll('_', ' ')} topic`
+    ),
+  }
+}
 function getSourceRelevanceScore({
   question,
   source,
@@ -112,7 +235,12 @@ function getSourceRelevanceScore({
     score += 12
     reasons.push('matches selected category')
   }
+const topicOverlap = getTopicOverlapScore(question, source)
 
+if (topicOverlap.score > 0) {
+  score += topicOverlap.score
+  reasons.push(...topicOverlap.reasons)
+}
   return {
     score,
     reasons: reasons.length > 0 ? reasons : ['retrieved from active publication search'],
@@ -708,6 +836,8 @@ Global formatting:
 Evidence rules:
 - If file search does not return relevant support, do not answer from memory.
 - If the retrieved support is only loosely related, say you can't find a clear answer in the provided documents.
+- Match the answer to the user's preservation topic, such as freezing, drying, jam/jelly, pickling, water bath canning, pressure canning, salsa/tomatoes, fermentation, storage, or food safety.
+- Do not use a source only because it is generally about food preservation; it must support the user's specific preservation topic.
 - For food safety, canning, drying, freezing, pickling, smoking, storage, or recipes, be conservative.
       `,
       input: question,
