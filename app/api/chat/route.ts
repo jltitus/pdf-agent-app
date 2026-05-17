@@ -647,7 +647,22 @@ export async function POST(request: Request) {
           trusted.answer_mode === 'general' ||
           trusted.answer_mode === answerMode
 
-        const similarity = getQuestionSimilarity(question, trusted.question)
+        const questionTopics = getPreservationTopics(question)
+const trustedTopics = getPreservationTopics(trusted.question)
+
+const sharedTopicCount = questionTopics.filter((topic) =>
+  trustedTopics.includes(topic)
+).length
+
+const topicBoost =
+  questionTopics.length > 0 && sharedTopicCount > 0
+    ? sharedTopicCount * 0.08
+    : 0
+
+const similarity = Math.min(
+  1,
+  getQuestionSimilarity(question, trusted.question) + topicBoost
+)
 
         return {
           ...trusted,
