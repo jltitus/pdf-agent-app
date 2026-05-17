@@ -54,3 +54,16 @@ Added columns to `profiles`:
 - `last_login_at`
 - `last_chat_at`
 - `total_questions_asked`
+## Phase 5 — PDF Processing Reliability
+
+### Added
+- Added document processing lifecycle tracking for PDF validation, processing, success, failure, encrypted PDFs, and invalid PDFs.
+- Added persistent processing progress, retry count, processing timestamps, file size, last processed page, and processing error visibility.
+- Added encrypted/password-protected PDF detection before processing.
+- Added validation for invalid, empty, unreadable, or image-only PDFs.
+- Added retry-safe processing that clears old page records before reprocessing.
+
+### Improved
+- Improved `/api/process-document` error handling with clearer admin-facing messages.
+- Improved replacement workflow so invalid or encrypted replacement PDFs do not archive the existing working document.
+- Improved Admin document visibility with processing status, progress, retry details, and error messages.

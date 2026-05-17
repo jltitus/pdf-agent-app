@@ -165,3 +165,40 @@ After deploying:
 2. Verify activity fields in Supabase
 3. Confirm Admin dashboard metrics update
 4. Test responsive layouts on mobile devices
+
+## Phase 5 PDF Processing Operations
+
+### Admin Processing Checks
+
+After uploading, replacing, or reprocessing a PDF, verify:
+
+- Processing status reaches `processed`
+- Processing progress reaches `100`
+- Page count displays correctly
+- `processing_error` is empty
+- PDF opens from the Admin document list
+- Chat can retrieve answers from the processed PDF
+
+### Failed Processing Troubleshooting
+
+If processing fails, check the Admin document card and Supabase `documents` row.
+
+Common statuses:
+
+| Status | Meaning | Admin Action |
+|---|---|---|
+| `encrypted` | PDF is password protected or encrypted | Upload an unlocked PDF |
+| `invalid_pdf` | File is not a valid PDF | Re-export or replace the PDF |
+| `failed` | Processing failed during parsing, upload, or indexing | Review `processing_error`, then retry |
+| `processing` | PDF is currently being processed | Wait before retrying |
+| `processed` | PDF is searchable | No action needed |
+
+### Local Phase 5 Testing
+
+Before deployment, run:
+
+```bash
+cd ~/Documents/pdf-agent-project/pdf-agent-app
+nvm use 24
+npm run build
+NODE_TLS_REJECT_UNAUTHORIZED=0 npm run dev

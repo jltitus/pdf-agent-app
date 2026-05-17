@@ -47,3 +47,10 @@ Updates:
 
 Uses secure Supabase RPC:
 - `track_profile_activity`
+
+
+## `docs/ROUTES.md`
+
+
+- `/api/process-document` — validates PDFs, detects encrypted/invalid files, processes page-level content, updates processing status/progress, and stores page records for AI search
+- `/api/replace-document` — safely uploads and validates replacement PDFs before archiving the previous active document

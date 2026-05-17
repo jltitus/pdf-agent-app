@@ -58,3 +58,19 @@ Function:
 
 ```sql
 track_profile_activity(p_activity_type text)
+
+## documents — Processing State Tracking
+
+The `documents` table includes PDF processing reliability fields used by Phase 5.
+
+| Column | Type | Purpose |
+|---|---|---|
+| `processing_status` | text | Tracks processing lifecycle: `pending`, `validating`, `processing`, `processed`, `failed`, `encrypted`, `invalid_pdf` |
+| `processing_error` | text | Stores the latest processing failure message for admin review |
+| `processing_progress` | integer | Stores processing progress from 0–100 |
+| `processing_started_at` | timestamptz | Timestamp when processing began |
+| `processing_completed_at` | timestamptz | Timestamp when processing finished or failed |
+| `processing_attempts` | integer | Number of processing attempts or retries |
+| `last_processed_page` | integer | Last successfully processed page number |
+| `is_encrypted` | boolean | Indicates whether the PDF was detected as encrypted/password protected |
+| `file_size_bytes` | bigint | Uploaded PDF file size in bytes |

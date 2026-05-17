@@ -106,3 +106,33 @@ The Admin dashboard now surfaces:
 - Total questions asked
 
 Both mobile card layouts and desktop table layouts support activity visibility.
+
+## Phase 5 PDF Processing Reliability
+
+Phase 5 improves reliability and admin visibility for PDF ingestion.
+
+### Processing Lifecycle
+
+PDFs now move through a tracked lifecycle:
+
+- `pending`
+- `validating`
+- `processing`
+- `processed`
+- `failed`
+- `encrypted`
+- `invalid_pdf`
+
+### Processing Flow
+
+1. Admin uploads or replaces a PDF.
+2. The app validates that the file is a readable PDF.
+3. Encrypted/password-protected PDFs are blocked before processing.
+4. Existing page records are cleared before retry/reprocessing.
+5. Page-level text files are generated and uploaded to OpenAI.
+6. Page records are saved in `document_pages`.
+7. The document row is updated with processing status, progress, retry count, timestamps, and errors.
+
+### Replacement Safety
+
+Replacement PDFs are validated before the existing active document is archived. If the replacement PDF is invalid or encrypted, the original document remains active.
