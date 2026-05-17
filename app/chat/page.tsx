@@ -35,16 +35,17 @@ type DocumentOption = {
 };
 
 type ConversationTurn = {
-  question: string;
-  answer: string;
-  sources?: Source[];
-  evidenceStrength?: EvidenceStrength | null;
-  chatHistoryId?: string | null;
-  feedbackSubmitted?: string | null;
-  suggestedFollowUps?: string[];
-  sourceSuggestionOpen?: boolean;
-  sourceSuggestionText?: string;
-};
+  question: string
+  answer: string
+  sources?: Source[]
+  evidenceStrength?: EvidenceStrength | null
+  chatHistoryId?: string | null
+  feedbackSubmitted?: string | null
+  trustedSaved?: boolean
+  suggestedFollowUps?: string[]
+  sourceSuggestionOpen?: boolean
+  sourceSuggestionText?: string
+}
 
 type SearchState = "idle" | "searching" | "reviewing" | "generating";
 
@@ -499,7 +500,15 @@ return result;
       return;
     }
 
-    setMessage("Trusted answer saved.");
+    setConversationTurns((prev) =>
+  prev.map((existingTurn, turnIndex) =>
+    turnIndex === index
+      ? { ...existingTurn, trustedSaved: true }
+      : existingTurn
+  )
+)
+
+setMessage('');
   }
 
   function startNewChat() {
@@ -1013,74 +1022,98 @@ return result;
                         </div>
                       )}
 
-                      <div className="mt-4 flex flex-wrap gap-2 border-t border-gray-200 pt-4">
-                        <button
-                          type="button"
-                          onClick={() => submitFeedback(index, "helpful")}
-                          className="min-h-10 rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-semibold hover:bg-gray-50"
-                        >
-                          👍 Helpful
-                        </button>
+<div className="mt-4 flex flex-wrap gap-2 border-t border-gray-200 pt-4">
+  <button
+    type="button"
+    onClick={() => submitFeedback(index, 'helpful')}
+    disabled={turn.feedbackSubmitted === 'helpful'}
+    className={`min-h-10 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
+      turn.feedbackSubmitted === 'helpful'
+        ? 'border-green-300 bg-green-100 text-green-800'
+        : 'border-gray-300 bg-white text-primary hover:bg-gray-50'
+    }`}
+  >
+    {turn.feedbackSubmitted === 'helpful' ? '✅ Helpful saved' : '👍 Helpful'}
+  </button>
 
-                        <button
-                          type="button"
-                          onClick={() => submitFeedback(index, "not_helpful")}
-                          className="min-h-10 rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-semibold hover:bg-gray-50"
-                        >
-                          👎 Not helpful
-                        </button>
+  <button
+    type="button"
+    onClick={() => submitFeedback(index, 'not_helpful')}
+    disabled={turn.feedbackSubmitted === 'not_helpful'}
+    className={`min-h-10 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
+      turn.feedbackSubmitted === 'not_helpful'
+        ? 'border-yellow-300 bg-yellow-100 text-yellow-900'
+        : 'border-gray-300 bg-white text-primary hover:bg-gray-50'
+    }`}
+  >
+    {turn.feedbackSubmitted === 'not_helpful'
+      ? '✅ Not helpful saved'
+      : '👎 Not helpful'}
+  </button>
 
-                        <button
-                          type="button"
-                          onClick={() =>
-                            submitFeedback(index, "missing_source")
-                          }
-                          className="min-h-10 rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-semibold hover:bg-gray-50"
-                        >
-                          🔎 Source issue
-                        </button>
+  <button
+    type="button"
+    onClick={() => submitFeedback(index, 'missing_source')}
+    disabled={turn.feedbackSubmitted === 'missing_source'}
+    className={`min-h-10 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
+      turn.feedbackSubmitted === 'missing_source'
+        ? 'border-blue-300 bg-blue-100 text-blue-800'
+        : 'border-gray-300 bg-white text-primary hover:bg-gray-50'
+    }`}
+  >
+    {turn.feedbackSubmitted === 'missing_source'
+      ? '✅ Source issue saved'
+      : '🔎 Source issue'}
+  </button>
 
-                        <Link
-                          href={`/report-issue?question=${encodeURIComponent(turn.question)}`}
-                          className="inline-flex min-h-10 items-center rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-semibold hover:bg-gray-50"
-                        >
-                          🚩 Report issue
-                        </Link>
+  <Link
+    href={`/report-issue?question=${encodeURIComponent(turn.question)}`}
+    className="inline-flex min-h-10 items-center rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-gray-50"
+  >
+    🚩 Report issue
+  </Link>
 
-                        <button
-                          type="button"
-                          onClick={() => regenerateTurn(index)}
-                          disabled={loading}
-                          className="min-h-10 rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-semibold hover:bg-gray-50 disabled:opacity-60"
-                        >
-                          🔄 Regenerate
-                        </button>
+  <button
+    type="button"
+    onClick={() => regenerateTurn(index)}
+    disabled={loading}
+    className="min-h-10 rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-gray-50 disabled:opacity-60"
+  >
+    🔄 Regenerate
+  </button>
 
-                        <button
-                          type="button"
-                          onClick={() => tryBroaderSearch(index)}
-                          disabled={loading}
-                          className="min-h-10 rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-semibold hover:bg-gray-50 disabled:opacity-60"
-                        >
-                          🌐 Broader search
-                        </button>
+  <button
+    type="button"
+    onClick={() => tryBroaderSearch(index)}
+    disabled={loading}
+    className="min-h-10 rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-gray-50 disabled:opacity-60"
+  >
+    🌐 Broader search
+  </button>
 
-                        <button
-                          type="button"
-                          onClick={() => saveTrustedFromChat(index)}
-                          disabled={loading}
-                          className="min-h-10 rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-semibold hover:bg-gray-50 disabled:opacity-60"
-                        >
-                          ⭐ Save trusted
-                        </button>
-                      </div>
+  <button
+    type="button"
+    onClick={() => saveTrustedFromChat(index)}
+    disabled={loading || turn.trustedSaved}
+    className={`min-h-10 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
+      turn.trustedSaved
+        ? 'border-green-300 bg-green-100 text-green-800'
+        : 'border-gray-300 bg-white text-primary hover:bg-gray-50'
+    } disabled:opacity-80`}
+  >
+    {turn.trustedSaved ? '✅ Trusted saved' : '⭐ Save trusted'}
+  </button>
+</div>
 
-                      {turn.feedbackSubmitted && (
-                        <p className="mt-3 rounded-xl bg-green-50 px-3 py-2 text-xs font-semibold text-green-800">
-                          Feedback saved:{" "}
-                          {turn.feedbackSubmitted.replaceAll("_", " ")}
-                        </p>
-                      )}
+                      {(turn.feedbackSubmitted || turn.trustedSaved) && (
+  <div className="mt-3 rounded-xl border border-green-200 bg-green-50 px-3 py-2 text-xs font-semibold text-green-800">
+    {turn.feedbackSubmitted && (
+      <p>✅ Feedback saved: {turn.feedbackSubmitted.replaceAll('_', ' ')}</p>
+    )}
+
+    {turn.trustedSaved && <p>✅ Trusted answer saved.</p>}
+  </div>
+)}
 
                       {turn.suggestedFollowUps &&
                         turn.suggestedFollowUps.length > 0 && (
