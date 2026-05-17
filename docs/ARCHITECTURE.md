@@ -190,3 +190,7 @@ The proxy:
 - Allows password setup/reset routes to continue working.
 
 Admin-only authorization remains enforced by admin profile checks in the admin UI and supporting API routes.
+
+## Operational Playbook Reference
+
+The operational playbook in `docs/OPERATIONS.md` is now the primary runbook for maintaining the MFP Publication Agent. It includes architecture overview, deployment workflow, authentication flow, PDF processing workflow, OpenAI workflow, admin operations, troubleshooting, backup/recovery, and mobile testing.

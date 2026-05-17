@@ -100,3 +100,18 @@ Added columns to `profiles`:
 ### Security
 - Protected authenticated app routes from logged-out access.
 - Preserved admin-only route protection for `/admin` and admin subroutes.
+
+
+Documentation updates needed:
+
+`docs/CHANGELOG.md`
+
+```md
+## 2026-05-16 — Operational Playbook
+
+### Added
+- Created a professional operational playbook covering architecture, folder structure, Supabase, Resend, Vercel, OpenAI workflow, PDF processing, authentication, admin operations, troubleshooting, backup/recovery, local development, environment variables, mobile testing, and deployment checklist.
+
+### Notes
+- Documentation-only update.
+- No application code or database schema changes required.
