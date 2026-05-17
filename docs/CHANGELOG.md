@@ -187,3 +187,16 @@ Documentation updates needed:
 - Improved deployment governance workflow
 - Improved production verification consistency
 - Added operational deployment readiness validation
+
+## Version 1.8.x
+
+### Admin Analytics Dashboard
+- Added `/admin/analytics`
+- Added operational reporting dashboard
+- Added release lifecycle metrics
+- Added deployment metrics
+- Added smoke-test health reporting
+- Added enhancement backlog visibility
+- Added issue backlog visibility
+- Added deployment readiness indicators
+- Added operational status summaries

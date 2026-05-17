@@ -403,3 +403,10 @@ After deployment logging:
 6. Add operational notes where needed
 
 7. Confirm deployment readiness before final release communication
+
+## Operational Reporting Dashboard
+
+Administrators can monitor operational health from:
+
+```txt
+/admin/analytics

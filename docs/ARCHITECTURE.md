@@ -278,3 +278,33 @@ The deployment verification system supports reusable smoke-test templates for st
 2. Standard smoke tests generated
 3. Operational verification executed
 4. Deployment readiness confirmed
+
+## Admin Analytics Architecture
+
+The application includes an operational analytics dashboard for release governance and deployment monitoring.
+
+### Route
+- `/admin/analytics`
+
+### Reporting Areas
+- Release metrics
+- Deployment metrics
+- Smoke-test health
+- Enhancement backlog
+- Issue backlog
+- Operational readiness indicators
+
+### Data Sources
+- `releases`
+- `deployment_history`
+- `deployment_smoke_tests`
+- `enhancement_requests`
+- `issue_reports`
+
+### Purpose
+Provides centralized operational visibility for:
+- deployment readiness
+- release velocity
+- operational quality
+- backlog monitoring
+- admin governance

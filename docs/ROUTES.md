@@ -92,3 +92,5 @@ Uses secure Supabase RPC:
 ## Operational Automation
 
 The deployment smoke-test system supports automatic generation of reusable route verification templates through the existing `/api/deployment-smoke-tests` endpoint.
+
+| `/admin/analytics` | Operational analytics and reporting dashboard |
