@@ -1302,20 +1302,20 @@ setMessage('');
         </div>
 
         <form
-          onSubmit={askQuestion}
-          className="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-300 bg-white p-3 text-primary shadow-lg md:hidden"
-        >
+  onSubmit={askQuestion}
+  className="fixed inset-x-0 bottom-0 z-50 w-full max-w-full overflow-hidden border-t border-gray-300 bg-white p-3 text-primary shadow-lg md:hidden"
+>
           {message && (
             <div className="mb-2 rounded-lg border border-red-300 bg-red-50 p-2 text-xs font-medium text-red-800">
               {message}
             </div>
           )}
 
-          <div className="flex gap-2">
+          <div className="flex w-full max-w-full gap-2">
             <textarea
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
-              className="min-h-[52px] flex-1 rounded-xl border border-gray-300 bg-white p-3 text-sm text-primary shadow-sm"
+              className="min-h-[52px] min-w-0 flex-1 resize-none rounded-xl border border-gray-300 bg-white p-3 text-sm text-primary shadow-sm"
               placeholder={
                 conversationTurns.length > 0
                   ? "Ask a follow-up..."
@@ -1326,7 +1326,7 @@ setMessage('');
 
             <button
               type="submit"
-              className="min-h-[52px] rounded-xl bg-black px-4 py-2 text-sm font-semibold text-white shadow disabled:opacity-60"
+              className="min-h-[52px] shrink-0 rounded-xl bg-black px-4 py-2 text-sm font-semibold text-white shadow disabled:opacity-60"
               disabled={loading}
             >
               {loading ? "..." : "Send"}
