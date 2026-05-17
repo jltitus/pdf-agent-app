@@ -55,6 +55,7 @@ export default function AdminFeedbackReviewPage() {
   const [notesByFeedbackId, setNotesByFeedbackId] = useState<Record<string, AdminNote[]>>({})
   const [noteDrafts, setNoteDrafts] = useState<Record<string, string>>({})
   const [savingNoteId, setSavingNoteId] = useState<string | null>(null)
+  const [creatingEnhancementId, setCreatingEnhancementId] = useState<string | null>(null)
 
   useEffect(() => {
     async function init() {
@@ -183,6 +184,59 @@ export default function AdminFeedbackReviewPage() {
     await loadAdminNotes(feedback.map((item) => item.id))
   }
 
+
+  async function createEnhancementFromFeedback(item: FeedbackItem) {
+    setCreatingEnhancementId(item.id)
+    setMessage('Creating enhancement from feedback...')
+
+    const token = await getToken()
+    if (!token) {
+      setMessage('You must be signed in.')
+      setCreatingEnhancementId(null)
+      return
+    }
+
+    const titleSource = item.question || `${displayFeedbackType(item.feedback_type)} feedback`
+    const title = titleSource.length > 120 ? `${titleSource.slice(0, 117)}...` : titleSource
+    const description = [
+      `Source: Chat feedback`,
+      `Feedback type: ${displayFeedbackType(item.feedback_type)}`,
+      '',
+      `Question:`,
+      item.question || 'No question saved',
+      '',
+      `Answer:`,
+      item.answer || 'No answer saved',
+    ].join('\n')
+
+    const response = await fetch('/api/enhancement-requests', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        sourceType: 'chat_feedback',
+        sourceId: item.id,
+        title,
+        description,
+        status: 'new',
+        priority: item.feedback_type === 'not_helpful' || item.feedback_type === 'missing_source' ? 'high' : 'medium',
+      }),
+    })
+
+    const result = await response.json().catch(() => ({}))
+
+    if (!response.ok) {
+      setMessage(`Could not create enhancement: ${result.error ?? 'Unknown enhancement error.'}`)
+      setCreatingEnhancementId(null)
+      return
+    }
+
+    setMessage('Enhancement created from feedback.')
+    setCreatingEnhancementId(null)
+  }
+
   const counts = useMemo(() => {
     return {
       total: feedback.length,
@@ -264,9 +318,11 @@ export default function AdminFeedbackReviewPage() {
           <section className="rounded-2xl border border-gray-300 bg-white p-4 shadow-sm sm:p-6">
             <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
               <div>
-                <a href="/admin" className="text-sm font-semibold text-blue-700 hover:underline">
-                  ← Back to admin
-                </a>
+                <div className="flex flex-wrap gap-3 text-sm font-semibold">
+                  <a href="/admin" className="text-blue-700 hover:underline">← Back to admin</a>
+                  <a href="/admin/issues" className="text-blue-700 hover:underline">Issue review</a>
+                  <a href="/admin/enhancements" className="text-blue-700 hover:underline">Enhancements</a>
+                </div>
                 <h1 className="mt-2 text-2xl font-bold leading-tight text-primary sm:text-3xl">
                   Detailed Feedback Review
                 </h1>
@@ -399,14 +455,24 @@ export default function AdminFeedbackReviewPage() {
                             placeholder="Add internal notes, follow-up context, or reviewer decisions..."
                             className="min-h-[88px] w-full rounded-lg border border-blue-200 bg-white px-3 py-2 text-sm text-primary"
                           />
-                          <button
-                            type="button"
-                            onClick={() => saveAdminNote(item.id)}
-                            disabled={savingNoteId === item.id}
-                            className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-blue-700 px-3 py-2 text-sm font-semibold !text-white hover:bg-blue-800 disabled:bg-blue-300 sm:w-fit"
-                          >
-                            {savingNoteId === item.id ? 'Saving note...' : 'Save note'}
-                          </button>
+                          <div className="flex flex-col gap-2 sm:flex-row">
+                            <button
+                              type="button"
+                              onClick={() => saveAdminNote(item.id)}
+                              disabled={savingNoteId === item.id}
+                              className="inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-blue-700 px-3 py-2 text-sm font-semibold !text-white hover:bg-blue-800 disabled:bg-blue-300 sm:w-fit"
+                            >
+                              {savingNoteId === item.id ? 'Saving note...' : 'Save note'}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => createEnhancementFromFeedback(item)}
+                              disabled={creatingEnhancementId === item.id}
+                              className="inline-flex min-h-11 w-full items-center justify-center rounded-lg border border-blue-300 bg-white px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50 disabled:opacity-60 sm:w-fit"
+                            >
+                              {creatingEnhancementId === item.id ? 'Creating enhancement...' : 'Create enhancement'}
+                            </button>
+                          </div>
                         </div>
                       </section>
                     </div>

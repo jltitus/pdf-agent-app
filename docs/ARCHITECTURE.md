@@ -36,3 +36,16 @@ The Publications page uses a mobile-first responsive layout.
 - PDF links use the existing `/api/view-source?file=` route.
 - Shared navigation is handled by `app/components/HeaderBar.tsx`.
 - The Chat navigation item uses `public/chat-icon.png`.
+
+## Phase 2 Mobile Chat and Navigation UX
+
+The chat experience continues to use `app/chat/page.tsx` for the client-side chat interface and `app/components/HeaderBar.tsx` for shared navigation.
+
+Phase 2 mobile refinements include:
+
+- Mobile chat filters are collapsed into a tappable Search Options card.
+- Desktop chat filters remain visible inline.
+- The mobile-only “How to use this” guidance hides after a question is submitted or while the agent is loading.
+- The empty “Ready for your question” state hides after a question is submitted or while the agent is loading.
+- Shared navigation now uses a hamburger menu on mobile and tablet widths to reduce vertical space.
+- Desktop navigation remains visible inline at large screen widths.
