@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '../../lib/supabase/client'
-
+import WhatsNewBanner from './WhatsNewBanner'
 type UserInfo = {
   email?: string | null
   name?: string | null
@@ -78,6 +78,9 @@ export default function HeaderBar() {
   ]
 
   return (
+  <>
+    <WhatsNewBanner />
+
     <header className="sticky top-0 z-50 border-b border-gray-300 bg-gradient-to-r from-blue-100 via-blue-50 to-green-100 text-primary shadow-sm">
       <div className="mx-auto max-w-6xl px-3 py-3 sm:px-6">
 
@@ -213,6 +216,7 @@ export default function HeaderBar() {
           </div>
         )}
       </div>
-    </header>
+        </header>
+  </>
   )
 }
