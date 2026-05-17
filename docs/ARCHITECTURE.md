@@ -516,3 +516,51 @@ The AI quality analytics layer is intended to help administrators:
 - identify unsupported-answer trends
 - prioritize trusted-answer creation opportunities
 - monitor grounding quality over time
+
+# Phase 10A Step 4 — Conversational Context Layer
+
+## Conversational Follow-Up Handling
+
+The chat orchestration workflow now includes contextual follow-up interpretation for multi-turn conversations.
+
+### Follow-Up Detection
+
+The system now detects likely follow-up questions using:
+- question length
+- conversational phrasing
+- pronoun-based references
+- contextual continuation phrases
+
+Examples:
+- “What about freezing?”
+- “How long does it last?”
+- “Can I do that without pectin?”
+
+### Context Compression
+
+Prior conversation history is now compacted before being sent to the OpenAI Responses API.
+
+Goals:
+- reduce token usage
+- improve retrieval focus
+- reduce conversational drift
+- preserve topic continuity
+
+### Grounding Safeguards
+
+Prior AI-generated answers are never treated as source evidence.
+
+Conversation history is used only to:
+- interpret follow-up intent
+- preserve conversational continuity
+- resolve references such as “it” or “that”
+
+All final answers must still be grounded in active publication retrieval results returned during the current request.
+
+### Retrieval Continuity
+
+The conversational layer improves retrieval continuity while preserving:
+- active publication filters
+- category filtering
+- evidence ranking
+- citation workflows

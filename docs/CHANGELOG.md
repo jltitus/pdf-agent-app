@@ -323,3 +323,29 @@ Documentation updates needed:
 ### Reliability
 - Added backward-compatible handling for older chat history records with inconsistent evidence metadata structures.
 - Added defensive analytics parsing for string and object-based evidence formats.
+
+## Phase 10A Step 4 — Conversational Memory & Follow-Up Improvements
+
+### Improved
+- Improved conversational follow-up handling for multi-turn chat interactions.
+- Added smarter follow-up question detection for short contextual questions such as:
+  - “What about freezer storage?”
+  - “How long does it last?”
+  - “What if I don’t use pectin?”
+- Improved conversational continuity while preserving document grounding.
+- Improved context handling for pronoun-based references such as:
+  - it
+  - that
+  - those
+  - them
+- Improved token efficiency by compacting prior conversation summaries before sending to OpenAI.
+
+### Retrieval & Grounding
+- Preserved strict retrieval grounding for all follow-up responses.
+- Added stronger safeguards preventing prior AI answers from being treated as evidence.
+- Improved retrieval continuity for conversational follow-up questions.
+
+### Reliability
+- Preserved trusted-answer workflow behavior.
+- Preserved citation rendering and evidence-strength workflows.
+- Preserved OpenAI Responses API vector search workflow.

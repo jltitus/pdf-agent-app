@@ -593,3 +593,42 @@ Verify on iPhone and Android widths:
 - analytics cards stack correctly
 - no horizontal overflow occurs
 - admin dashboard remains navigable
+
+## Phase 10A Step 4 Conversational Follow-Up QA
+
+After conversational-memory or follow-up workflow changes, verify:
+
+### Multi-Turn Continuity
+Verify:
+- follow-up questions maintain topic continuity
+- short contextual questions resolve correctly
+- pronoun-based references resolve correctly
+
+Example sequence:
+1. Ask about strawberry jam
+2. Ask “What about freezer storage?”
+3. Ask “How long does it last?”
+4. Ask “What if I don’t use pectin?”
+
+### Topic Reset
+Verify:
+- unrelated new questions reset conversational context appropriately
+- prior topics do not leak into unrelated questions
+
+Example:
+- Ask about jam
+- Then ask about drying herbs
+- Confirm herb response does not reference jam
+
+### Grounding Safety
+Verify:
+- citations still appear correctly
+- source excerpts still expand correctly
+- unsupported follow-up questions still return safe fallback responses
+- prior AI answers are not reused as evidence
+
+### Performance
+Verify:
+- response speed remains acceptable
+- token usage does not significantly increase
+- no OpenAI API timeout regressions occur
