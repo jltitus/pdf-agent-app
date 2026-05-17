@@ -2182,6 +2182,10 @@ async function deleteUser(request: AccessRequest) {
                   <div>
                     <h2 className="text-2xl font-bold text-primary">Feedback Insights</h2>
                     <p className="text-sm text-secondary">Spot weak answers, missing sources, issue trends, and repeated content gaps.</p>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <a href="/admin/feedback" className={smallSecondaryButton}>Open detailed feedback review</a>
+                      <a href="/admin/issues" className={smallSecondaryButton}>Open detailed issue review</a>
+                    </div>
                   </div>
                   <div className="grid gap-2 sm:grid-cols-[minmax(180px,1fr)_180px_auto]">
                     <input
@@ -2263,9 +2267,12 @@ async function deleteUser(request: AccessRequest) {
                       Review tester-reported problems, questions, source concerns, and enhancement candidates.
                     </p>
                   </div>
-                  <span className="w-fit rounded-full border border-gray-300 bg-gray-50 px-3 py-1 text-xs font-semibold text-secondary">
-                    {openIssues.length} new
-                  </span>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <a href="/admin/issues" className={smallSecondaryButton}>Open detailed review</a>
+                    <span className="w-fit rounded-full border border-gray-300 bg-gray-50 px-3 py-1 text-xs font-semibold text-secondary">
+                      {openIssues.length} new
+                    </span>
+                  </div>
                 </div>
 
                 <div className="grid gap-2 sm:grid-cols-[minmax(180px,1fr)_220px]">
