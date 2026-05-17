@@ -86,3 +86,5 @@ Uses secure Supabase RPC:
 | `/api/release-items` | Manage release enhancement/issue mappings |
 | `/api/deployment-history` | Manage deployment history |
 | `/api/deployment-smoke-tests` | Manage smoke test verification records |
+
+| `/whats-new` | Public-facing release notes and feature updates |
