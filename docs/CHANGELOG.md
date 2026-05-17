@@ -167,3 +167,23 @@ Documentation updates needed:
 - Added persistent dismissal state using browser local storage
 - Added direct navigation to `/whats-new`
 - Improved release communication visibility for users
+
+## Version 1.8.x
+
+### Deployment Smoke Test Automation
+- Added reusable standard smoke-test templates
+- Added one-click smoke-test generation
+- Added duplicate smoke-test prevention
+- Added standardized deployment verification workflow
+- Added route-based smoke-test automation for:
+  - `/dashboard`
+  - `/chat`
+  - `/publications`
+  - `/whats-new`
+  - `/admin`
+  - `/admin/releases`
+
+### Deployment Operations
+- Improved deployment governance workflow
+- Improved production verification consistency
+- Added operational deployment readiness validation

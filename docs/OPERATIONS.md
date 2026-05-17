@@ -375,3 +375,31 @@ After production deployment:
    - `/whats-new`
 
 4. Confirm release communication visibility before announcing deployment.
+
+## Standard Smoke Test Workflow
+
+After deployment logging:
+
+1. Open:
+   - `/admin/releases`
+
+2. Locate deployment record
+
+3. Select:
+   - `Create standard smoke tests`
+
+4. Validate:
+   - dashboard
+   - chat
+   - publications
+   - release notes
+   - admin pages
+
+5. Mark:
+   - pass
+   - fail
+   - blocked
+
+6. Add operational notes where needed
+
+7. Confirm deployment readiness before final release communication

@@ -254,3 +254,27 @@ Future enhancement options:
 - per-user server-side tracking
 - release acknowledgment analytics
 - forced-read release notices
+
+## Smoke Test Automation Architecture
+
+The deployment verification system supports reusable smoke-test templates for standardized operational validation.
+
+### Features
+- Bulk smoke-test creation
+- Route verification templates
+- Duplicate prevention
+- Deployment-linked operational validation
+
+### Standard Verification Routes
+- `/dashboard`
+- `/chat`
+- `/publications`
+- `/whats-new`
+- `/admin`
+- `/admin/releases`
+
+### Workflow
+1. Deployment logged
+2. Standard smoke tests generated
+3. Operational verification executed
+4. Deployment readiness confirmed

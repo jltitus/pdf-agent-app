@@ -88,3 +88,7 @@ Uses secure Supabase RPC:
 | `/api/deployment-smoke-tests` | Manage smoke test verification records |
 
 | `/whats-new` | Public-facing release notes and feature updates |
+
+## Operational Automation
+
+The deployment smoke-test system supports automatic generation of reusable route verification templates through the existing `/api/deployment-smoke-tests` endpoint.
