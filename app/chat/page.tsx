@@ -42,6 +42,7 @@ type ConversationTurn = {
   chatHistoryId?: string | null
   feedbackSubmitted?: string | null
   trustedSaved?: boolean
+savedChat?: boolean
   suggestedFollowUps?: string[]
   sourceSuggestionOpen?: boolean
   sourceSuggestionText?: string
@@ -189,7 +190,44 @@ export default function ChatPage() {
 
     setHistory((data ?? []) as HistoryItem[]);
   }
+async function saveChatAnswer(index: number) {
+  const turn = conversationTurns[index]
+  if (!turn) return
 
+  setMessage('Saving answer...')
+
+  const res = await fetch('/api/saved-chats', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      chatHistoryId: turn.chatHistoryId,
+      question: turn.question,
+      answer: turn.answer,
+      category,
+      answerMode,
+      notes: null,
+    }),
+  })
+
+  const result = await res.json().catch(() => ({}))
+
+  if (!res.ok) {
+    setMessage(result.error ?? 'Saved chat could not be saved.')
+    return
+  }
+
+  setConversationTurns((prev) =>
+    prev.map((existingTurn, turnIndex) =>
+      turnIndex === index
+        ? { ...existingTurn, savedChat: true }
+        : existingTurn
+    )
+  )
+
+  setMessage('')
+}
   async function submitQuestion(
     currentQuestion: string,
     priorTurns: ConversationTurn[],
@@ -1090,7 +1128,18 @@ setMessage('');
   >
     🌐 Broader search
   </button>
-
+<button
+  type="button"
+  onClick={() => saveChatAnswer(index)}
+  disabled={loading || turn.savedChat}
+  className={`min-h-10 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
+    turn.savedChat
+      ? 'border-green-300 bg-green-100 text-green-800'
+      : 'border-gray-300 bg-white text-primary hover:bg-gray-50'
+  } disabled:opacity-80`}
+>
+  {turn.savedChat ? '✅ Answer saved' : '💾 Save answer'}
+</button>
   <button
     type="button"
     onClick={() => saveTrustedFromChat(index)}
@@ -1105,12 +1154,12 @@ setMessage('');
   </button>
 </div>
 
-                      {(turn.feedbackSubmitted || turn.trustedSaved) && (
+                     {(turn.feedbackSubmitted || turn.trustedSaved || turn.savedChat) && (
   <div className="mt-3 rounded-xl border border-green-200 bg-green-50 px-3 py-2 text-xs font-semibold text-green-800">
     {turn.feedbackSubmitted && (
       <p>✅ Feedback saved: {turn.feedbackSubmitted.replaceAll('_', ' ')}</p>
     )}
-
+{turn.savedChat && <p>✅ Answer saved to your profile.</p>}
     {turn.trustedSaved && <p>✅ Trusted answer saved.</p>}
   </div>
 )}

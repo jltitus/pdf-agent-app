@@ -26,12 +26,26 @@ type Profile = {
   total_questions_asked: number | null
 }
 
+type FavoritePublication = {
+  id: string
+  created_at: string
+  document_id: string
+  documents: {
+    id: string
+    title: string | null
+    filename: string
+    category?: string | null
+    version?: string | null
+  } | null
+}
+
 export default function ProfilePage() {
   const supabase = createClient()
 
   const [loading, setLoading] = useState(true)
   const [profile, setProfile] = useState<Profile | null>(null)
   const [email, setEmail] = useState('')
+  const [favorites, setFavorites] = useState<FavoritePublication[]>([])
 
   useEffect(() => {
     async function loadProfile() {
@@ -51,6 +65,13 @@ export default function ProfilePage() {
         .single()
 
       setProfile((data ?? null) as Profile | null)
+
+      const favoritesResponse = await fetch('/api/favorites')
+      if (favoritesResponse.ok) {
+        const favoritesData = await favoritesResponse.json()
+        setFavorites(favoritesData.favorites ?? [])
+      }
+
       setLoading(false)
     }
 
@@ -60,6 +81,10 @@ export default function ProfilePage() {
   function formatDate(value?: string | null) {
     if (!value) return '—'
     return new Date(value).toLocaleString()
+  }
+
+  function getPdfHref(filename: string) {
+    return `/api/view-source?file=${encodeURIComponent(filename)}`
   }
 
   return (
@@ -101,14 +126,12 @@ export default function ProfilePage() {
                       <h1 className="text-2xl font-bold sm:text-3xl">
                         {profile.full_name || 'My Profile'}
                       </h1>
-
                       <p className="mt-1 text-sm text-secondary">{email}</p>
 
                       <div className="mt-3 flex flex-wrap gap-2">
                         <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-secondary">
                           {profile.role || 'user'}
                         </span>
-
                         <span
                           className={`rounded-full px-3 py-1 text-xs font-semibold ${
                             profile.is_profile_public
@@ -136,6 +159,64 @@ export default function ProfilePage() {
                       About
                     </h2>
                     <p className="mt-2 whitespace-pre-wrap text-secondary">{profile.bio}</p>
+                  </div>
+                )}
+              </section>
+
+              <section className="rounded-2xl border border-gray-300 bg-white p-5 shadow-sm">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h2 className="text-xl font-bold">Saved Publications</h2>
+                    <p className="mt-1 text-sm text-secondary">
+                      Publications you saved from the library.
+                    </p>
+                  </div>
+
+                  <a
+                    href="/publications"
+                    className="min-h-11 rounded-lg border border-gray-300 bg-white px-4 py-2 text-center text-sm font-semibold text-primary shadow-sm hover:bg-gray-100"
+                  >
+                    Browse publications
+                  </a>
+                </div>
+
+                {favorites.length === 0 ? (
+                  <div className="mt-4 rounded-xl border border-gray-300 bg-gray-50 p-4 text-sm text-secondary">
+                    No saved publications yet.
+                  </div>
+                ) : (
+                  <div className="mt-4 grid gap-3 md:grid-cols-2">
+                    {favorites.map((favorite) => {
+                      const doc = favorite.documents
+                      if (!doc) return null
+
+                      return (
+                        <article
+                          key={favorite.id}
+                          className="rounded-xl border border-gray-300 bg-gray-50 p-4"
+                        >
+                          <h3 className="font-bold text-primary">
+                            {doc.title || doc.filename}
+                          </h3>
+                          <p className="mt-1 break-words text-xs text-muted">{doc.filename}</p>
+
+                          <div className="mt-3 space-y-1 text-sm text-secondary">
+                            <p><strong>Category:</strong> {doc.category || 'Not listed'}</p>
+                            <p><strong>Version:</strong> {doc.version || 'Not listed'}</p>
+                            <p><strong>Saved:</strong> {formatDate(favorite.created_at)}</p>
+                          </div>
+
+                          <a
+                            href={getPdfHref(doc.filename)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-black px-4 py-2 text-sm font-semibold !text-white shadow-sm hover:bg-gray-800 sm:w-auto"
+                          >
+                            Open PDF
+                          </a>
+                        </article>
+                      )
+                    })}
                   </div>
                 )}
               </section>
@@ -181,23 +262,23 @@ export default function ProfilePage() {
                   <h2 className="text-xl font-bold">Links</h2>
 
                   <div className="mt-4 space-y-3 text-sm">
-                    {profile.website_url ? (
+                    {profile.website_url && (
                       <a className="block break-words text-blue-700 underline" href={profile.website_url} target="_blank" rel="noopener noreferrer">
                         Website
                       </a>
-                    ) : null}
+                    )}
 
-                    {profile.social_url ? (
+                    {profile.social_url && (
                       <a className="block break-words text-blue-700 underline" href={profile.social_url} target="_blank" rel="noopener noreferrer">
                         Social profile
                       </a>
-                    ) : null}
+                    )}
 
-                    {profile.profile_url ? (
+                    {profile.profile_url && (
                       <a className="block break-words text-blue-700 underline" href={profile.profile_url} target="_blank" rel="noopener noreferrer">
                         Other profile link
                       </a>
-                    ) : null}
+                    )}
 
                     {!profile.website_url && !profile.social_url && !profile.profile_url && (
                       <p className="text-secondary">No links added yet.</p>

@@ -125,7 +125,7 @@ export default function PublicationsTable({
         type="button"
         disabled={savingFavoriteId === documentId || loadingFavorites}
         onClick={() => toggleFavorite(documentId)}
-        className={`inline-flex min-h-11 w-full items-center justify-center rounded-lg border px-3 py-2 text-sm font-semibold shadow-sm transition sm:w-auto ${
+        className={`inline-flex min-h-11 max-w-full items-center justify-center rounded-lg border px-3 py-2 text-sm font-semibold shadow-sm transition ${
           active
             ? 'border-yellow-300 bg-yellow-100 text-yellow-800 hover:bg-yellow-200'
             : 'border-gray-300 bg-white text-primary hover:bg-gray-100'
@@ -165,10 +165,10 @@ export default function PublicationsTable({
       <div className="grid gap-3 lg:hidden">
         {documents.map((document) => (
           <article
-            key={document.id}
-            className="w-full rounded-2xl border border-gray-200 bg-white p-4 shadow-sm"
-          >
-            <div className="space-y-3">
+  key={document.id}
+  className="min-w-0 w-full overflow-hidden rounded-2xl border border-gray-200 bg-white p-4 shadow-sm"
+>
+            <div className="min-w-0 space-y-3">
               <div>
                 <div className="space-y-3">
   <h3 className="break-words text-base font-bold leading-snug text-primary">
