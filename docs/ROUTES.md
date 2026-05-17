@@ -68,3 +68,21 @@ Uses secure Supabase RPC:
 - `/api/process-document` — validates PDFs, detects encrypted/invalid files, processes page-level content, updates processing status/progress, and stores page records for AI search
 - `/api/replace-document` — safely uploads and validates replacement PDFs before archiving the previous active document
 - `/session-expired` — session-expired and logged-out redirect page for protected routes
+
+# Release Management Routes
+
+## Admin Pages
+
+| Route | Purpose |
+|---|---|
+| `/admin/releases` | Manage releases, deployments, smoke tests, release planning |
+| `/whats-new` | Public release notes and version history |
+
+## API Routes
+
+| Route | Purpose |
+|---|---|
+| `/api/releases` | CRUD operations for releases |
+| `/api/release-items` | Manage release enhancement/issue mappings |
+| `/api/deployment-history` | Manage deployment history |
+| `/api/deployment-smoke-tests` | Manage smoke test verification records |

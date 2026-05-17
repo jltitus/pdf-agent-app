@@ -115,3 +115,45 @@ Documentation updates needed:
 ### Notes
 - Documentation-only update.
 - No application code or database schema changes required.
+
+# Version 1.8.x
+
+## Release Management System
+- Added admin release management
+- Added release planning workflow
+- Added release status tracking:
+  - planned
+  - development
+  - qa
+  - production
+  - archived
+- Added release editing
+- Added release delete/archive handling
+- Added release-to-enhancement mapping
+- Added release-to-issue mapping
+
+## Deployment Management
+- Added deployment history tracking
+- Added deployment environment logging
+- Added deployment notes support
+- Added deployment edit/delete controls
+
+## Smoke Test Tracking
+- Added deployment smoke test workflow
+- Added smoke test statuses:
+  - pending
+  - pass
+  - fail
+  - blocked
+- Added route-level verification tracking
+- Added smoke test notes and timestamps
+
+## User Experience
+- Added public “What’s New” page
+- Added version display in header/footer
+- Added responsive mobile hamburger navigation
+- Improved iPhone/mobile header usability
+
+## Admin Improvements
+- Added centralized release governance workflow
+- Added operational deployment verification process

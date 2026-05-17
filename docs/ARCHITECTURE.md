@@ -194,3 +194,40 @@ Admin-only authorization remains enforced by admin profile checks in the admin U
 ## Operational Playbook Reference
 
 The operational playbook in `docs/OPERATIONS.md` is now the primary runbook for maintaining the MFP Publication Agent. It includes architecture overview, deployment workflow, authentication flow, PDF processing workflow, OpenAI workflow, admin operations, troubleshooting, backup/recovery, and mobile testing.
+
+# Release Governance Architecture
+
+The application includes an internal release governance system supporting:
+
+- Release planning
+- Deployment tracking
+- Smoke test verification
+- Public release communication
+- Enhancement and issue association
+
+## Core Components
+
+### Releases
+Used to group enhancements, fixes, and operational deployments into versioned releases.
+
+### Deployment History
+Tracks deployment activity across:
+- production
+- preview
+- local
+
+### Smoke Testing
+Provides structured verification records for key application routes after deployment.
+
+### Public Release Notes
+The `/whats-new` route exposes production-ready release summaries to end users.
+
+## Operational Workflow
+
+1. Create release
+2. Associate enhancements/issues
+3. Deploy to environment
+4. Log deployment
+5. Execute smoke tests
+6. Publish release notes
+7. Communicate changes to users

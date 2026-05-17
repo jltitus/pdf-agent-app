@@ -343,3 +343,13 @@ git status
 git add .
 git commit -m "Update operational playbook"
 git push
+
+# Deployment Operations Workflow
+
+## Standard Deployment Process
+
+### 1. Local Validation
+Run:
+
+```bash
+npm run build
