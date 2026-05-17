@@ -97,3 +97,75 @@ The deployment smoke-test system supports automatic generation of reusable route
 
 | `/roadmap` | Public-facing product roadmap and planned enhancements |
 | `/api/public-roadmap` | Public roadmap API endpoint for user-visible enhancements |
+
+## Profile & Community Routes
+
+### `/profile`
+Authenticated user profile dashboard.
+
+Features:
+- Profile overview
+- Avatar display
+- Saved publications
+- Saved answers
+- Activity summary
+- MFP affiliation details
+- External profile links
+
+Authentication:
+- Requires authenticated session
+
+---
+
+### `/profile/edit`
+Profile management page.
+
+Features:
+- Edit profile details
+- Upload avatar
+- Configure public/private visibility
+- Update specialties/interests
+- Manage external links
+
+Authentication:
+- Requires authenticated session
+
+---
+
+### `/community`
+Public community directory.
+
+Features:
+- Search public user profiles
+- Discover MFP users
+- View shared profile information
+
+Privacy:
+- Only displays profiles where `is_profile_public = true`
+
+---
+
+## New API Routes
+
+### `/api/favorites`
+Manage saved/favorite publications.
+
+Methods:
+- GET
+- POST
+- DELETE
+
+Authentication:
+- Required
+
+---
+
+### `/api/saved-chats`
+Manage saved chat answers.
+
+Methods:
+- GET
+- POST
+
+Authentication:
+- Required

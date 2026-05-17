@@ -48,3 +48,65 @@ Features:
 - automatic version detection
 - local storage persistence
 - links to release notes page
+
+## Phase 9 Added Routes & Components
+
+### `app/profile/page.tsx`
+Authenticated user profile dashboard.
+
+Displays:
+- profile details
+- saved publications
+- saved answers
+- activity summaries
+
+---
+
+### `app/profile/edit/page.tsx`
+Profile editing interface.
+
+Supports:
+- avatar upload
+- public/private controls
+- MFP metadata
+- external links
+
+---
+
+### `app/community/page.tsx`
+Public community directory.
+
+Supports:
+- user discovery
+- search/filtering
+- public profile browsing
+
+---
+
+### `app/api/favorites/route.ts`
+API route for publication favorites.
+
+Methods:
+- GET
+- POST
+- DELETE
+
+---
+
+### `app/api/saved-chats/route.ts`
+API route for saved answers.
+
+Methods:
+- GET
+- POST
+
+---
+
+### `app/components/HeaderBar.tsx`
+Responsive application navigation/header.
+
+Features:
+- desktop nav tabs
+- mobile hamburger menu
+- active route highlighting
+- auth-aware navigation

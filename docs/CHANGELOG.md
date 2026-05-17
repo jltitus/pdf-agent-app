@@ -218,3 +218,37 @@ Documentation updates needed:
 - Added `is_public` enhancement visibility control
 - Improved enhancement lifecycle transparency
 - Improved communication of upcoming features
+
+## Phase 9 — Profiles, Community, Saved Content, Responsive Navigation
+
+### Added
+- User profile system
+- Public/private profile visibility
+- Profile editing experience
+- Avatar upload support using Supabase Storage
+- Community directory page
+- User specialties/interests metadata
+- Website/social/profile links
+- Saved/favorite publications
+- Saved chat answers
+- Activity summary widgets
+- Responsive profile dashboard
+- Mobile-friendly saved publication cards
+- Mobile-friendly saved answer cards
+- Save Answer action in chat interface
+- Community search/filtering
+- Desktop navigation redesign
+- Improved responsive header/navigation behavior
+
+### Updated
+- Header navigation converted from button-bar layout to scalable desktop nav tabs
+- Publications page enhanced with persistent favorites
+- Profile page expanded into personalized dashboard experience
+- Mobile publication cards improved for overflow handling
+- Navigation hierarchy simplified for scalability
+
+### Security / Privacy
+- Added Supabase Storage RLS policies for avatar uploads
+- Public/private community visibility enforcement
+- Saved content scoped to authenticated users
+- Favorites and saved chats protected by authenticated API routes

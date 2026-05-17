@@ -335,3 +335,62 @@ Provides:
 - release visibility
 - roadmap governance
 - operational trust
+
+# Phase 9 Architecture Updates
+
+## User Profile System
+
+The application now includes a profile-centric user experience layer.
+
+### Components
+- Profile dashboard
+- Profile editing workflow
+- Community directory
+- Saved publication system
+- Saved answer system
+- Avatar storage integration
+
+---
+
+## Saved Content Architecture
+
+### Saved Publications
+Flow:
+1. User saves publication from `/publications`
+2. Client calls `/api/favorites`
+3. API persists favorite relationship
+4. Profile dashboard loads saved publications
+
+### Saved Answers
+Flow:
+1. User saves answer from `/chat`
+2. Client calls `/api/saved-chats`
+3. API stores question/answer snapshot
+4. Profile dashboard displays saved answers
+
+---
+
+## Avatar Storage Architecture
+
+Supabase Storage bucket:
+- `profile-avatars`
+
+Storage path convention:
+- `{user_id}/{filename}`
+
+Security:
+- RLS enforced ownership rules
+- Public read access for displayed avatars
+
+---
+
+## Navigation Architecture
+
+Desktop:
+- Single-row responsive nav tabs
+- Active route highlighting
+- Lightweight scalable layout
+
+Mobile:
+- Hamburger menu navigation
+- Responsive card-based layout preserved

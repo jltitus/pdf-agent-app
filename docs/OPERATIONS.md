@@ -441,3 +441,56 @@ Do not expose:
 - internal-only tooling
 - sensitive operational changes
 - unresolved vulnerability details
+
+# Phase 9 Operational Notes
+
+## Profile Management
+
+Administrators should verify:
+- profile visibility behavior
+- avatar upload functionality
+- community directory search behavior
+- saved content persistence
+
+---
+
+## Avatar Upload Troubleshooting
+
+If uploads fail with RLS errors:
+1. Verify `profile-avatars` bucket exists
+2. Verify storage policies are applied
+3. Confirm upload path uses authenticated user ID folder
+
+---
+
+## Community Directory
+
+The community directory only surfaces:
+- authenticated user profiles
+- profiles marked public
+
+Private profiles should never appear in search results.
+
+---
+
+## Smoke Test Checklist
+
+### Profile Features
+- Edit profile
+- Upload avatar
+- Toggle public/private
+- Save specialties/interests
+- Save external links
+
+### Saved Content
+- Save publication
+- Save answer
+- Refresh persistence validation
+- Profile dashboard rendering
+
+### Responsive UX
+- Mobile navigation
+- Desktop single-row navigation
+- Publication cards
+- Profile cards
+- Community search

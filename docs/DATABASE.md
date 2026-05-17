@@ -168,3 +168,76 @@ Only enhancements where:
 are exposed through:
 - `/roadmap`
 - `/api/public-roadmap`
+
+# Phase 9 Database Additions
+
+## `profiles` table additions
+
+Additional profile-related fields:
+
+| Column | Type | Purpose |
+|---|---|---|
+| city | text | User city |
+| county | text | User county |
+| state | text | User state |
+| mfp_affiliation | text | MFP organization/affiliation |
+| specialties | text[] | User specialties/interests |
+| website_url | text | External website |
+| social_url | text | Social profile URL |
+| profile_url | text | Additional profile link |
+| avatar_url | text | Public avatar image URL |
+| bio | text | User biography |
+| is_profile_public | boolean | Community visibility |
+| last_activity_at | timestamptz | Last activity timestamp |
+| last_login_at | timestamptz | Last login timestamp |
+| last_chat_at | timestamptz | Last chat timestamp |
+| total_questions_asked | integer | Activity metric |
+
+---
+
+## `favorite_publications`
+
+Stores user-saved publications.
+
+| Column | Type |
+|---|---|
+| id | uuid |
+| user_id | uuid |
+| document_id | uuid |
+| created_at | timestamptz |
+
+Relationships:
+- `user_id → profiles.id`
+- `document_id → documents.id`
+
+---
+
+## `saved_chats`
+
+Stores user-saved chat answers.
+
+| Column | Type |
+|---|---|
+| id | uuid |
+| user_id | uuid |
+| chat_history_id | uuid nullable |
+| question | text |
+| answer | text |
+| category | text |
+| answer_mode | text |
+| notes | text nullable |
+| created_at | timestamptz |
+
+Relationships:
+- `user_id → profiles.id`
+
+---
+
+## Storage
+
+### `profile-avatars`
+Public Supabase Storage bucket for user avatars.
+
+Security:
+- Upload/update/delete restricted to authenticated owner
+- Public read access enabled
