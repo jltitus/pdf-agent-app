@@ -125,3 +125,15 @@ Enhanced AI retrieval workflow for:
 
 ### `app/chat/page.tsx`
 Updated mobile chat input behavior to prevent horizontal overflow and mobile Send button drift while typing.
+
+## Phase 10A Step 2 Citation UX Improvements
+
+### `app/chat/page.tsx`
+Enhanced chat citation rendering for:
+- expandable supporting excerpts
+- source metadata formatting
+- semantic relevance explanations
+- confidence indicator improvements
+- mobile citation readability
+- responsive source-card layouts
+- backward compatibility rendering guards for older stored chat history

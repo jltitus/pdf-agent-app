@@ -534,3 +534,33 @@ Unsupported:
 
 Follow-up:
 - conversational follow-up question
+
+## Phase 10A Step 2 Citation UX QA
+
+After citation or source-card UI changes, verify:
+
+### Citation Rendering
+- source cards render correctly
+- page numbers display correctly
+- long filenames wrap correctly
+- expandable excerpts work correctly
+
+### Retrieval Transparency
+Verify:
+- “Why this source matched” explanations display
+- primary-source indicators display
+- high-relevance indicators display
+- confidence labels display correctly
+
+### Backward Compatibility
+Verify:
+- older recent questions still open correctly
+- older saved answers still render correctly
+- no runtime rendering errors occur from missing source metadata
+
+### Mobile Validation
+Verify on iPhone and Android widths:
+- source cards do not overflow horizontally
+- expanded excerpts remain readable
+- buttons remain tappable
+- fixed chat input remains usable while excerpts are expanded

@@ -277,3 +277,28 @@ Documentation updates needed:
 - Preserved strict document-grounded answering behavior.
 - Preserved conservative safety-answer handling.
 - Preserved existing chat history, saved answers, trusted answers, and feedback workflows.
+
+## Phase 10A Step 2 — Citation UX & Source Transparency Improvements
+
+### Improved
+- Added expandable supporting source excerpts in chat answers.
+- Added clearer source metadata display including:
+  - publication title
+  - filename
+  - category
+  - page numbers
+  - supporting excerpt text
+- Added “Why this source matched” explanations.
+- Added primary-source and high-relevance visual indicators.
+- Improved confidence/evidence wording throughout chat UI.
+- Improved citation readability on desktop and mobile devices.
+- Improved source-card spacing and responsive layout handling.
+- Added backward compatibility handling for older chat history source metadata.
+
+### Mobile UX
+- Improved mobile readability for expanded source excerpts.
+- Improved overflow handling for long filenames and excerpt content.
+
+### Reliability
+- Preserved existing retrieval architecture and OpenAI Responses API behavior.
+- Preserved existing trusted-answer workflows and feedback workflows.

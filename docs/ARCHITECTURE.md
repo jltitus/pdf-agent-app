@@ -441,3 +441,45 @@ to:
 - 7 results
 
 to improve grounding and citation quality.
+
+# Phase 10A Step 2 — Citation Transparency UI
+
+## Source Transparency Layer
+
+The chat interface now exposes additional retrieval transparency metadata returned by the retrieval-ranking workflow.
+
+### Displayed Citation Metadata
+Each source card may now display:
+- publication title
+- original filename
+- publication category
+- supporting page numbers
+- supporting excerpts
+- semantic relevance indicators
+- source match explanations
+
+### Relevance Explanation Layer
+
+The retrieval workflow now returns optional human-readable relevance reasons such as:
+- matching pages detected
+- semantic alignment with the question
+- category alignment
+- corroborating excerpts found
+
+These explanations are surfaced directly in the chat UI to improve grounding transparency and user trust.
+
+### Expandable Excerpt Workflow
+
+Supporting excerpts are hidden by default and expanded on demand to:
+- reduce visual overload
+- improve mobile usability
+- reduce initial rendering complexity
+
+### Backward Compatibility Handling
+
+The UI now safely handles older stored chat history records that may not contain:
+- excerpts
+- relevance reasons
+- page arrays
+
+Fallback rendering guards prevent runtime rendering failures for older stored conversations.
