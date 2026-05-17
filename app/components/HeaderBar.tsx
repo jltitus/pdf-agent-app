@@ -70,6 +70,7 @@ export default function HeaderBar() {
     { href: '/dashboard', label: 'Home', icon: '🏠' },
     { href: '/chat', label: 'Chat', icon: '👤' },
     { href: '/publications', label: 'Publications', icon: '📚' },
+    { href: '/roadmap', label: 'Roadmap', icon: '🛣️' },
     { href: '/whats-new', label: 'What’s New', icon: '✨' },
     { href: '/help', label: 'Help', icon: '❓' },
     isAdmin
