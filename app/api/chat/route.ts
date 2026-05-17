@@ -336,7 +336,74 @@ Return only 3 follow-up questions, one per line.
     ]
   }
 }
+function isLikelyFollowUpQuestion(question: string) {
+  const normalized = question.trim().toLowerCase()
 
+  const followUpIndicators = [
+    'what about',
+    'how about',
+    'what if',
+    'can i',
+    'can you',
+    'does it',
+    'do i',
+    'should i',
+    'how long',
+    'how much',
+    'why',
+    'when',
+    'where',
+    'which',
+    'that',
+    'those',
+    'them',
+    'it',
+    'they',
+    'this',
+  ]
+
+  const shortQuestion = normalized.split(/\s+/).length <= 12
+
+  return (
+    shortQuestion &&
+    followUpIndicators.some((indicator) =>
+      normalized.startsWith(indicator)
+    )
+  )
+}
+
+function buildConversationContext(
+  conversationTurns: any[],
+  currentQuestion: string
+) {
+  if (!Array.isArray(conversationTurns)) {
+    return 'No prior conversation context.'
+  }
+
+  const recentTurns = conversationTurns.slice(-4)
+
+  if (recentTurns.length === 0) {
+    return 'No prior conversation context.'
+  }
+
+  const followUpQuestion =
+    isLikelyFollowUpQuestion(currentQuestion)
+
+  return recentTurns
+    .map((turn, index) => {
+      const answerSummary = compactText(
+        turn.answer ?? '',
+        followUpQuestion ? 350 : 180
+      )
+
+      return `
+Prior turn ${index + 1}
+Question: ${compactText(turn.question ?? '', 180)}
+Answer summary: ${answerSummary}
+`
+    })
+    .join('\n')
+}
 function modelIndicatesNotFound(answerText: string) {
   const lowerAnswer = answerText.toLowerCase()
 
@@ -578,17 +645,11 @@ export async function POST(request: Request) {
       .map((row: any) => row.openai_file_id)
       .filter(Boolean)
 
-    const recentConversationContext = Array.isArray(conversationTurns)
-      ? conversationTurns
-          .slice(-3)
-          .map(
-            (turn: any, index: number) =>
-              `Prior turn ${index + 1}
-Question: ${compactText(turn.question ?? '', 350)}
-Answer summary: ${compactText(turn.answer ?? '', 700)}`
-          )
-          .join('\n\n')
-      : ''
+    const recentConversationContext =
+  buildConversationContext(
+    conversationTurns,
+    question
+  )
 
     const response = await openai.responses.create({
       model: 'gpt-4.1-mini',
@@ -621,9 +682,16 @@ ${
 Conversation context:
 ${recentConversationContext || 'No prior conversation context.'}
 
-Use prior conversation context only to understand follow-up questions.
+Use prior conversation context only to:
+- understand follow-up questions
+- preserve conversational continuity
+- understand references like "that", "it", "those", or "what about freezing?"
+
 Do not use prior answers as evidence.
-The final answer must still be supported by active PDF search results.
+
+Every final answer must still be grounded in active PDF search results returned for THIS request.
+
+If conversation context conflicts with retrieved publication evidence, trust the retrieved publication evidence.
 
 ${getModeInstructions(answerMode)}
 
