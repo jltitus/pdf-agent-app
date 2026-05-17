@@ -1512,7 +1512,7 @@ async function deleteUser(request: AccessRequest) {
           )}
 
           <div className="sticky top-[155px] z-40 rounded-2xl border border-gray-300 bg-white/95 p-2 shadow-sm backdrop-blur sm:top-[145px] lg:top-[92px]">
-            <div className="flex gap-2 overflow-x-auto">
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
 {[
   { key: 'overview', label: 'Overview' },
   { key: 'access', label: 'Access & Invites' },
@@ -1538,8 +1538,7 @@ if (tab.key === 'releases') {
 
     setActiveTab(tab.key as any)
   }}
-                  className={`shrink-0 rounded-lg px-3 py-2 text-xs font-semibold sm:px-4 sm:text-sm ${activeTab === tab.key ? 'bg-black !text-white' : 'border border-gray-300 bg-white text-primary hover:bg-gray-100'}`}
-                >
+className={`min-h-11 rounded-lg px-3 py-2 text-xs font-semibold sm:px-4 sm:text-sm ${activeTab === tab.key ? 'bg-black !text-white' : 'border border-gray-300 bg-white text-primary hover:bg-gray-100'}`}                >
                   {tab.label}
                 </button>
               ))}
