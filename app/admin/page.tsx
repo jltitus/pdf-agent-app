@@ -1518,17 +1518,23 @@ async function deleteUser(request: AccessRequest) {
   { key: 'access', label: 'Access & Invites' },
   { key: 'documents', label: 'Documents' },
   { key: 'feedback', label: 'Feedback & Issues' },
-  { key: 'enhancements', label: 'Enhancements' },
-  { key: 'trusted', label: 'Trusted Answers' },
+{ key: 'enhancements', label: 'Enhancements' },
+{ key: 'releases', label: 'Releases' },
+{ key: 'trusted', label: 'Trusted Answers' },
 ].map((tab) => (
 <button
   key={tab.key}
   type="button"
   onClick={() => {
     if (tab.key === 'enhancements') {
-      window.location.href = '/admin/enhancements'
-      return
-    }
+  window.location.href = '/admin/enhancements'
+  return
+}
+
+if (tab.key === 'releases') {
+  window.location.href = '/admin/releases'
+  return
+}
 
     setActiveTab(tab.key as any)
   }}
