@@ -39,6 +39,17 @@ type FavoritePublication = {
   } | null
 }
 
+type SavedChat = {
+  id: string
+  chat_history_id: string | null
+  question: string
+  answer: string | null
+  category: string | null
+  answer_mode: string | null
+  notes: string | null
+  created_at: string
+}
+
 export default function ProfilePage() {
   const supabase = createClient()
 
@@ -46,6 +57,7 @@ export default function ProfilePage() {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [email, setEmail] = useState('')
   const [favorites, setFavorites] = useState<FavoritePublication[]>([])
+  const [savedChats, setSavedChats] = useState<SavedChat[]>([])
 
   useEffect(() => {
     async function loadProfile() {
@@ -70,6 +82,12 @@ export default function ProfilePage() {
       if (favoritesResponse.ok) {
         const favoritesData = await favoritesResponse.json()
         setFavorites(favoritesData.favorites ?? [])
+      }
+
+      const savedChatsResponse = await fetch('/api/saved-chats')
+      if (savedChatsResponse.ok) {
+        const savedChatsData = await savedChatsResponse.json()
+        setSavedChats(savedChatsData.chats ?? [])
       }
 
       setLoading(false)
@@ -217,6 +235,72 @@ export default function ProfilePage() {
                         </article>
                       )
                     })}
+                  </div>
+                )}
+              </section>
+
+              <section className="rounded-2xl border border-gray-300 bg-white p-5 shadow-sm">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h2 className="text-xl font-bold">Saved Answers</h2>
+                    <p className="mt-1 text-sm text-secondary">
+                      Chat answers you saved for later reference.
+                    </p>
+                  </div>
+
+                  <a
+                    href="/chat"
+                    className="min-h-11 rounded-lg border border-gray-300 bg-white px-4 py-2 text-center text-sm font-semibold text-primary shadow-sm hover:bg-gray-100"
+                  >
+                    Go to chat
+                  </a>
+                </div>
+
+                {savedChats.length === 0 ? (
+                  <div className="mt-4 rounded-xl border border-gray-300 bg-gray-50 p-4 text-sm text-secondary">
+                    No saved answers yet.
+                  </div>
+                ) : (
+                  <div className="mt-4 grid gap-3">
+                    {savedChats.map((chat) => (
+                      <article
+                        key={chat.id}
+                        className="rounded-xl border border-gray-300 bg-gray-50 p-4"
+                      >
+                        <p className="text-xs font-bold uppercase tracking-wide text-muted">
+                          Question
+                        </p>
+
+                        <h3 className="mt-1 font-bold text-primary">
+                          {chat.question}
+                        </h3>
+
+                        {chat.answer && (
+                          <div className="mt-3 rounded-xl border border-gray-200 bg-white p-3">
+                            <p className="text-xs font-bold uppercase tracking-wide text-muted">
+                              Saved answer
+                            </p>
+                            <p className="mt-2 line-clamp-6 whitespace-pre-wrap text-sm leading-6 text-secondary">
+                              {chat.answer}
+                            </p>
+                          </div>
+                        )}
+
+                        <div className="mt-3 flex flex-wrap gap-2 text-xs">
+                          <span className="rounded-full border border-gray-300 bg-white px-2 py-1 font-semibold text-secondary">
+                            {chat.answer_mode || 'general'}
+                          </span>
+
+                          <span className="rounded-full border border-gray-300 bg-white px-2 py-1 font-semibold text-secondary">
+                            {chat.category || 'all categories'}
+                          </span>
+
+                          <span className="rounded-full border border-gray-300 bg-white px-2 py-1 font-semibold text-secondary">
+                            Saved {formatDate(chat.created_at)}
+                          </span>
+                        </div>
+                      </article>
+                    ))}
                   </div>
                 )}
               </section>
