@@ -18,7 +18,8 @@ export default function HeaderBar() {
 
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null)
   const [isAdmin, setIsAdmin] = useState(false)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+
+  const appVersion = process.env.NEXT_PUBLIC_APP_VERSION || 'Not set'
 
   useEffect(() => {
     async function loadUser() {
@@ -57,21 +58,17 @@ export default function HeaderBar() {
     const active = pathname === path
 
     return [
-      'flex min-h-11 items-center justify-center rounded-xl border px-3 py-2 text-center text-sm font-semibold shadow-sm transition',
+      'flex min-h-14 items-center justify-center rounded-xl border px-2 py-2 text-center text-xs font-semibold shadow-sm transition sm:min-h-11 sm:px-3 sm:text-sm',
       active
         ? 'border-black bg-black text-white'
         : 'border-gray-300 bg-white text-primary hover:bg-gray-100',
     ].join(' ')
   }
 
-  function closeMobileMenu() {
-    setMobileMenuOpen(false)
-  }
-
   return (
     <header className="sticky top-0 z-50 border-b border-gray-300 bg-gradient-to-r from-blue-100 via-blue-50 to-green-100 text-primary shadow-sm">
       <div className="mx-auto max-w-6xl px-3 py-3 sm:px-6">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <Link href="/dashboard" className="flex min-w-0 items-center gap-3">
             <img
               src="/jar-logosm.png"
@@ -89,26 +86,19 @@ export default function HeaderBar() {
             </div>
           </Link>
 
-          <button
-            type="button"
-            onClick={() => setMobileMenuOpen((current) => !current)}
-            className="flex min-h-11 min-w-11 items-center justify-center rounded-xl border border-gray-300 bg-white px-3 py-2 text-xl font-bold text-primary shadow-sm hover:bg-gray-100 lg:hidden"
-            aria-label="Open navigation menu"
-            aria-expanded={mobileMenuOpen}
-          >
-            {mobileMenuOpen ? '×' : '☰'}
-          </button>
-
           <nav
             aria-label="Main navigation"
-            className="hidden items-center gap-2 lg:flex"
+            className="grid grid-cols-3 gap-2 sm:grid-cols-7 lg:w-auto"
           >
             <Link href="/dashboard" className={navClass('/dashboard')}>
-              🏠 Home
+              <span className="flex flex-col items-center gap-1 leading-tight sm:flex-row">
+                <span aria-hidden="true">🏠</span>
+                <span>Home</span>
+              </span>
             </Link>
 
             <Link href="/chat" className={navClass('/chat')}>
-              <span className="flex items-center gap-2">
+              <span className="flex flex-col items-center gap-1 leading-tight sm:flex-row">
                 <Image
                   src="/chat-icon.png"
                   alt=""
@@ -116,25 +106,44 @@ export default function HeaderBar() {
                   height={18}
                   className="h-5 w-5 object-contain"
                 />
-                Chat
+                <span>Chat</span>
               </span>
             </Link>
 
             <Link href="/publications" className={navClass('/publications')}>
-              📚 Publications
+              <span className="flex flex-col items-center gap-1 leading-tight sm:flex-row">
+                <span aria-hidden="true">📚</span>
+                <span>Publications</span>
+              </span>
+            </Link>
+
+            <Link href="/whats-new" className={navClass('/whats-new')}>
+              <span className="flex flex-col items-center gap-1 leading-tight sm:flex-row">
+                <span aria-hidden="true">✨</span>
+                <span>What’s New</span>
+              </span>
             </Link>
 
             <Link href="/help" className={navClass('/help')}>
-              ❓ Help
+              <span className="flex flex-col items-center gap-1 leading-tight sm:flex-row">
+                <span aria-hidden="true">❓</span>
+                <span>Help</span>
+              </span>
             </Link>
 
             {isAdmin ? (
               <Link href="/admin" className={navClass('/admin')}>
-                ⚙️ Admin
+                <span className="flex flex-col items-center gap-1 leading-tight sm:flex-row">
+                  <span aria-hidden="true">⚙️</span>
+                  <span>Admin</span>
+                </span>
               </Link>
             ) : (
               <Link href="/request-access" className={navClass('/request-access')}>
-                ➕ Access
+                <span className="flex flex-col items-center gap-1 leading-tight sm:flex-row">
+                  <span aria-hidden="true">➕</span>
+                  <span>Access</span>
+                </span>
               </Link>
             )}
 
@@ -142,7 +151,7 @@ export default function HeaderBar() {
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="flex min-h-11 items-center justify-center rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-primary shadow-sm transition hover:bg-gray-100"
+                className="flex min-h-14 items-center justify-center rounded-xl border border-gray-300 bg-white px-2 py-2 text-xs font-semibold text-primary shadow-sm transition hover:bg-gray-100 sm:min-h-11 sm:px-3 sm:text-sm"
               >
                 Sign out
               </button>
@@ -150,84 +159,26 @@ export default function HeaderBar() {
           </nav>
         </div>
 
-        {mobileMenuOpen && (
-          <nav
-            aria-label="Mobile navigation"
-            className="mt-3 grid grid-cols-2 gap-2 lg:hidden"
-          >
-            <Link
-              href="/dashboard"
-              className={navClass('/dashboard')}
-              onClick={closeMobileMenu}
-            >
-              🏠 Home
-            </Link>
-
-            <Link
-              href="/chat"
-              className={navClass('/chat')}
-              onClick={closeMobileMenu}
-            >
-              💬 Chat
-            </Link>
-
-            <Link
-              href="/publications"
-              className={navClass('/publications')}
-              onClick={closeMobileMenu}
-            >
-              📚 Publications
-            </Link>
-
-            <Link
-              href="/help"
-              className={navClass('/help')}
-              onClick={closeMobileMenu}
-            >
-              ❓ Help
-            </Link>
-
-            {isAdmin ? (
-              <Link
-                href="/admin"
-                className={navClass('/admin')}
-                onClick={closeMobileMenu}
-              >
-                ⚙️ Admin
-              </Link>
-            ) : (
-              <Link
-                href="/request-access"
-                className={navClass('/request-access')}
-                onClick={closeMobileMenu}
-              >
-                ➕ Access
-              </Link>
-            )}
-
-            {userInfo && (
-              <button
-                type="button"
-                onClick={handleSignOut}
-                className="flex min-h-11 items-center justify-center rounded-xl border border-gray-300 bg-white px-3 py-2 text-center text-sm font-semibold text-primary shadow-sm transition hover:bg-gray-100"
-              >
-                Sign out
-              </button>
-            )}
-          </nav>
-        )}
-
         {userInfo && (
-          <div className="mt-3 flex min-w-0 items-center gap-2 border-t border-gray-300 pt-2 text-xs text-primary sm:text-sm">
-            <span className="truncate font-medium text-primary">
-              {userInfo.name}
-            </span>
-
-            {isAdmin && (
-              <span className="shrink-0 rounded-full border border-gray-300 bg-white px-2 py-0.5 text-xs font-semibold text-secondary">
-                admin
+          <div className="mt-3 flex flex-col gap-2 border-t border-gray-300 pt-2 text-xs text-primary sm:flex-row sm:items-center sm:justify-between sm:text-sm">
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="truncate font-medium text-primary">
+                {userInfo.name}
               </span>
-            )}
+
+              {isAdmin && (
+                <span className="shrink-0 rounded-full border border-gray-300 bg-white px-2 py-0.5 text-xs font-semibold text-secondary">
+                  admin
+                </span>
+              )}
+            </div>
+
+            <Link
+              href="/whats-new"
+              className="w-fit text-xs font-semibold text-secondary underline hover:text-primary"
+            >
+              v{appVersion} • What’s New
+            </Link>
           </div>
         )}
       </div>
