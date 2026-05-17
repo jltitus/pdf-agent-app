@@ -77,13 +77,17 @@ export default function AdminReleasesPage() {
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
   const [message, setMessage] = useState('')
-
+const [deletingReleaseId, setDeletingReleaseId] = useState<string | null>(null)
   const [releases, setReleases] = useState<Release[]>([])
   const [deployments, setDeployments] = useState<DeploymentHistory[]>([])
   const [releaseItems, setReleaseItems] = useState<ReleaseItem[]>([])
   const [enhancements, setEnhancements] = useState<EnhancementRequest[]>([])
   const [issues, setIssues] = useState<IssueReport[]>([])
-
+const [editingDeploymentId, setEditingDeploymentId] = useState<string | null>(null)
+const [editDeploymentEnvironment, setEditDeploymentEnvironment] = useState('production')
+const [editDeploymentNotes, setEditDeploymentNotes] = useState('')
+const [savingDeploymentId, setSavingDeploymentId] = useState<string | null>(null)
+const [deletingDeploymentId, setDeletingDeploymentId] = useState<string | null>(null)
   const [version, setVersion] = useState('')
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
@@ -310,7 +314,58 @@ export default function AdminReleasesPage() {
       setSaving(false)
     }
   }
+async function deleteOrArchiveRelease(release: Release) {
+  const confirmed = window.confirm(
+    `Remove v${release.version}? If this release has deployment history, it will be archived instead of deleted.`
+  )
 
+  if (!confirmed) return
+
+  const secondConfirm = window.confirm(
+    'Are you sure? This action cannot be undone for releases that have not been deployed.'
+  )
+
+  if (!secondConfirm) return
+
+  setDeletingReleaseId(release.id)
+  setMessage('Removing release...')
+
+  try {
+    const token = await getToken()
+
+    if (!token) {
+      setMessage('You must be signed in.')
+      setDeletingReleaseId(null)
+      return
+    }
+
+    const response = await fetch('/api/releases', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        releaseId: release.id,
+      }),
+    })
+
+    const result = await response.json().catch(() => ({}))
+
+    if (!response.ok) {
+      setMessage(result.error ?? 'Could not remove release.')
+      setDeletingReleaseId(null)
+      return
+    }
+
+    setMessage(result.message ?? 'Release removed.')
+    setDeletingReleaseId(null)
+    await loadData()
+  } catch (error: unknown) {
+    setMessage(error instanceof Error ? error.message : 'Could not remove release.')
+    setDeletingReleaseId(null)
+  }
+}
   async function addItemToRelease(
     releaseId: string,
     itemType: 'enhancement' | 'issue',
@@ -447,7 +502,118 @@ export default function AdminReleasesPage() {
       setLoggingDeployment(false)
     }
   }
+function startEditDeployment(deployment: DeploymentHistory) {
+  setEditingDeploymentId(deployment.id)
+  setEditDeploymentEnvironment(deployment.environment)
+  setEditDeploymentNotes(deployment.deployment_notes || '')
+}
 
+function cancelEditDeployment() {
+  setEditingDeploymentId(null)
+  setEditDeploymentEnvironment('production')
+  setEditDeploymentNotes('')
+}
+
+async function saveDeployment(deploymentId: string) {
+  setSavingDeploymentId(deploymentId)
+  setMessage('Updating deployment history...')
+
+  try {
+    const token = await getToken()
+
+    if (!token) {
+      setMessage('You must be signed in.')
+      setSavingDeploymentId(null)
+      return
+    }
+
+    const response = await fetch('/api/deployment-history', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        deploymentId,
+        environment: editDeploymentEnvironment,
+        deploymentNotes: editDeploymentNotes,
+      }),
+    })
+
+    const result = await response.json().catch(() => ({}))
+
+    if (!response.ok) {
+      setMessage(result.error ?? 'Could not update deployment.')
+      setSavingDeploymentId(null)
+      return
+    }
+
+    setMessage('Deployment updated.')
+    setSavingDeploymentId(null)
+    cancelEditDeployment()
+    await loadDeployments()
+  } catch (error: unknown) {
+    setMessage(
+      error instanceof Error
+        ? error.message
+        : 'Could not update deployment.'
+    )
+
+    setSavingDeploymentId(null)
+  }
+}
+
+async function deleteDeployment(deploymentId: string) {
+  const confirmed = window.confirm(
+    'Delete this deployment history entry?'
+  )
+
+  if (!confirmed) return
+
+  setDeletingDeploymentId(deploymentId)
+  setMessage('Deleting deployment history...')
+
+  try {
+    const token = await getToken()
+
+    if (!token) {
+      setMessage('You must be signed in.')
+      setDeletingDeploymentId(null)
+      return
+    }
+
+    const response = await fetch('/api/deployment-history', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        deploymentId,
+      }),
+    })
+
+    const result = await response.json().catch(() => ({}))
+
+    if (!response.ok) {
+      setMessage(result.error ?? 'Could not delete deployment.')
+      setDeletingDeploymentId(null)
+      return
+    }
+
+    setMessage('Deployment history deleted.')
+    setDeletingDeploymentId(null)
+    await loadDeployments()
+  } catch (error: unknown) {
+    setMessage(
+      error instanceof Error
+        ? error.message
+        : 'Could not delete deployment.'
+    )
+
+    setDeletingDeploymentId(null)
+  }
+}
   function formatDate(value?: string | null) {
     if (!value) return '—'
     return new Date(value).toLocaleDateString()
@@ -729,13 +895,24 @@ export default function AdminReleasesPage() {
                         </div>
                       </div>
 
-                      <button
-                        type="button"
-                        onClick={() => startEditRelease(release)}
-                        className={smallButton}
-                      >
-                        Edit
-                      </button>
+                      <div className="flex flex-wrap gap-2">
+  <button
+    type="button"
+    onClick={() => startEditRelease(release)}
+    className={smallButton}
+  >
+    Edit
+  </button>
+
+  <button
+    type="button"
+    onClick={() => deleteOrArchiveRelease(release)}
+    disabled={deletingReleaseId === release.id}
+    className="rounded-lg border border-red-300 bg-white px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
+  >
+    {deletingReleaseId === release.id ? 'Removing...' : 'Delete / Archive'}
+  </button>
+</div>
                     </div>
                   </article>
                 ))}
@@ -1054,11 +1231,87 @@ export default function AdminReleasesPage() {
                         )}
                       </div>
 
-                      <p className="text-xs text-muted">
-                        {formatDateTime(deployment.deployed_at)}
-                      </p>
+                      <div className="flex flex-wrap gap-2">
+  <p className="text-xs text-muted">
+    {formatDateTime(deployment.deployed_at)}
+  </p>
+
+  <button
+    type="button"
+    onClick={() => startEditDeployment(deployment)}
+    className={smallButton}
+  >
+    Edit
+  </button>
+
+  <button
+    type="button"
+    onClick={() => deleteDeployment(deployment.id)}
+    disabled={deletingDeploymentId === deployment.id}
+    className="rounded-lg border border-red-300 bg-white px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
+  >
+    {deletingDeploymentId === deployment.id
+      ? 'Deleting...'
+      : 'Delete'}
+  </button>
+</div>
+{editingDeploymentId === deployment.id && (
+  <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50 p-4">
+    <div className="grid gap-3 md:grid-cols-2">
+      <div>
+        <label className={labelClass}>Environment</label>
+
+        <select
+          value={editDeploymentEnvironment}
+          onChange={(e) =>
+            setEditDeploymentEnvironment(e.target.value)
+          }
+          className={inputClass}
+        >
+          <option value="production">production</option>
+          <option value="preview">preview</option>
+          <option value="local">local</option>
+        </select>
+      </div>
+
+      <div className="md:col-span-2">
+        <label className={labelClass}>Deployment notes</label>
+
+        <textarea
+          value={editDeploymentNotes}
+          onChange={(e) =>
+            setEditDeploymentNotes(e.target.value)
+          }
+          className="min-h-[96px] w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-primary"
+        />
+      </div>
+    </div>
+
+    <div className="mt-4 flex flex-wrap gap-2">
+      <button
+        type="button"
+        onClick={() => saveDeployment(deployment.id)}
+        disabled={savingDeploymentId === deployment.id}
+        className={primaryButton}
+      >
+        {savingDeploymentId === deployment.id
+          ? 'Saving...'
+          : 'Save changes'}
+      </button>
+
+      <button
+        type="button"
+        onClick={cancelEditDeployment}
+        className={secondaryButton}
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
+)}
                     </div>
                   </article>
+                  
                 ))}
               </div>
             )}

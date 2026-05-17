@@ -143,3 +143,64 @@ export async function PATCH(request: NextRequest) {
 
   return NextResponse.json({ release: data })
 }
+
+export async function DELETE(request: NextRequest) {
+  const { supabase, error } = await requireAdmin(request)
+
+  if (!supabase) {
+    return NextResponse.json({ error }, { status: 401 })
+  }
+
+  const body = await request.json().catch(() => null)
+
+  if (!body?.releaseId) {
+    return NextResponse.json({ error: 'Release ID is required.' }, { status: 400 })
+  }
+
+  const { data: deploymentRows, error: deploymentError } = await supabase
+    .from('deployment_history')
+    .select('id')
+    .eq('release_id', body.releaseId)
+    .limit(1)
+
+  if (deploymentError) {
+    return NextResponse.json({ error: deploymentError.message }, { status: 500 })
+  }
+
+  if ((deploymentRows ?? []).length > 0) {
+    const { data, error: archiveError } = await supabase
+      .from('releases')
+      .update({
+        status: 'archived',
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', body.releaseId)
+      .select('*')
+      .single()
+
+    if (archiveError) {
+      return NextResponse.json({ error: archiveError.message }, { status: 500 })
+    }
+
+    return NextResponse.json({
+      release: data,
+      action: 'archived',
+      message: 'Release has deployment history, so it was archived instead of deleted.',
+    })
+  }
+
+  const { error: deleteError } = await supabase
+    .from('releases')
+    .delete()
+    .eq('id', body.releaseId)
+
+  if (deleteError) {
+    return NextResponse.json({ error: deleteError.message }, { status: 500 })
+  }
+
+  return NextResponse.json({
+    success: true,
+    action: 'deleted',
+    message: 'Release deleted.',
+  })
+}

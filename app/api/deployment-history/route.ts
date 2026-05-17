@@ -12,7 +12,10 @@ function getSupabaseForRequest(request: NextRequest) {
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    return { supabase: null, error: 'Supabase environment variables are missing.' }
+    return {
+      supabase: null,
+      error: 'Supabase environment variables are missing.',
+    }
   }
 
   const supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -49,7 +52,11 @@ async function requireAdmin(request: NextRequest) {
     .single()
 
   if (profileError || profile?.role !== 'admin' || !profile?.is_active) {
-    return { supabase: null, userId: null, error: 'Admin access required.' }
+    return {
+      supabase: null,
+      userId: null,
+      error: 'Admin access required.',
+    }
   }
 
   return { supabase, userId: user.id, error: null }
@@ -68,7 +75,10 @@ export async function GET(request: NextRequest) {
     .order('deployed_at', { ascending: false })
 
   if (historyError) {
-    return NextResponse.json({ error: historyError.message }, { status: 500 })
+    return NextResponse.json(
+      { error: historyError.message },
+      { status: 500 }
+    )
   }
 
   return NextResponse.json({ deployments: data ?? [] })
@@ -84,7 +94,10 @@ export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => null)
 
   if (!body?.releaseId) {
-    return NextResponse.json({ error: 'Release ID is required.' }, { status: 400 })
+    return NextResponse.json(
+      { error: 'Release ID is required.' },
+      { status: 400 }
+    )
   }
 
   const { data, error: insertError } = await supabase
@@ -99,7 +112,10 @@ export async function POST(request: NextRequest) {
     .single()
 
   if (insertError) {
-    return NextResponse.json({ error: insertError.message }, { status: 500 })
+    return NextResponse.json(
+      { error: insertError.message },
+      { status: 500 }
+    )
   }
 
   await supabase
@@ -112,4 +128,74 @@ export async function POST(request: NextRequest) {
     .eq('id', body.releaseId)
 
   return NextResponse.json({ deployment: data })
+}
+
+export async function PATCH(request: NextRequest) {
+  const { supabase, error } = await requireAdmin(request)
+
+  if (!supabase) {
+    return NextResponse.json({ error }, { status: 401 })
+  }
+
+  const body = await request.json().catch(() => null)
+
+  if (!body?.deploymentId) {
+    return NextResponse.json(
+      { error: 'Deployment ID is required.' },
+      { status: 400 }
+    )
+  }
+
+  const { data, error: updateError } = await supabase
+    .from('deployment_history')
+    .update({
+      environment: body.environment,
+      deployment_notes: body.deploymentNotes || null,
+    })
+    .eq('id', body.deploymentId)
+    .select('*')
+    .single()
+
+  if (updateError) {
+    return NextResponse.json(
+      { error: updateError.message },
+      { status: 500 }
+    )
+  }
+
+  return NextResponse.json({ deployment: data })
+}
+
+export async function DELETE(request: NextRequest) {
+  const { supabase, error } = await requireAdmin(request)
+
+  if (!supabase) {
+    return NextResponse.json({ error }, { status: 401 })
+  }
+
+  const body = await request.json().catch(() => null)
+
+  if (!body?.deploymentId) {
+    return NextResponse.json(
+      { error: 'Deployment ID is required.' },
+      { status: 400 }
+    )
+  }
+
+  const { error: deleteError } = await supabase
+    .from('deployment_history')
+    .delete()
+    .eq('id', body.deploymentId)
+
+  if (deleteError) {
+    return NextResponse.json(
+      { error: deleteError.message },
+      { status: 500 }
+    )
+  }
+
+  return NextResponse.json({
+    success: true,
+    message: 'Deployment history deleted.',
+  })
 }
