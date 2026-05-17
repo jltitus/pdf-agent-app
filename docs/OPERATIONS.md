@@ -93,3 +93,30 @@ Before deployment, run:
 cd ~/Documents/pdf-agent-project/pdf-agent-app
 nvm use 24
 npm run build
+
+## Phase 3 Admin Review Operations
+
+After admin workflow changes, test these production routes:
+
+- `/admin`
+- `/admin/feedback`
+- `/admin/issues`
+- `/admin/enhancements`
+
+Recommended checks:
+
+- Main admin dashboard loads.
+- Feedback review page loads and filters work.
+- Issue review page loads and status changes work.
+- Enhancement page loads.
+- Admin notes save and remain visible after refresh.
+- Issues can be marked reviewed, resolved, reopened, or enhancement candidate.
+- Enhancement requests can be created and updated.
+- Mobile widths remain usable at 360px, 390px, 430px, 768px, and desktop widths.
+
+Before deployment, run:
+
+```bash
+cd ~/Documents/pdf-agent-project/pdf-agent-app
+nvm use 24
+npm run build

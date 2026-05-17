@@ -49,3 +49,16 @@ Phase 2 mobile refinements include:
 - The empty “Ready for your question” state hides after a question is submitted or while the agent is loading.
 - Shared navigation now uses a hamburger menu on mobile and tablet widths to reduce vertical space.
 - Desktop navigation remains visible inline at large screen widths.
+
+## Phase 3 Admin Review Architecture
+
+Phase 3 expands the admin area into a more maintainable review workflow.
+
+- `app/admin/page.tsx` remains the main admin dashboard.
+- `app/admin/feedback/page.tsx` provides detailed feedback review.
+- `app/admin/issues/page.tsx` provides detailed issue review.
+- `app/admin/enhancements/page.tsx` provides enhancement request tracking.
+- `app/api/admin-notes/route.ts` supports admin notes/comments.
+- `app/api/enhancement-requests/route.ts` supports enhancement request creation and updates.
+
+The admin interface uses mobile-first card layouts for smaller screens while preserving larger-screen review workflows.

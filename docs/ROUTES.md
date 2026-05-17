@@ -24,3 +24,8 @@
 - `/api/feedback` — saves chat feedback
 - `/api/send-issue-notification` — emails issue notifications
 - `/api/trusted-answers` — manages trusted answers
+- `/admin/feedback` — detailed admin feedback review
+- `/admin/issues` — detailed admin issue review
+- `/admin/enhancements` — admin enhancement request tracking
+- `/api/admin-notes` — creates and retrieves admin notes/comments
+- `/api/enhancement-requests` — creates, lists, updates, and tracks enhancement requests

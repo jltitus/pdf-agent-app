@@ -15,3 +15,12 @@
 - Updated chat empty-state behavior so “How to use this” and “Ready for your question” hide once a question is submitted or the agent is loading.
 - Added a mobile hamburger navigation menu to reduce vertical space used by the shared header on phone and tablet widths.
 - Preserved desktop navigation and desktop chat filter behavior.
+## 2026-05-16
+- Completed Phase 3 admin improvements.
+- Improved admin mobile responsiveness and usability.
+- Converted admin access request, user invite, feedback, issue, and enhancement workflows to mobile-friendly card layouts.
+- Added detailed admin review pages for feedback and issue reports.
+- Added admin notes/comments for feedback, issue reports, and enhancement requests.
+- Added enhancement tracking workflow with a dedicated `/admin/enhancements` page.
+- Added issue status workflow support for `new`, `reviewed`, `resolved`, and `enhancement_candidate`.
+- Added direct admin navigation link to enhancement tracking.
