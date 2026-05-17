@@ -4,8 +4,25 @@ import { createClient } from '@supabase/supabase-js'
 
 export const maxDuration = 60
 
+type EvidenceStrengthLabel = 'Strong' | 'Moderate' | 'Limited' | 'Not found'
+
+type RankedSource = {
+  title: string
+  filename: string
+  category: string | null
+  version: string | null
+  pages: number[]
+  excerpts: string[]
+  relevanceScore: number
+  relevanceReasons: string[]
+}
+
 function cleanExcerpt(text: string) {
   return text.replace(/\s+/g, ' ').trim().slice(0, 700)
+}
+
+function compactText(text: string, maxLength = 1200) {
+  return text.replace(/\s+/g, ' ').trim().slice(0, maxLength)
 }
 
 function getSearchResultText(result: any): string {
@@ -18,6 +35,132 @@ function getSearchResultText(result: any): string {
   }
 
   return ''
+}
+
+function normalizeQuestion(text: string) {
+  return text
+    .toLowerCase()
+    .replace(/[^\w\s]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function getQuestionSimilarity(a: string, b: string) {
+  const wordsA = new Set(normalizeQuestion(a).split(' ').filter(Boolean))
+  const wordsB = new Set(normalizeQuestion(b).split(' ').filter(Boolean))
+
+  if (wordsA.size === 0 || wordsB.size === 0) return 0
+
+  const sharedWords = [...wordsA].filter((word) => wordsB.has(word))
+  const totalUniqueWords = new Set([...wordsA, ...wordsB]).size
+
+  return sharedWords.length / totalUniqueWords
+}
+
+function getSourceRelevanceScore({
+  question,
+  source,
+  selectedCategory,
+}: {
+  question: string
+  source: RankedSource
+  selectedCategory?: string | null
+}) {
+  const normalizedQuestion = normalizeQuestion(question)
+  const titleSimilarity = getQuestionSimilarity(question, source.title)
+  const filenameSimilarity = getQuestionSimilarity(question, source.filename)
+  const excerptSimilarity = Math.max(
+    0,
+    ...source.excerpts.map((excerpt) =>
+      getQuestionSimilarity(normalizedQuestion, excerpt)
+    )
+  )
+
+  let score = 0
+  const reasons: string[] = []
+
+  if (source.pages.length > 0) {
+    score += Math.min(source.pages.length, 4) * 10
+    reasons.push(`${source.pages.length} matching page${source.pages.length === 1 ? '' : 's'}`)
+  }
+
+  if (source.excerpts.length > 0) {
+    score += Math.min(source.excerpts.length, 3) * 15
+    reasons.push(`${source.excerpts.length} supporting excerpt${source.excerpts.length === 1 ? '' : 's'}`)
+  }
+
+  if (titleSimilarity >= 0.15) {
+    score += Math.round(titleSimilarity * 30)
+    reasons.push('title matches the question')
+  }
+
+  if (filenameSimilarity >= 0.15) {
+    score += Math.round(filenameSimilarity * 20)
+    reasons.push('filename matches the question')
+  }
+
+  if (excerptSimilarity >= 0.08) {
+    score += Math.round(excerptSimilarity * 40)
+    reasons.push('excerpt text matches the question')
+  }
+
+  if (
+    selectedCategory &&
+    selectedCategory !== 'all' &&
+    source.category === selectedCategory
+  ) {
+    score += 12
+    reasons.push('matches selected category')
+  }
+
+  return {
+    score,
+    reasons: reasons.length > 0 ? reasons : ['retrieved from active publication search'],
+  }
+}
+
+function getEvidenceStrength(sources: RankedSource[]) {
+  const pageCount = sources.reduce(
+    (total, source) => total + (source.pages?.length ?? 0),
+    0
+  )
+
+  const excerptCount = sources.reduce(
+    (total, source) => total + (source.excerpts?.length ?? 0),
+    0
+  )
+
+  const documentCount = sources.length
+  const topScore = sources[0]?.relevanceScore ?? 0
+
+  if (documentCount >= 2 && pageCount >= 3 && excerptCount >= 2 && topScore >= 45) {
+    return {
+      label: 'Strong' as EvidenceStrengthLabel,
+      description:
+        'Multiple supporting pages, excerpts, or publications were found and ranked as relevant.',
+    }
+  }
+
+  if ((pageCount >= 2 || excerptCount >= 2 || documentCount >= 2) && topScore >= 25) {
+    return {
+      label: 'Moderate' as EvidenceStrengthLabel,
+      description:
+        'More than one supporting page, excerpt, or publication was found.',
+    }
+  }
+
+  if (pageCount >= 1 || excerptCount >= 1 || documentCount >= 1) {
+    return {
+      label: 'Limited' as EvidenceStrengthLabel,
+      description:
+        'Only limited supporting source evidence was found. Review the source before relying on the answer.',
+    }
+  }
+
+  return {
+    label: 'Not found' as EvidenceStrengthLabel,
+    description: 'No supporting source evidence was found.',
+  }
 }
 
 function getModeInstructions(answerMode: string) {
@@ -130,64 +273,6 @@ Bottom Line
 `
 }
 
-function getEvidenceStrength(sources: any[]) {
-  const pageCount = sources.reduce(
-    (total, source) => total + (source.pages?.length ?? 0),
-    0
-  )
-
-  const excerptCount = sources.reduce(
-    (total, source) => total + (source.excerpts?.length ?? 0),
-    0
-  )
-
-  const evidenceCount = Math.max(pageCount, excerptCount)
-
-  if (evidenceCount >= 3) {
-    return {
-      label: 'Strong',
-      description: 'Multiple supporting pages or excerpts were found.',
-    }
-  }
-
-  if (evidenceCount === 2) {
-    return {
-      label: 'Moderate',
-      description: 'More than one supporting page or excerpt was found.',
-    }
-  }
-
-  if (evidenceCount === 1) {
-    return {
-      label: 'Limited',
-      description: 'Only one supporting page or excerpt was found.',
-    }
-  }
-
-  return {
-    label: 'Not found',
-    description: 'No supporting source evidence was found.',
-  }
-}
-function normalizeQuestion(text: string) {
-  return text
-    .toLowerCase()
-    .replace(/[^\w\s]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-}
-function getQuestionSimilarity(a: string, b: string) {
-  const wordsA = new Set(normalizeQuestion(a).split(' ').filter(Boolean))
-  const wordsB = new Set(normalizeQuestion(b).split(' ').filter(Boolean))
-
-  if (wordsA.size === 0 || wordsB.size === 0) return 0
-
-  const sharedWords = [...wordsA].filter((word) => wordsB.has(word))
-  const totalUniqueWords = new Set([...wordsA, ...wordsB]).size
-
-  return sharedWords.length / totalUniqueWords
-}
-
 async function generateSuggestedFollowUps({
   openai,
   question,
@@ -216,13 +301,13 @@ Rules:
 `,
       input: `
 Original question:
-${question}
+${compactText(question, 500)}
 
 Answer mode:
 ${answerMode}
 
 Answer:
-${answer}
+${compactText(answer, 1600)}
 
 Return only 3 follow-up questions, one per line.
 `,
@@ -250,6 +335,36 @@ Return only 3 follow-up questions, one per line.
       'What should I avoid doing?',
     ]
   }
+}
+
+function modelIndicatesNotFound(answerText: string) {
+  const lowerAnswer = answerText.toLowerCase()
+
+  return (
+    lowerAnswer.includes("i can't find") ||
+    lowerAnswer.includes("i couldn’t find") ||
+    lowerAnswer.includes("i couldn't find") ||
+    lowerAnswer.includes("i can’t find") ||
+    lowerAnswer.includes('no supported') ||
+    lowerAnswer.includes('not found') ||
+    lowerAnswer.includes('could not find') ||
+    lowerAnswer.includes("can't find information") ||
+    lowerAnswer.includes('cannot find information') ||
+    lowerAnswer.includes('not clearly supported')
+  )
+}
+
+function buildFallbackAnswer() {
+  return `I couldn’t find a supported answer in the selected publications.
+
+Try:
+- Rephrasing your question
+- Selecting “All categories”
+- Selecting “All publications”
+- Asking about a specific publication title
+- Checking whether the publication has been uploaded and processed
+
+Because this app is source-grounded, it will only answer when it can find support in the uploaded documents.`
 }
 
 export async function POST(request: Request) {
@@ -315,80 +430,83 @@ export async function POST(request: Request) {
     if (docsError) {
       return NextResponse.json({ error: docsError.message }, { status: 500 })
     }
-const normalizedUserQuestion = normalizeQuestion(question)
 
-const { data: trustedAnswers } = await supabaseAdmin
-  .from('trusted_answers')
-  .select('id, question, answer, category, answer_mode, sources')
-  .eq('is_active', true)
-
-const trustedCandidates = (trustedAnswers ?? [])
-  .map((trusted) => {
-    const categoryMatches =
-      !trusted.category ||
-      category === 'all' ||
-      trusted.category === category
-
-    const modeMatches =
-      !trusted.answer_mode ||
-      trusted.answer_mode === 'general' ||
-      trusted.answer_mode === answerMode
-
-    const similarity = getQuestionSimilarity(question, trusted.question)
-
-    return {
-      ...trusted,
-      similarity,
-      categoryMatches,
-      modeMatches,
-    }
-  })
-  .filter((trusted) => trusted.categoryMatches && trusted.modeMatches)
-  .sort((a, b) => b.similarity - a.similarity)
-
-const trustedMatch = trustedCandidates[0]
-
-const trustedMatchThreshold = 0.55
-
-if (trustedMatch && trustedMatch.similarity >= trustedMatchThreshold) {
-  const evidenceStrength = {
-  label: 'Strong',
-  description:
-    'This is a trusted answer saved by an administrator. Match confidence: ' +
-    Math.round(trustedMatch.similarity * 100) +
-    '%.',
-}
-
-  const suggestedFollowUps = await generateSuggestedFollowUps({
-    openai: new OpenAI({ apiKey: process.env.OPENAI_API_KEY! }),
-    question,
-    answer: trustedMatch.answer,
-    answerMode,
-  })
-
-  const { data: historyRow } = await supabaseAdmin
-    .from('chat_history')
-    .insert({
-      user_id: user.id,
-      question,
-      answer: trustedMatch.answer,
-      category: category ?? null,
-      answer_mode: answerMode ?? 'general',
-      sources: trustedMatch.sources ?? [],
-      evidence_strength: evidenceStrength,
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY!,
     })
-    .select('id')
-    .single()
 
-  return NextResponse.json({
-    answer: trustedMatch.answer,
-    sources: trustedMatch.sources ?? [],
-    evidenceStrength,
-    chatHistoryId: historyRow?.id ?? null,
-    suggestedFollowUps,
-    trustedAnswer: true,
-  })
-}
+    const { data: trustedAnswers } = await supabaseAdmin
+      .from('trusted_answers')
+      .select('id, question, answer, category, answer_mode, sources')
+      .eq('is_active', true)
+
+    const trustedCandidates = (trustedAnswers ?? [])
+      .map((trusted) => {
+        const categoryMatches =
+          !trusted.category ||
+          category === 'all' ||
+          trusted.category === category
+
+        const modeMatches =
+          !trusted.answer_mode ||
+          trusted.answer_mode === 'general' ||
+          trusted.answer_mode === answerMode
+
+        const similarity = getQuestionSimilarity(question, trusted.question)
+
+        return {
+          ...trusted,
+          similarity,
+          categoryMatches,
+          modeMatches,
+        }
+      })
+      .filter((trusted) => trusted.categoryMatches && trusted.modeMatches)
+      .sort((a, b) => b.similarity - a.similarity)
+
+    const trustedMatch = trustedCandidates[0]
+    const trustedMatchThreshold = 0.62
+
+    if (trustedMatch && trustedMatch.similarity >= trustedMatchThreshold) {
+      const evidenceStrength = {
+        label: 'Strong' as EvidenceStrengthLabel,
+        description:
+          'This is a trusted answer saved by an administrator. Match confidence: ' +
+          Math.round(trustedMatch.similarity * 100) +
+          '%.',
+      }
+
+      const suggestedFollowUps = await generateSuggestedFollowUps({
+        openai,
+        question,
+        answer: trustedMatch.answer,
+        answerMode,
+      })
+
+      const { data: historyRow } = await supabaseAdmin
+        .from('chat_history')
+        .insert({
+          user_id: user.id,
+          question,
+          answer: trustedMatch.answer,
+          category: category ?? null,
+          answer_mode: answerMode ?? 'general',
+          sources: trustedMatch.sources ?? [],
+          evidence_strength: evidenceStrength,
+        })
+        .select('id')
+        .single()
+
+      return NextResponse.json({
+        answer: trustedMatch.answer,
+        sources: trustedMatch.sources ?? [],
+        evidenceStrength,
+        chatHistoryId: historyRow?.id ?? null,
+        suggestedFollowUps,
+        trustedAnswer: true,
+      })
+    }
+
     if (!activeDocs || activeDocs.length === 0) {
       return NextResponse.json({
         answer:
@@ -462,19 +580,15 @@ if (trustedMatch && trustedMatch.similarity >= trustedMatchThreshold) {
 
     const recentConversationContext = Array.isArray(conversationTurns)
       ? conversationTurns
-          .slice(-4)
+          .slice(-3)
           .map(
             (turn: any, index: number) =>
               `Prior turn ${index + 1}
-Question: ${turn.question}
-Answer: ${turn.answer}`
+Question: ${compactText(turn.question ?? '', 350)}
+Answer summary: ${compactText(turn.answer ?? '', 700)}`
           )
           .join('\n\n')
       : ''
-
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY!,
-    })
 
     const response = await openai.responses.create({
       model: 'gpt-4.1-mini',
@@ -533,7 +647,7 @@ Evidence rules:
         {
           type: 'file_search',
           vector_store_ids: [process.env.OPENAI_VECTOR_STORE_ID!],
-          max_num_results: 5,
+          max_num_results: 7,
         },
       ] as any,
     })
@@ -621,47 +735,43 @@ Evidence rules:
       }
     }
 
-    const sources = Object.values(groupedSources).map((doc) => ({
-      title: doc.title,
-      filename: doc.filename,
-      category: doc.category,
-      version: doc.version,
-      pages: Array.from(doc.pages).sort((a, b) => a - b),
-      excerpts: doc.excerpts.slice(0, 3),
-    }))
+    const sources: RankedSource[] = Object.values(groupedSources)
+      .map((doc) => {
+        const baseSource: RankedSource = {
+          title: doc.title,
+          filename: doc.filename,
+          category: doc.category,
+          version: doc.version,
+          pages: Array.from(doc.pages).sort((a, b) => a - b).slice(0, 8),
+          excerpts: doc.excerpts.slice(0, 3),
+          relevanceScore: 0,
+          relevanceReasons: [],
+        }
+
+        const relevance = getSourceRelevanceScore({
+          question,
+          source: baseSource,
+          selectedCategory: category,
+        })
+
+        return {
+          ...baseSource,
+          relevanceScore: relevance.score,
+          relevanceReasons: relevance.reasons,
+        }
+      })
+      .sort((a, b) => b.relevanceScore - a.relevanceScore)
+      .slice(0, 5)
 
     const answerText = response.output_text ?? ''
-
-    const lowerAnswer = answerText.toLowerCase()
-
-const modelSaysNotFound =
-  lowerAnswer.includes("i can't find") ||
-  lowerAnswer.includes("i couldn’t find") ||
-  lowerAnswer.includes("i couldn't find") ||
-  lowerAnswer.includes("i can’t find") ||
-  lowerAnswer.includes("no supported") ||
-  lowerAnswer.includes("not found") ||
-  lowerAnswer.includes("could not find") ||
-  lowerAnswer.includes("can't find information") ||
-  lowerAnswer.includes("cannot find information")
-
     const noEvidence =
-      sources.length === 0 || citedFileIds.size === 0 || modelSaysNotFound
+      sources.length === 0 || citedFileIds.size === 0 || modelIndicatesNotFound(answerText)
 
     if (noEvidence) {
-      const fallbackAnswer = `I couldn’t find a supported answer in the selected publications.
-
-Try:
-- Rephrasing your question
-- Selecting “All categories”
-- Selecting “All publications”
-- Asking about a specific publication title
-- Checking whether the publication has been uploaded and processed
-
-Because this app is source-grounded, it will only answer when it can find support in the uploaded documents.`
+      const fallbackAnswer = buildFallbackAnswer()
 
       const evidenceStrength = {
-        label: 'Not found',
+        label: 'Not found' as EvidenceStrengthLabel,
         description:
           'No relevant supporting content was found in the selected publications.',
       }
