@@ -666,3 +666,19 @@ Verify:
 - citation cards remain readable
 - relevance explanations still render correctly
 - expanded excerpts still function correctly
+
+## Phase 10 Final Production Smoke Test
+
+After Phase 10 deployment, verify:
+
+- `/chat` answers grounded questions with citations
+- source excerpts expand and collapse correctly
+- follow-up questions preserve context without topic drift
+- unsupported questions return safe fallback responses
+- `/publications` loads without summary controls
+- publication Save works
+- Open PDF works
+- `/profile` saved publications display correctly
+- `/admin` overview loads
+- admin AI quality analytics display correctly
+- no browser console errors appear on core pages

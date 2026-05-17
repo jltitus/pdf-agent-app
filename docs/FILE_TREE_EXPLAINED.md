@@ -175,3 +175,20 @@ Enhanced retrieval orchestration workflow for:
 - topic-aware trusted-answer matching
 - retrieval drift reduction
 - preservation-specific citation relevance improvements
+
+## Phase 10 Stabilization
+
+### `app/api/chat/route.ts`
+Enhanced AI chat orchestration for retrieval ranking, citation grounding, follow-up context, semantic topic weighting, and trusted-answer matching.
+
+### `app/chat/page.tsx`
+Enhanced citation transparency, source excerpt display, mobile chat stability, and confidence indicator UX.
+
+### `app/admin/page.tsx`
+Enhanced admin dashboard visibility for AI quality and confidence monitoring.
+
+### `app/api/admin-analytics/route.ts`
+Enhanced analytics aggregation for AI answer confidence monitoring.
+
+### `app/publications/PublicationsTable.tsx`
+Restored stable publication list behavior after removing optional publication summary controls.

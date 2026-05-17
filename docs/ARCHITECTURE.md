@@ -614,3 +614,16 @@ Trusted-answer similarity scoring now includes:
 - semantic similarity boosting
 
 This improves trusted-answer recall while reducing unrelated trusted-answer matches.
+
+# Phase 10 Stabilization
+
+Phase 10 focused on improving the AI answer quality layer while preserving the existing production architecture.
+
+Key improvements included:
+- retrieval ranking
+- citation transparency
+- conversational follow-up context
+- semantic topic weighting
+- admin AI quality monitoring
+
+The optional publication summary workflow was removed because summaries were not core to the app’s purpose and introduced additional cost, latency, and maintenance surface. The app remains focused on grounded AI answers with citations and direct source access.

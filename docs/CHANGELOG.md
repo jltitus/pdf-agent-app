@@ -378,3 +378,17 @@ Documentation updates needed:
 - Preserved strict document-grounded answer behavior.
 - Preserved unsupported-answer fallback workflows.
 - Preserved OpenAI Responses API vector search architecture.
+
+## Phase 10 — AI Quality, Citation UX, and Stabilization
+
+### Improved
+- Improved AI answer grounding, retrieval ranking, citation transparency, and source relevance.
+- Improved conversational follow-up handling and topic continuity.
+- Added semantic preservation-topic weighting for retrieval and trusted-answer matching.
+- Added admin AI quality analytics for confidence monitoring.
+- Improved mobile chat stability and citation readability.
+- Removed optional publication summary feature to preserve reliability, reduce cost, and keep the app focused on grounded answers with citations.
+
+### Stabilized
+- Preserved existing Publications, Favorites, Chat, Admin, Profile, and PDF viewing workflows.
+- Removed unused publication summary route/UI after determining it was not needed for the app.
