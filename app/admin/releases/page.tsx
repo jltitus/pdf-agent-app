@@ -17,7 +17,17 @@ type Release = {
   created_at: string
   updated_at: string
 }
-
+type SmokeTest = {
+  id: string
+  deployment_id: string
+  route_path: string
+  test_status: 'pending' | 'pass' | 'fail' | 'blocked'
+  notes: string | null
+  tested_by: string | null
+  tested_at: string | null
+  created_at: string
+  updated_at: string
+}
 type DeploymentHistory = {
   id: string
   release_id: string | null
@@ -73,7 +83,14 @@ const statusOptions: ReleaseStatus[] = [
 
 export default function AdminReleasesPage() {
   const supabase = createClient()
-
+const [smokeTests, setSmokeTests] = useState<SmokeTest[]>([])
+const [smokeDeploymentId, setSmokeDeploymentId] = useState('')
+const [smokeRoutePath, setSmokeRoutePath] = useState('/admin/releases')
+const [smokeStatus, setSmokeStatus] = useState<'pending' | 'pass' | 'fail' | 'blocked'>('pending')
+const [smokeNotes, setSmokeNotes] = useState('')
+const [savingSmokeTest, setSavingSmokeTest] = useState(false)
+const [updatingSmokeTestId, setUpdatingSmokeTestId] = useState<string | null>(null)
+const [deletingSmokeTestId, setDeletingSmokeTestId] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [isAdmin, setIsAdmin] = useState(false)
   const [message, setMessage] = useState('')
@@ -152,15 +169,169 @@ const [deletingDeploymentId, setDeletingDeploymentId] = useState<string | null>(
   }
 
   async function loadData() {
-    await Promise.all([
-      loadReleases(),
-      loadDeployments(),
-      loadReleaseItems(),
-      loadEnhancements(),
-      loadIssues(),
-    ])
+  await Promise.all([
+    loadReleases(),
+    loadDeployments(),
+    loadReleaseItems(),
+    loadEnhancements(),
+    loadIssues(),
+    loadSmokeTests(),
+  ])
+}
+async function loadSmokeTests() {
+  const token = await getToken()
+  if (!token) return
+
+  const response = await fetch('/api/deployment-smoke-tests', {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+
+  const result = await response.json().catch(() => ({}))
+
+  if (!response.ok) {
+    setMessage(result.error ?? 'Could not load smoke tests.')
+    return
   }
 
+  setSmokeTests(result.smokeTests ?? [])
+}
+
+async function addSmokeTest(e: React.FormEvent<HTMLFormElement>) {
+  e.preventDefault()
+  setSavingSmokeTest(true)
+  setMessage('Adding smoke test...')
+
+  try {
+    const token = await getToken()
+
+    if (!token) {
+      setMessage('You must be signed in.')
+      setSavingSmokeTest(false)
+      return
+    }
+
+    const response = await fetch('/api/deployment-smoke-tests', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        deploymentId: smokeDeploymentId,
+        routePath: smokeRoutePath,
+        testStatus: smokeStatus,
+        notes: smokeNotes,
+      }),
+    })
+
+    const result = await response.json().catch(() => ({}))
+
+    if (!response.ok) {
+      setMessage(result.error ?? 'Could not add smoke test.')
+      setSavingSmokeTest(false)
+      return
+    }
+
+    setMessage('Smoke test added.')
+    setSmokeRoutePath('/admin/releases')
+    setSmokeStatus('pending')
+    setSmokeNotes('')
+    setSavingSmokeTest(false)
+    await loadSmokeTests()
+  } catch (error: unknown) {
+    setMessage(error instanceof Error ? error.message : 'Could not add smoke test.')
+    setSavingSmokeTest(false)
+  }
+}
+
+async function updateSmokeTestStatus(
+  smokeTest: SmokeTest,
+  testStatus: 'pending' | 'pass' | 'fail' | 'blocked'
+) {
+  setUpdatingSmokeTestId(smokeTest.id)
+  setMessage('Updating smoke test...')
+
+  try {
+    const token = await getToken()
+
+    if (!token) {
+      setMessage('You must be signed in.')
+      setUpdatingSmokeTestId(null)
+      return
+    }
+
+    const response = await fetch('/api/deployment-smoke-tests', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        smokeTestId: smokeTest.id,
+        routePath: smokeTest.route_path,
+        testStatus,
+        notes: smokeTest.notes,
+      }),
+    })
+
+    const result = await response.json().catch(() => ({}))
+
+    if (!response.ok) {
+      setMessage(result.error ?? 'Could not update smoke test.')
+      setUpdatingSmokeTestId(null)
+      return
+    }
+
+    setMessage('Smoke test updated.')
+    setUpdatingSmokeTestId(null)
+    await loadSmokeTests()
+  } catch (error: unknown) {
+    setMessage(error instanceof Error ? error.message : 'Could not update smoke test.')
+    setUpdatingSmokeTestId(null)
+  }
+}
+
+async function deleteSmokeTest(smokeTestId: string) {
+  const confirmed = window.confirm('Delete this smoke test?')
+  if (!confirmed) return
+
+  setDeletingSmokeTestId(smokeTestId)
+  setMessage('Deleting smoke test...')
+
+  try {
+    const token = await getToken()
+
+    if (!token) {
+      setMessage('You must be signed in.')
+      setDeletingSmokeTestId(null)
+      return
+    }
+
+    const response = await fetch('/api/deployment-smoke-tests', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ smokeTestId }),
+    })
+
+    const result = await response.json().catch(() => ({}))
+
+    if (!response.ok) {
+      setMessage(result.error ?? 'Could not delete smoke test.')
+      setDeletingSmokeTestId(null)
+      return
+    }
+
+    setMessage('Smoke test deleted.')
+    setDeletingSmokeTestId(null)
+    await loadSmokeTests()
+  } catch (error: unknown) {
+    setMessage(error instanceof Error ? error.message : 'Could not delete smoke test.')
+    setDeletingSmokeTestId(null)
+  }
+}
   async function loadReleases() {
     const token = await getToken()
     if (!token) return
@@ -216,18 +387,40 @@ const [deletingDeploymentId, setDeletingDeploymentId] = useState<string | null>(
   }
 
   async function loadEnhancements() {
-    const { data, error } = await supabase
-      .from('enhancement_requests')
-      .select('id, title, description, status, priority, category, release_status, created_at')
-      .order('created_at', { ascending: false })
+  const token = await getToken()
 
-    if (error) {
-      setEnhancements([])
-      return
-    }
-
-    setEnhancements((data ?? []) as EnhancementRequest[])
+  if (!token) {
+    setEnhancements([])
+    return
   }
+
+  const response = await fetch('/api/enhancement-requests?status=all', {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  })
+
+  const result = await response.json().catch(() => ({}))
+
+  if (!response.ok) {
+    setMessage(result.error ?? 'Could not load enhancements.')
+    setEnhancements([])
+    return
+  }
+
+  setEnhancements(
+    (result.enhancements ?? []).map((item: any) => ({
+      id: item.id,
+      title: item.title,
+      description: item.description ?? null,
+      status: item.status ?? 'new',
+      priority: item.priority ?? 'medium',
+      category: null,
+      release_status: null,
+      created_at: item.created_at,
+    }))
+  )
+}
 
   async function loadIssues() {
     const { data, error } = await supabase
@@ -513,7 +706,12 @@ function cancelEditDeployment() {
   setEditDeploymentEnvironment('production')
   setEditDeploymentNotes('')
 }
-
+function getSmokeStatusClass(status: string) {
+  if (status === 'pass') return 'bg-green-100 text-green-700'
+  if (status === 'fail') return 'bg-red-100 text-red-700'
+  if (status === 'blocked') return 'bg-yellow-100 text-yellow-800'
+  return 'bg-gray-100 text-secondary'
+}
 async function saveDeployment(deploymentId: string) {
   setSavingDeploymentId(deploymentId)
   setMessage('Updating deployment history...')
@@ -650,9 +848,7 @@ async function deleteDeployment(deploymentId: string) {
     releaseItems.map((item) => item.issue_report_id).filter(Boolean)
   )
 
-  const availableEnhancements = enhancements.filter(
-    (item) => !attachedEnhancementIds.has(item.id)
-  )
+  const availableEnhancements = enhancements
 
   const availableIssues = issues.filter(
     (item) =>
@@ -1310,12 +1506,144 @@ async function deleteDeployment(deploymentId: string) {
   </div>
 )}
                     </div>
+                  {smokeTests.filter((test) => test.deployment_id === deployment.id).length > 0 && (
+  <div className="mt-4 rounded-xl border border-gray-300 bg-gray-50 p-4">
+    <h4 className="font-semibold text-primary">Smoke tests</h4>
+
+    <div className="mt-3 space-y-2">
+      {smokeTests
+        .filter((test) => test.deployment_id === deployment.id)
+        .map((test) => (
+          <div key={test.id} className="rounded-xl border border-gray-300 bg-white p-3">
+            <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="font-semibold text-primary">{test.route_path}</p>
+
+                  <span
+                    className={`rounded-full px-2 py-1 text-xs font-semibold ${getSmokeStatusClass(
+                      test.test_status
+                    )}`}
+                  >
+                    {test.test_status}
+                  </span>
+                </div>
+
+                {test.notes && (
+                  <p className="mt-2 whitespace-pre-wrap text-sm text-secondary">
+                    {test.notes}
+                  </p>
+                )}
+
+                <p className="mt-2 text-xs text-muted">
+                  Tested: {formatDateTime(test.tested_at)}
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {(['pending', 'pass', 'fail', 'blocked'] as const).map((status) => (
+                  <button
+                    key={status}
+                    type="button"
+                    onClick={() => updateSmokeTestStatus(test, status)}
+                    disabled={updatingSmokeTestId === test.id}
+                    className={smallButton}
+                  >
+                    {status}
+                  </button>
+                ))}
+
+                <button
+                  type="button"
+                  onClick={() => deleteSmokeTest(test.id)}
+                  disabled={deletingSmokeTestId === test.id}
+                  className="rounded-lg border border-red-300 bg-white px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
+                >
+                  {deletingSmokeTestId === test.id ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+    </div>
+  </div>
+)}
                   </article>
                   
                 ))}
               </div>
             )}
           </section>
+          <section className={`${cardClass} space-y-4`}>
+  <div>
+    <h2 className="text-xl font-bold text-primary">Deployment smoke tests</h2>
+    <p className="text-sm text-secondary">
+      Add verification checks for each deployment before marking the release complete.
+    </p>
+  </div>
+
+  <form onSubmit={addSmokeTest} className="grid gap-4 md:grid-cols-2">
+    <div>
+      <label className={labelClass}>Deployment</label>
+      <select
+        value={smokeDeploymentId}
+        onChange={(e) => setSmokeDeploymentId(e.target.value)}
+        className={inputClass}
+        required
+      >
+        <option value="">Select deployment</option>
+        {deployments.map((deployment) => (
+          <option key={deployment.id} value={deployment.id}>
+            v{deployment.releases?.version || 'Unknown'} — {formatDateTime(deployment.deployed_at)}
+          </option>
+        ))}
+      </select>
+    </div>
+
+    <div>
+      <label className={labelClass}>Route / page tested</label>
+      <input
+        value={smokeRoutePath}
+        onChange={(e) => setSmokeRoutePath(e.target.value)}
+        placeholder="/admin/releases"
+        className={inputClass}
+        required
+      />
+    </div>
+
+    <div>
+      <label className={labelClass}>Status</label>
+      <select
+        value={smokeStatus}
+        onChange={(e) =>
+          setSmokeStatus(e.target.value as 'pending' | 'pass' | 'fail' | 'blocked')
+        }
+        className={inputClass}
+      >
+        <option value="pending">pending</option>
+        <option value="pass">pass</option>
+        <option value="fail">fail</option>
+        <option value="blocked">blocked</option>
+      </select>
+    </div>
+
+    <div className="md:col-span-2">
+      <label className={labelClass}>Notes</label>
+      <textarea
+        value={smokeNotes}
+        onChange={(e) => setSmokeNotes(e.target.value)}
+        placeholder="Example: Page loaded, release list displayed, edit/delete controls worked."
+        className="min-h-[96px] w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-primary"
+      />
+    </div>
+
+    <div className="md:col-span-2">
+      <button type="submit" disabled={savingSmokeTest} className={primaryButton}>
+        {savingSmokeTest ? 'Saving...' : 'Add smoke test'}
+      </button>
+    </div>
+  </form>
+</section>
         </div>
       </main>
     </>
