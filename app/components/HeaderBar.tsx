@@ -66,24 +66,26 @@ export default function HeaderBar() {
     ].join(' ')
   }
 
-  const navItems = [
-    { href: '/dashboard', label: 'Home', icon: '🏠' },
-    { href: '/chat', label: 'Chat', icon: '👤' },
-    { href: '/publications', label: 'Publications', icon: '📚' },
-    { href: '/roadmap', label: 'Roadmap', icon: '🛣️' },
-    { href: '/whats-new', label: 'What’s New', icon: '✨' },
-    { href: '/help', label: 'Help', icon: '❓' },
-    isAdmin
-      ? { href: '/admin', label: 'Admin', icon: '⚙️' }
-      : { href: '/request-access', label: 'Access', icon: '➕' },
-  ]
+const navItems = [
+  { href: '/dashboard', label: 'Home', icon: '🏠' },
+  { href: '/chat', label: 'Chat', icon: '👤' },
+  { href: '/publications', label: 'Publications', icon: '📚' },
+  { href: '/profile', label: 'Profile', icon: '👤' },
+  { href: '/community', label: 'Community', icon: '🌱' },
+  { href: '/roadmap', label: 'Roadmap', icon: '🛣️' },
+  { href: '/whats-new', label: 'What’s New', icon: '✨' },
+  { href: '/help', label: 'Help', icon: '❓' },
+  isAdmin
+    ? { href: '/admin', label: 'Admin', icon: '⚙️' }
+    : { href: '/request-access', label: 'Access', icon: '➕' },
+]
 
   return (
   <>
     <WhatsNewBanner />
 
     <header className="sticky top-0 z-50 border-b border-gray-300 bg-gradient-to-r from-blue-100 via-blue-50 to-green-100 text-primary shadow-sm">
-      <div className="mx-auto max-w-6xl px-3 py-3 sm:px-6">
+      <div className="mx-auto max-w-7xl px-3 py-3 sm:px-6">
 
         {/* TOP BAR */}
 
@@ -105,7 +107,7 @@ export default function HeaderBar() {
 
           <Link
             href="/dashboard"
-            className="flex min-w-0 flex-1 items-center gap-3"
+            className="flex min-w-0 shrink-0 items-center gap-3"
             onClick={() => setMenuOpen(false)}
           >
             <img
@@ -129,7 +131,7 @@ export default function HeaderBar() {
 
           <nav
             aria-label="Main navigation"
-            className="hidden items-center gap-2 lg:flex"
+            className="hidden flex-1 flex-wrap items-center justify-end gap-2 lg:flex"
           >
             {navItems.map((item) => (
               <Link
