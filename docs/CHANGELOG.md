@@ -67,3 +67,36 @@ Added columns to `profiles`:
 - Improved `/api/process-document` error handling with clearer admin-facing messages.
 - Improved replacement workflow so invalid or encrypted replacement PDFs do not archive the existing working document.
 - Improved Admin document visibility with processing status, progress, retry details, and error messages.
+
+## Phase 6 — Next.js Proxy Migration & Auth Compatibility
+
+### Updated
+- Replaced deprecated `middleware.ts` with Next.js 16 `proxy.ts`
+- Preserved Supabase SSR auth/session handling during framework migration
+- Maintained protected route behavior for authenticated and admin-only pages
+- Verified password reset and invitation setup flows continue working
+- Confirmed Vercel deployment compatibility with Next.js proxy routing
+
+### Improved
+- Removed Next.js build deprecation warning for middleware
+- Modernized request/session interception for future Next.js compatibility
+- Preserved existing cookie/session refresh behavior used by Supabase SSR auth
+
+## Phase 6B — Cleanup
+
+### Updated
+- Updated file tree documentation to replace deprecated `middleware.ts` with `proxy.ts`
+- Confirmed Phase 6 proxy migration documentation is synchronized with the current project structure
+
+## Phase 7 — Authentication & Session Hardening
+
+### Improved
+- Added centralized protected-route handling through `proxy.ts`.
+- Improved logged-out and expired-session experience with `/session-expired`.
+- Preserved Supabase SSR session refresh behavior.
+- Improved admin access-denied messaging.
+- Confirmed password reset and invitation setup flows continue to work.
+
+### Security
+- Protected authenticated app routes from logged-out access.
+- Preserved admin-only route protection for `/admin` and admin subroutes.

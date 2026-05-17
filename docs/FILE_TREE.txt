@@ -1,5 +1,5 @@
 .
-./middleware.ts
+./proxy.ts
 ./.env.local
 ./app
 ./app/icon.png

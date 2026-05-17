@@ -136,3 +136,57 @@ PDFs now move through a tracked lifecycle:
 ### Replacement Safety
 
 Replacement PDFs are validated before the existing active document is archived. If the replacement PDF is invalid or encrypted, the original document remains active.
+
+---
+
+## Phase 6 Proxy Architecture Migration
+
+### Overview
+
+The application migrated from the deprecated Next.js `middleware.ts` convention to the new `proxy.ts` convention introduced in newer Next.js releases.
+
+This preserves long-term compatibility with:
+- Next.js 16+
+- Supabase SSR authentication
+- Vercel Edge runtime behavior
+
+### Authentication Flow
+
+The root-level `proxy.ts` file now:
+
+1. Intercepts incoming requests
+2. Initializes the Supabase SSR server client
+3. Refreshes authenticated sessions when needed
+4. Synchronizes auth cookies between request and response
+5. Preserves authenticated route protection
+
+### Protected Route Compatibility
+
+The migration preserves behavior for:
+- `/dashboard`
+- `/chat`
+- `/publications`
+- `/admin`
+- Admin review routes
+- Password reset/update flows
+
+### Deployment Compatibility
+
+The proxy implementation was validated against:
+- Local Next.js development
+- Production Vercel deployment
+- Supabase SSR cookie handling
+- Edge runtime request forwarding
+
+## Phase 7 Authentication & Session Architecture
+
+Phase 7 centralizes authenticated route protection in `proxy.ts`.
+
+The proxy:
+- Uses Supabase SSR auth cookies.
+- Refreshes sessions through `createServerClient`.
+- Redirects logged-out users away from protected routes.
+- Sends expired or missing sessions to `/session-expired`.
+- Allows password setup/reset routes to continue working.
+
+Admin-only authorization remains enforced by admin profile checks in the admin UI and supporting API routes.

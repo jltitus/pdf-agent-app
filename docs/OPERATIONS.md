@@ -202,3 +202,71 @@ cd ~/Documents/pdf-agent-project/pdf-agent-app
 nvm use 24
 npm run build
 NODE_TLS_REJECT_UNAUTHORIZED=0 npm run dev
+
+## Phase 6 Proxy & Authentication Validation
+
+After authentication or framework-routing changes, validate the following:
+
+### Authentication Validation
+
+Verify:
+
+- Login succeeds
+- Session persists after refresh
+- Logout clears session correctly
+- Protected pages redirect correctly when logged out
+- Admin-only routes remain protected
+- Supabase auth cookies refresh correctly
+
+### Password Reset Validation
+
+Verify:
+
+- `/forgot-password` sends reset/setup email
+- Password reset link opens correctly
+- `/update-password` updates credentials successfully
+- User can log in after password update
+
+### Next.js Proxy Validation
+
+The application now uses:
+
+- `proxy.ts` (Next.js 16+ convention)
+
+instead of:
+
+- `middleware.ts` (deprecated)
+
+Verify after upgrades:
+
+- No middleware deprecation warnings during `npm run build`
+- Vercel deployments complete successfully
+- Edge request handling continues functioning normally
+
+### Deployment Validation
+
+Before production deployment:
+
+```bash
+cd ~/Documents/pdf-agent-project/pdf-agent-app
+nvm use 24
+npm run build
+
+## Phase 7 Auth QA
+
+After auth/session changes, verify:
+
+- Logged-out users visiting protected routes redirect to `/session-expired`.
+- Signing in again returns the user to the intended route.
+- Admin users can access `/admin`.
+- Non-admin users see access denied on `/admin`.
+- `/forgot-password` works.
+- Invitation setup links to `/update-password` work.
+- Supabase SSR auth cookies refresh correctly through `proxy.ts`.
+
+Before deployment, run:
+
+```bash
+cd ~/Documents/pdf-agent-project/pdf-agent-app
+nvm use 24
+npm run build
