@@ -120,3 +120,48 @@ Before deployment, run:
 cd ~/Documents/pdf-agent-project/pdf-agent-app
 nvm use 24
 npm run build
+
+## User Activity Tracking Operations
+
+### Tracking Events
+
+The application currently tracks:
+- Login events
+- Chat question submissions
+- General activity events
+
+### Validation Checklist
+
+After deployment verify:
+
+- `profiles.last_activity_at` updates
+- `profiles.last_login_at` updates
+- `profiles.last_chat_at` updates
+- `profiles.total_questions_asked` increments
+- Admin dashboard displays usage metrics
+- Mobile admin layout remains responsive
+
+### Troubleshooting
+
+#### Activity fields remain null
+
+Check:
+1. Supabase RPC exists:
+   - `track_profile_activity`
+2. Authenticated users have matching `profiles.id`
+3. `/api/track-user-activity` returns HTTP 200
+4. Browser network requests succeed
+
+#### Question counts incorrect
+
+Check:
+- Tracking calls occur only in primary chat submission flow
+- Retry/regenerate flows are not double-counting
+
+### Deployment Notes
+
+After deploying:
+1. Ask several chat questions
+2. Verify activity fields in Supabase
+3. Confirm Admin dashboard metrics update
+4. Test responsive layouts on mobile devices

@@ -29,3 +29,21 @@
 - `/admin/enhancements` — admin enhancement request tracking
 - `/api/admin-notes` — creates and retrieves admin notes/comments
 - `/api/enhancement-requests` — creates, lists, updates, and tracks enhancement requests
+
+### POST `/api/track-user-activity`
+
+Tracks authenticated user activity and engagement metrics.
+
+Supported activity types:
+- `login`
+- `chat`
+- `activity`
+
+Updates:
+- `last_activity_at`
+- `last_login_at`
+- `last_chat_at`
+- `total_questions_asked`
+
+Uses secure Supabase RPC:
+- `track_profile_activity`

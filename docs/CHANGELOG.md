@@ -24,3 +24,33 @@
 - Added enhancement tracking workflow with a dedicated `/admin/enhancements` page.
 - Added issue status workflow support for `new`, `reviewed`, `resolved`, and `enhancement_candidate`.
 - Added direct admin navigation link to enhancement tracking.
+## Phase 4 — User Activity Tracking & Admin Analytics
+
+### Added
+- User activity tracking for:
+  - Last activity timestamp
+  - Last login timestamp
+  - Last chat timestamp
+  - Total questions asked
+- Secure Supabase RPC function for profile activity updates
+- Admin dashboard user activity metrics
+- Mobile-friendly usage analytics display
+- Desktop usage analytics table column
+- Activity tracking API endpoint:
+  - `/api/track-user-activity`
+
+### Improved
+- More efficient profile analytics loading in Admin
+- Better visibility into user engagement and usage
+- Responsive admin analytics cards and user metrics
+
+### Security
+- Activity updates now use a Supabase `SECURITY DEFINER` RPC function
+- Tracking updates safely respect Row Level Security (RLS)
+
+### Database
+Added columns to `profiles`:
+- `last_activity_at`
+- `last_login_at`
+- `last_chat_at`
+- `total_questions_asked`

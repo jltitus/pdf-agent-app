@@ -62,3 +62,47 @@ Phase 3 expands the admin area into a more maintainable review workflow.
 - `app/api/enhancement-requests/route.ts` supports enhancement request creation and updates.
 
 The admin interface uses mobile-first card layouts for smaller screens while preserving larger-screen review workflows.
+
+
+---
+
+## User Activity Tracking Architecture
+
+### Overview
+
+Phase 4 introduced centralized user activity tracking for engagement analytics and admin reporting.
+
+Tracked metrics include:
+- Last activity
+- Last login
+- Last chat interaction
+- Total questions asked
+
+### Flow
+
+1. User logs in or submits a chat question
+2. Frontend calls:
+   - `/api/track-user-activity`
+3. API validates authenticated session
+4. API invokes Supabase RPC:
+   - `track_profile_activity`
+5. RPC updates `profiles` activity fields securely using `auth.uid()`
+
+### Security Model
+
+The architecture uses:
+- Supabase Auth
+- Row Level Security (RLS)
+- `SECURITY DEFINER` RPC function
+
+This avoids exposing direct profile updates from the client while preserving secure authenticated ownership checks.
+
+### Admin Dashboard Integration
+
+The Admin dashboard now surfaces:
+- Last activity timestamps
+- Last login timestamps
+- Last chat timestamps
+- Total questions asked
+
+Both mobile card layouts and desktop table layouts support activity visibility.

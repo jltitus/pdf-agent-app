@@ -20,3 +20,22 @@ Static assets such as icons, logos, and images.
 
 ## /docs
 Operational and architectural documentation.
+
+## Activity Tracking
+
+### app/api/track-user-activity/route.ts
+Tracks authenticated user activity including:
+- last activity
+- login tracking
+- chat tracking
+- total questions asked
+
+Uses secure Supabase RPC updates.
+
+### Admin Analytics Enhancements
+The Admin dashboard now displays:
+- last login
+- last activity
+- last chat
+- question counts
+- mobile-friendly usage metrics
