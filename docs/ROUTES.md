@@ -169,3 +169,25 @@ Methods:
 
 Authentication:
 - Required
+
+- `/admin` — admin dashboard including audit log review
+
+### Admin Audit Logs
+
+The admin dashboard now includes:
+- audit event review
+- audit search
+- audit status filtering
+- action filtering
+
+## Rate-Limited API Routes
+
+The following routes include lightweight rate limiting:
+
+- `/api/chat`
+- `/api/access-requests`
+- `/api/send-user-invite`
+- `/api/resend-user-invite`
+- `/api/process-document`
+
+Rate-limited requests return HTTP `429` with a user-safe error message.

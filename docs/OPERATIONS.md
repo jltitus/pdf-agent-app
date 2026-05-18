@@ -699,3 +699,67 @@ After deployment verify:
 - target titles appear correctly
 - actor identity is recorded
 - timestamps are accurate
+
+## Audit Log Operations
+
+### Admin Audit Review
+
+Admins can review:
+- document updates
+- document deletion
+- document replacement
+- access approvals
+- user management actions
+
+inside the Admin dashboard Audit Logs tab.
+
+### Recommended Operational Review
+
+Periodically review:
+- repeated failures
+- unexpected deletions
+- excessive retries
+- unusual admin activity
+
+### Mobile Validation
+
+Verify audit logs remain usable at:
+- 390px
+- 430px
+- 768px
+
+## Phase 11E Rate Limiting Operations
+
+### Protected Workflows
+
+- Chat questions
+- Public access requests
+- Direct admin invites
+- Resent user invites
+- PDF document processing
+
+### Validation Checklist
+
+After deployment:
+
+1. Confirm normal chat questions still work.
+2. Confirm admin document processing still works.
+3. Confirm direct invite and resend invite still work.
+4. Confirm public access request submission still works.
+5. Confirm build passes with `npm run build`.
+
+### Troubleshooting
+
+If a user receives:
+
+`Too many requests. Please wait a moment and try again.`
+
+Ask them to wait briefly and retry.
+
+### Rollback
+
+To rollback Phase 11E:
+
+1. Remove rate limit checks from affected API routes.
+2. Remove `lib/rate-limit.ts`.
+3. Rebuild and redeploy.

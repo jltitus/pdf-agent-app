@@ -192,3 +192,29 @@ Enhanced analytics aggregation for AI answer confidence monitoring.
 
 ### `app/publications/PublicationsTable.tsx`
 Restored stable publication list behavior after removing optional publication summary controls.
+
+## Admin Audit Viewer
+
+### app/admin/page.tsx
+
+The admin dashboard now includes:
+- audit log review
+- audit search/filtering
+- mobile audit cards
+- desktop audit table layouts
+
+Audit data is loaded from the `audit_logs` table for authenticated admins.
+
+## Rate Limiting
+
+### lib/rate-limit.ts
+
+Provides lightweight in-memory rate limiting for selected API routes.
+
+Used by:
+
+- `app/api/chat/route.ts`
+- `app/api/access-requests/route.ts`
+- `app/api/send-user-invite/route.ts`
+- `app/api/resend-user-invite/route.ts`
+- `app/api/process-document/route.ts`

@@ -260,3 +260,23 @@ Tracks administrative and operational audit events.
 | user_agent | text | Browser/device info |
 | metadata | jsonb | Structured audit details |
 | created_at | timestamptz | Audit timestamp |
+
+
+## audit_logs
+
+Tracks administrative and operational audit events.
+
+| Column | Type | Purpose |
+|---|---|---|
+| id | uuid | Audit event ID |
+| actor_user_id | uuid | Authenticated admin user |
+| actor_email | text | Admin email |
+| actor_role | text | User role |
+| action | text | Audit action |
+| target_type | text | Entity type affected |
+| target_id | text | Entity ID affected |
+| status | text | success or failure |
+| ip_address | text | Request IP |
+| user_agent | text | Browser/client |
+| metadata | jsonb | Additional event context |
+| created_at | timestamptz | Event timestamp |

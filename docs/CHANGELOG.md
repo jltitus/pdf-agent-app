@@ -408,3 +408,29 @@ metadata: {
   - document archive/unarchive actions
 - Added structured audit metadata including document titles and filenames.
 - Added `target_title` support to improve audit visibility and troubleshooting.
+
+## Phase 11C — Admin Audit Log Viewer
+
+### Added
+- Admin audit log viewer inside `/admin`
+- Search and filtering for audit events
+- Mobile-friendly audit log cards
+- Desktop audit log table view
+
+### Improved
+- Operational visibility into admin actions
+- Responsive admin usability for audit review
+
+### Security
+- Audit logs remain admin-only
+- Existing admin authentication and authorization behavior preserved
+
+## Phase 11E — Lightweight Rate Limiting
+
+### Added
+- Added lightweight in-memory rate limiting helper for selected API routes.
+- Protected chat, access request, admin invite, invite resend, and document processing workflows from rapid repeated requests.
+
+### Security
+- Added basic abuse protection without external infrastructure or paid services.
+- Rate limits return HTTP 429 with retry guidance when exceeded.

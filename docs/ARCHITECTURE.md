@@ -666,3 +666,40 @@ Audit events capture:
 - action status
 - target title
 - structured metadata
+
+## Phase 11C Audit Logging Review
+
+The admin dashboard now includes operational audit review capabilities.
+
+### Audit Viewer
+
+Audit events are displayed directly within:
+- `app/admin/page.tsx`
+
+Features include:
+- recent audit event loading
+- search
+- filtering
+- mobile card layouts
+- desktop table layouts
+
+### Security Model
+
+Audit events remain restricted to authenticated active admin users through the existing admin authorization checks already used by the admin dashboard.
+
+## Lightweight Rate Limiting
+
+Phase 11E added a shared helper at:
+
+- `lib/rate-limit.ts`
+
+The helper provides simple in-memory request limits for selected API routes. This is intentionally lightweight and Vercel-compatible.
+
+Protected areas include:
+
+- Chat requests
+- Public access requests
+- Admin invite workflows
+- Document processing
+
+This approach avoids external infrastructure and is appropriate for low-volume use. Because it is in-memory, limits are best-effort per server instance and may reset during cold starts or deployments.
