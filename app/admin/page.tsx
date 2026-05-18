@@ -88,22 +88,26 @@ type IssueReport = {
   created_at: string
 }
 
+type AuditLogItem = {
+  id: string
+  actor_user_id?: string | null
+  actor_email?: string | null
+  actor_role?: string | null
+  action: string
+  target_type?: string | null
+  target_id?: string | null
+  status: 'success' | 'failure' | string
+  ip_address?: string | null
+  user_agent?: string | null
+  metadata?: Record<string, unknown> | null
+  created_at: string
+}
+
 type UserAnalytics = {
   totalQuestions: number
   uniqueUsers: number
-
   modeCounts: Record<string, number>
   categoryCounts: Record<string, number>
-
-  confidenceCounts: {
-    high: number
-    medium: number
-    low: number
-    not_found: number
-  }
-
-  trustedAnswerUsage: number
-
   recentActivity: {
     id: string
     user_id: string
@@ -111,8 +115,6 @@ type UserAnalytics = {
     answer_mode?: string | null
     category?: string | null
     created_at: string
-    evidence_label?: string | null
-    used_trusted_answer?: boolean | null
   }[]
 }
 
@@ -191,29 +193,22 @@ const [deletingUserEmail, setDeletingUserEmail] = useState<string | null>(null)
 
   const [trustedAnswers, setTrustedAnswers] = useState<TrustedAnswer[]>([])
   const [issueReports, setIssueReports] = useState<IssueReport[]>([])
+  const [auditLogs, setAuditLogs] = useState<AuditLogItem[]>([])
+  const [auditSearch, setAuditSearch] = useState('')
+  const [auditStatusFilter, setAuditStatusFilter] = useState<'all' | 'success' | 'failure'>('all')
+  const [auditActionFilter, setAuditActionFilter] = useState('all')
   const [updatingIssueId, setUpdatingIssueId] = useState<string | null>(null)
   const [editingTrustedId, setEditingTrustedId] = useState<string | null>(null)
   const [trustedEditQuestion, setTrustedEditQuestion] = useState('')
   const [trustedEditAnswer, setTrustedEditAnswer] = useState('')
 
- const [userAnalytics, setUserAnalytics] = useState<UserAnalytics>({
-  totalQuestions: 0,
-  uniqueUsers: 0,
-
-  modeCounts: {},
-  categoryCounts: {},
-
-  confidenceCounts: {
-    high: 0,
-    medium: 0,
-    low: 0,
-    not_found: 0,
-  },
-
-  trustedAnswerUsage: 0,
-
-  recentActivity: [],
-})
+  const [userAnalytics, setUserAnalytics] = useState<UserAnalytics>({
+    totalQuestions: 0,
+    uniqueUsers: 0,
+    modeCounts: {},
+    categoryCounts: {},
+    recentActivity: [],
+  })
 
   const [title, setTitle] = useState('')
   const [category, setCategory] = useState('')
@@ -261,7 +256,7 @@ const [deletingUserEmail, setDeletingUserEmail] = useState<string | null>(null)
     'all' | 'pending' | 'approved' | 'declined'
   >('all')
   const [activeTab, setActiveTab] = useState<
-    'overview' | 'access' | 'documents' | 'feedback' | 'trusted'
+    'overview' | 'access' | 'documents' | 'feedback' | 'audit' | 'trusted'
   >('overview')
 
   const [approvedUserInfo, setApprovedUserInfo] = useState<{
@@ -322,6 +317,7 @@ const [deletingUserEmail, setDeletingUserEmail] = useState<string | null>(null)
     await loadUserAnalytics()
     await loadTrustedAnswers()
     await loadIssueReports()
+    await loadAuditLogs()
   }
 
   async function loadDocuments() {
@@ -486,28 +482,32 @@ const [deletingUserEmail, setDeletingUserEmail] = useState<string | null>(null)
     setIssueReports(data as IssueReport[])
   }
 
+  async function loadAuditLogs() {
+    const { data, error } = await supabase
+      .from('audit_logs')
+      .select('id, actor_user_id, actor_email, actor_role, action, target_type, target_id, status, ip_address, user_agent, metadata, created_at')
+      .order('created_at', { ascending: false })
+      .limit(100)
+
+    if (error || !data) {
+      setAuditLogs([])
+      return
+    }
+
+    setAuditLogs(data as AuditLogItem[])
+  }
+
 async function loadUserAnalytics() {
   const token = await getToken()
 
   if (!token) {
     setUserAnalytics({
-  totalQuestions: 0,
-  uniqueUsers: 0,
-
-  modeCounts: {},
-  categoryCounts: {},
-
-  confidenceCounts: {
-    high: 0,
-    medium: 0,
-    low: 0,
-    not_found: 0,
-  },
-
-  trustedAnswerUsage: 0,
-
-  recentActivity: [],
-})
+      totalQuestions: 0,
+      uniqueUsers: 0,
+      modeCounts: {},
+      categoryCounts: {},
+      recentActivity: [],
+    })
     return
   }
 
@@ -528,19 +528,9 @@ async function loadUserAnalytics() {
   setUserAnalytics({
     totalQuestions: result.totalQuestions ?? 0,
     uniqueUsers: result.uniqueUsers ?? 0,
-modeCounts: result.modeCounts ?? {},
-categoryCounts: result.categoryCounts ?? {},
-
-confidenceCounts: result.confidenceCounts ?? {
-  high: 0,
-  medium: 0,
-  low: 0,
-  not_found: 0,
-},
-
-trustedAnswerUsage: result.trustedAnswerUsage ?? 0,
-
-recentActivity: result.recentActivity ?? [],
+    modeCounts: result.modeCounts ?? {},
+    categoryCounts: result.categoryCounts ?? {},
+    recentActivity: result.recentActivity ?? [],
   })
 }
 
@@ -1387,6 +1377,27 @@ async function deleteUser(request: AccessRequest) {
     return matchesStatus && matchesSearch
   })
 
+  const auditActionOptions = Array.from(
+    new Set(auditLogs.map((log) => log.action).filter(Boolean))
+  ).sort()
+
+  const filteredAuditLogs = auditLogs.filter((log) => {
+    const search = auditSearch.trim().toLowerCase()
+    const metadataText = formatAuditMetadata(log.metadata).toLowerCase()
+    const matchesStatus = auditStatusFilter === 'all' || log.status === auditStatusFilter
+    const matchesAction = auditActionFilter === 'all' || log.action === auditActionFilter
+    const matchesSearch =
+      !search ||
+      log.action.toLowerCase().includes(search) ||
+      (log.actor_email ?? '').toLowerCase().includes(search) ||
+      (log.actor_role ?? '').toLowerCase().includes(search) ||
+      (log.target_type ?? '').toLowerCase().includes(search) ||
+      (log.target_id ?? '').toLowerCase().includes(search) ||
+      metadataText.includes(search)
+
+    return matchesStatus && matchesAction && matchesSearch
+  })
+
   const totalPages = documents.reduce((sum, doc) => sum + (doc.page_count ?? 0), 0)
 
   const filteredDocumentsForAdmin = documents.filter((doc) => {
@@ -1450,6 +1461,22 @@ async function deleteUser(request: AccessRequest) {
     return 'no profile'
   }
 
+  function getAuditStatusClass(status: string) {
+    if (status === 'success') return 'bg-green-100 text-green-700'
+    if (status === 'failure') return 'bg-red-100 text-red-700'
+    return 'bg-gray-100 text-secondary'
+  }
+
+  function formatAuditMetadata(metadata?: Record<string, unknown> | null) {
+    if (!metadata || Object.keys(metadata).length === 0) return '—'
+
+    try {
+      return JSON.stringify(metadata)
+    } catch {
+      return 'Metadata unavailable'
+    }
+  }
+
   function exportFeedbackCSV() {
     if (feedback.length === 0) return
     const headers = ['Question', 'Answer', 'Feedback Type', 'Date']
@@ -1510,26 +1537,16 @@ async function deleteUser(request: AccessRequest) {
   }
 
   if (!isAdmin) {
-  return (
-    <>
-      <HeaderBar />
-      <main className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 px-4 py-8 text-primary">
-        <section className="mx-auto max-w-lg rounded-2xl border border-gray-300 bg-white p-6 shadow-sm">
+    return (
+      <>
+        <HeaderBar />
+        <main className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 p-8 text-primary">
           <h1 className="text-2xl font-bold text-primary">Access denied</h1>
-          <p className="mt-2 text-sm leading-6 text-secondary">
-            You must be signed in with an active admin account to manage this app.
-          </p>
-          <a
-            href="/dashboard"
-            className="mt-5 inline-flex min-h-11 items-center justify-center rounded-xl bg-black px-4 py-2 text-sm font-semibold !text-white"
-          >
-            Back to dashboard
-          </a>
-        </section>
-      </main>
-    </>
-  )
-}
+          <p className="mt-2 text-secondary">You must be an admin to manage this app.</p>
+        </main>
+      </>
+    )
+  }
 
   return (
     <>
@@ -1557,37 +1574,33 @@ async function deleteUser(request: AccessRequest) {
           )}
 
           <div className="sticky top-[155px] z-40 rounded-2xl border border-gray-300 bg-white/95 p-2 shadow-sm backdrop-blur sm:top-[145px] lg:top-[92px]">
-            <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-{[
-{ key: 'overview', label: 'Overview' },
-{ key: 'access', label: 'Access & Invites' },
-{ key: 'documents', label: 'Documents' },
-{ key: 'feedback', label: 'Feedback & Issues' },
-{ key: 'enhancements', label: 'Enhancements' },
-{ key: 'releases', label: 'Releases' },
-{ key: 'analytics', label: 'Analytics' },
-{ key: 'trusted', label: 'Trusted Answers' },
-].map((tab) => (
-<button
-  key={tab.key}
-  type="button"
-  onClick={() => {
-    if (tab.key === 'enhancements') {
-  window.location.href = '/admin/enhancements'
-  return
-}
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:flex lg:flex-wrap">
+              {[
+                { key: 'overview', label: 'Overview' },
+                { key: 'access', label: 'Access' },
+                { key: 'documents', label: 'Documents' },
+                { key: 'feedback', label: 'Feedback' },
+                { key: 'enhancements', label: 'Enhancements' },
+                { key: 'audit', label: 'Audit Logs' },
+                { key: 'trusted', label: 'Trusted' },
+              ].map((tab) => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  onClick={() => {
+                    if (tab.key === 'enhancements') {
+                      window.location.href = '/admin/enhancements'
+                      return
+                    }
 
-if (tab.key === 'releases') {
-  window.location.href = '/admin/releases'
-  return
-}
-if (tab.key === 'analytics') {
-  window.location.href = '/admin/analytics'
-  return
-}
-    setActiveTab(tab.key as any)
-  }}
-className={`min-h-11 rounded-lg px-3 py-2 text-xs font-semibold sm:px-4 sm:text-sm ${activeTab === tab.key ? 'bg-black !text-white' : 'border border-gray-300 bg-white text-primary hover:bg-gray-100'}`}                >
+                    setActiveTab(tab.key as any)
+                  }}
+                  className={`min-h-11 rounded-lg px-2 py-2 text-center text-xs font-semibold leading-tight sm:px-3 sm:text-sm lg:w-auto ${
+                    activeTab === tab.key
+                      ? 'bg-black !text-white'
+                      : 'border border-gray-300 bg-white text-primary hover:bg-gray-100'
+                  }`}
+                >
                   {tab.label}
                 </button>
               ))}
@@ -1629,57 +1642,6 @@ className={`min-h-11 rounded-lg px-3 py-2 text-xs font-semibold sm:px-4 sm:text-
                     <div className="rounded-2xl border border-gray-300 p-4"><p className="text-sm text-secondary">Questions asked</p><p className="text-2xl font-bold text-primary">{userAnalytics.totalQuestions}</p></div>
                     <div className="rounded-2xl border border-gray-300 p-4"><p className="text-sm text-secondary">Unique users</p><p className="text-2xl font-bold text-primary">{userAnalytics.uniqueUsers}</p></div>
                   </div>
-                  <div className="grid grid-cols-2 gap-3 md:grid-cols-5">
-  <div className="rounded-2xl border border-green-300 bg-green-50 p-4">
-    <p className="text-xs text-green-700">
-      High confidence
-    </p>
-
-    <p className="text-2xl font-bold text-green-800">
-      {userAnalytics.confidenceCounts.high}
-    </p>
-  </div>
-
-  <div className="rounded-2xl border border-yellow-300 bg-yellow-50 p-4">
-    <p className="text-xs text-yellow-700">
-      Medium confidence
-    </p>
-
-    <p className="text-2xl font-bold text-yellow-800">
-      {userAnalytics.confidenceCounts.medium}
-    </p>
-  </div>
-
-  <div className="rounded-2xl border border-orange-300 bg-orange-50 p-4">
-    <p className="text-xs text-orange-700">
-      Low confidence
-    </p>
-
-    <p className="text-2xl font-bold text-orange-800">
-      {userAnalytics.confidenceCounts.low}
-    </p>
-  </div>
-
-  <div className="rounded-2xl border border-red-300 bg-red-50 p-4">
-    <p className="text-xs text-red-700">
-      Not found
-    </p>
-
-    <p className="text-2xl font-bold text-red-800">
-      {userAnalytics.confidenceCounts.not_found}
-    </p>
-  </div>
-
-  <div className="rounded-2xl border border-blue-300 bg-blue-50 p-4">
-    <p className="text-xs text-blue-700">
-      Trusted answers used
-    </p>
-
-    <p className="text-2xl font-bold text-blue-800">
-      {userAnalytics.trustedAnswerUsage}
-    </p>
-  </div>
-</div>
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="rounded-2xl border border-gray-300 p-4">
                       <h3 className="font-bold text-primary">Answer modes</h3>
@@ -2566,6 +2528,183 @@ className={`min-h-11 rounded-lg px-3 py-2 text-xs font-semibold sm:px-4 sm:text-
 
               <section className={`${cardClass} space-y-4`}><div><h2 className="text-2xl font-bold text-primary">Content Gaps</h2><p className="text-sm text-secondary">Questions the agent could not answer and frequently requested topics.</p></div><div className="grid gap-4 lg:grid-cols-2"><div><h3 className="font-semibold text-primary">Top repeated gaps</h3>{contentGaps.length === 0 ? <p className="mt-2 text-sm text-secondary">No gaps yet.</p> : <div className="mt-3 space-y-2">{contentGaps.map((gap, index) => <div key={index} className="rounded-lg border border-gray-300 p-3"><div className="flex justify-between gap-3"><p className="text-sm font-semibold text-primary">{gap.question}</p><span className="text-xs text-muted">{gap.count}x</span></div><p className="mt-1 text-xs text-muted">Mode: {gap.answer_mode || 'general'}{gap.category ? ` • Category: ${gap.category}` : ''}</p></div>)}</div>}</div><div><h3 className="font-semibold text-primary">Latest not found</h3>{noAnswerItems.length === 0 ? <p className="mt-2 text-sm text-secondary">No not-found questions yet.</p> : <div className="mt-3 space-y-2">{noAnswerItems.slice(0, 8).map((item) => <div key={item.id} className="rounded-lg border border-gray-300 p-3"><p className="text-sm font-semibold text-primary">{item.question}</p><p className="mt-1 text-xs text-muted">Mode: {item.answer_mode || 'general'}{item.category ? ` • Category: ${item.category}` : ''} • {new Date(item.created_at).toLocaleString()}</p><button type="button" onClick={() => saveTrustedAnswer(item)} className={`mt-2 ${smallSecondaryButton}`}>Save as trusted</button></div>)}</div>}</div></div></section>
             </>
+          )}
+
+          {activeTab === 'audit' && (
+            <section className={`${cardClass} space-y-5`}>
+              <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-primary">Audit Logs</h2>
+                  <p className="text-sm text-secondary">
+                    Review recent admin actions captured by the audit logging system. Showing the latest 100 events for performance.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={loadAuditLogs}
+                  className={secondaryButton}
+                >
+                  Refresh logs
+                </button>
+              </div>
+
+              <div className="grid gap-3 md:grid-cols-[1fr_180px_220px]">
+                <input
+                  type="text"
+                  value={auditSearch}
+                  onChange={(e) => setAuditSearch(e.target.value)}
+                  placeholder="Search actor, action, target, or metadata..."
+                  className={inputClass}
+                />
+
+                <select
+                  value={auditStatusFilter}
+                  onChange={(e) => setAuditStatusFilter(e.target.value as any)}
+                  className={inputClass}
+                >
+                  <option value="all">All statuses</option>
+                  <option value="success">Success</option>
+                  <option value="failure">Failure</option>
+                </select>
+
+                <select
+                  value={auditActionFilter}
+                  onChange={(e) => setAuditActionFilter(e.target.value)}
+                  className={inputClass}
+                >
+                  <option value="all">All actions</option>
+                  {auditActionOptions.map((action) => (
+                    <option key={action} value={action}>
+                      {action}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                {[
+                  ['Loaded logs', auditLogs.length],
+                  ['Showing', filteredAuditLogs.length],
+                  ['Successful', auditLogs.filter((log) => log.status === 'success').length],
+                  ['Failures', auditLogs.filter((log) => log.status === 'failure').length],
+                ].map(([label, value]) => (
+                  <div key={String(label)} className="rounded-xl border border-gray-300 bg-white p-3">
+                    <p className="text-xs text-secondary">{label}</p>
+                    <p className="text-2xl font-bold text-primary">{value}</p>
+                  </div>
+                ))}
+              </div>
+
+              {auditLogs.length === 0 ? (
+                <p className="rounded-xl border border-gray-300 bg-white p-4 text-sm text-secondary">
+                  No audit logs found yet. Admin actions logged after Phase 11B should appear here.
+                </p>
+              ) : filteredAuditLogs.length === 0 ? (
+                <p className="rounded-xl border border-gray-300 bg-white p-4 text-sm text-secondary">
+                  No audit logs match the current search/filter.
+                </p>
+              ) : (
+                <>
+                  <div className="grid gap-3 lg:hidden">
+                    {filteredAuditLogs.map((log) => (
+                      <article key={log.id} className="rounded-2xl border border-gray-300 bg-white p-4 shadow-sm">
+                        <div className="space-y-3">
+                          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                            <div>
+                              <p className="break-words text-sm font-bold text-primary">{log.action}</p>
+                              <p className="mt-1 break-words text-xs text-muted">
+                                {new Date(log.created_at).toLocaleString()}
+                              </p>
+                            </div>
+
+                            <span className={`w-fit rounded-full px-2 py-1 text-xs font-semibold ${getAuditStatusClass(log.status)}`}>
+                              {log.status}
+                            </span>
+                          </div>
+
+                          <div className="grid gap-2 text-sm">
+                            <div className="rounded-xl bg-gray-50 p-3">
+                              <p className="text-xs font-semibold uppercase tracking-wide text-muted">Actor</p>
+                              <p className="mt-1 break-words text-primary">{log.actor_email || 'Unknown actor'}</p>
+                              <p className="mt-1 text-xs text-muted">{log.actor_role || 'No role saved'}</p>
+                            </div>
+
+                            <div className="rounded-xl bg-gray-50 p-3">
+                              <p className="text-xs font-semibold uppercase tracking-wide text-muted">Target</p>
+                              <p className="mt-1 break-words text-primary">{log.target_type || '—'}</p>
+                              <p className="mt-1 break-all text-xs text-muted">{log.target_id || '—'}</p>
+                            </div>
+
+                            <div className="min-w-0 rounded-xl bg-gray-50 p-3">
+                              <p className="text-xs font-semibold uppercase tracking-wide text-muted">Metadata</p>
+                              <pre className="mt-1 max-h-28 max-w-full overflow-hidden whitespace-pre-wrap break-all rounded-lg bg-white p-2 text-xs text-muted">
+                                {formatAuditMetadata(log.metadata)}
+                              </pre>
+                            </div>
+                          </div>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+
+                  <div className="hidden max-h-[620px] overflow-y-auto rounded-lg border border-gray-300 lg:block">
+                    <table className="w-full text-sm text-primary">
+                      <thead className="sticky top-0 bg-gray-50">
+                        <tr>
+                          <th className="p-3 text-left">Date</th>
+                          <th className="p-3 text-left">Actor</th>
+                          <th className="p-3 text-left">Action</th>
+                          <th className="p-3 text-left">Target</th>
+                          <th className="p-3 text-left">Status</th>
+                          <th className="p-3 text-left">Metadata</th>
+                        </tr>
+                      </thead>
+
+                      <tbody>
+                        {filteredAuditLogs.map((log) => (
+                          <tr key={log.id} className="border-t border-gray-300 align-top">
+                            <td className="p-3 text-xs text-muted">
+                              {new Date(log.created_at).toLocaleString()}
+                            </td>
+
+                            <td className="p-3">
+                              <p className="break-words text-xs font-semibold text-primary">
+                                {log.actor_email || 'Unknown actor'}
+                              </p>
+                              <p className="mt-1 text-[11px] text-muted">
+                                {log.actor_role || 'No role'}
+                              </p>
+                            </td>
+
+                            <td className="p-3 text-xs font-semibold text-primary">
+                              {log.action}
+                            </td>
+
+                            <td className="p-3 text-xs text-muted">
+                              <p>{log.target_type || '—'}</p>
+                              <p className="mt-1 break-all text-[11px]">{log.target_id || '—'}</p>
+                            </td>
+
+                            <td className="p-3">
+                              <span className={`rounded-full px-2 py-1 text-xs font-semibold ${getAuditStatusClass(log.status)}`}>
+                                {log.status}
+                              </span>
+                            </td>
+
+                            <td className="max-w-xs p-3 text-xs text-muted">
+                              <p className="line-clamp-4 break-all">
+                                {formatAuditMetadata(log.metadata)}
+                              </p>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </>
+              )}
+            </section>
           )}
 
           {activeTab === 'trusted' && (
