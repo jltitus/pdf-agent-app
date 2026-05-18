@@ -30,6 +30,13 @@ export async function logAuditEvent({
   metadata = {},
 }: AuditEventInput) {
   try {
+    const targetTitle =
+      (metadata?.documentTitle as string | undefined) ??
+      (metadata?.title as string | undefined) ??
+      (metadata?.newDocumentTitle as string | undefined) ??
+      (metadata?.oldDocumentTitle as string | undefined) ??
+      null
+
     const { error } = await supabaseAdmin.from('audit_logs').insert({
       actor_user_id: actorUserId ?? null,
       actor_email: actorEmail ?? null,
@@ -37,6 +44,7 @@ export async function logAuditEvent({
       action,
       target_type: targetType ?? null,
       target_id: targetId ?? null,
+      target_title: targetTitle,
       status,
       ip_address: ipAddress ?? null,
       user_agent: userAgent ?? null,

@@ -392,3 +392,7 @@ Documentation updates needed:
 ### Stabilized
 - Preserved existing Publications, Favorites, Chat, Admin, Profile, and PDF viewing workflows.
 - Removed unused publication summary route/UI after determining it was not needed for the app.
+
+metadata: {
+  documentTitle: doc.title,
+  filename: doc.filename,

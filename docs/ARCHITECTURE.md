@@ -627,3 +627,22 @@ Key improvements included:
 - admin AI quality monitoring
 
 The optional publication summary workflow was removed because summaries were not core to the app’s purpose and introduced additional cost, latency, and maintenance surface. The app remains focused on grounded AI answers with citations and direct source access.
+
+## Audit Logging
+
+Administrative document operations now create centralized audit log events.
+
+Logged actions include:
+- document.process
+- document.replace
+- document.delete
+- document.update_metadata
+- document.archive
+
+Audit events capture:
+- actor identity
+- role
+- IP address
+- user agent
+- action status
+- structured metadata

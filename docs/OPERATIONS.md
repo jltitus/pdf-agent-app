@@ -682,3 +682,11 @@ After Phase 10 deployment, verify:
 - `/admin` overview loads
 - admin AI quality analytics display correctly
 - no browser console errors appear on core pages
+
+## Audit Log Validation
+
+After deployment verify:
+- document actions create audit log records
+- success and failure states are logged
+- metadata includes document titles and filenames
+- actor identity is captured correctly

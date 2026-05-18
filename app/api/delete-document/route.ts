@@ -124,8 +124,8 @@ export async function POST(request: Request) {
         ipAddress,
         userAgent,
         metadata: {
-          title: doc.title,
-          filename: doc.filename,
+  documentTitle: doc.title,
+  filename: doc.filename,ilename: doc.filename,
           reason: deleteError.message,
         },
       })
@@ -145,8 +145,8 @@ export async function POST(request: Request) {
       ipAddress,
       userAgent,
       metadata: {
-        title: doc.title,
-        filename: doc.filename,
+  documentTitle: doc.title,
+  filename: doc.filename,
         storagePathRemoved: Boolean(doc.storage_path),
         deletedOpenAIPageFiles: pages?.length ?? 0,
       },

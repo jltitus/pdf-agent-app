@@ -208,8 +208,8 @@ export async function POST(request: Request) {
         ipAddress,
         userAgent,
         metadata: {
-          title: doc.title,
-          filename: doc.filename,
+  documentTitle: doc.title,
+  filename: doc.filename,
           reason: 'Document is already processing.',
         },
       })
@@ -243,8 +243,8 @@ export async function POST(request: Request) {
         ipAddress,
         userAgent,
         metadata: {
-          title: doc.title,
-          filename: doc.filename,
+  documentTitle: doc.title,
+  filename: doc.filename,
           reason: 'Document is missing a storage path.',
         },
       })
@@ -305,8 +305,8 @@ export async function POST(request: Request) {
         ipAddress,
         userAgent,
         metadata: {
-          title: doc.title,
-          filename: doc.filename,
+  documentTitle: doc.title,
+  filename: doc.filename,
           reason: validation.error,
           processingStatus: validation.status,
           fileSizeBytes: pdfBuffer.length,
@@ -348,8 +348,8 @@ export async function POST(request: Request) {
         ipAddress,
         userAgent,
         metadata: {
-          title: doc.title,
-          filename: doc.filename,
+  documentTitle: doc.title,
+  filename: doc.filename,
           reason: 'No readable text was found in this PDF.',
           fileSizeBytes: pdfBuffer.length,
         },
@@ -508,8 +508,8 @@ ${page.text}
       ipAddress,
       userAgent,
       metadata: {
-        title: doc.title,
-        filename: doc.filename,
+  documentTitle: doc.title,
+  filename: doc.filename,
         pagesProcessed: pages.length,
         vectorStoreId,
         fileSizeBytes: pdfBuffer.length,
