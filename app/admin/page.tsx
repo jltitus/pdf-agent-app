@@ -23,6 +23,16 @@ type DocumentRow = {
   replaced_by_document_id?: string | null
   replaced_at?: string | null
   page_count?: number
+  processing_status?: string | null
+  processing_progress?: number | null
+  processing_error?: string | null
+  processing_attempts?: number | null
+  processing_started_at?: string | null
+  processing_completed_at?: string | null
+  processing_locked_until?: string | null
+  last_processed_page?: number | null
+  file_size_bytes?: number | null
+  is_encrypted?: boolean | null
 }
 
 type AccessRequest = {
@@ -1491,9 +1501,26 @@ async function deleteUser(request: AccessRequest) {
     link.click()
     document.body.removeChild(link)
   }
+  function isDocumentProcessing(doc: DocumentRow) {
+    const status = doc.processing_status
+    const lockedUntil = doc.processing_locked_until
+      ? new Date(doc.processing_locked_until)
+      : null
 
-  function renderDocumentMeta(doc: DocumentRow) {
+    const lockActive = lockedUntil
+      ? lockedUntil.getTime() > Date.now()
+      : false
+
+    return (
+      (status === 'processing' || status === 'validating') &&
+      lockActive
+    )
+  }
+   function renderDocumentMeta(doc: DocumentRow) {
     const isProcessed = (doc.page_count ?? 0) > 0
+    const processingStatus = doc.processing_status || (isProcessed ? 'processed' : 'pending')
+    const processingActive = isDocumentProcessing(doc)
+
     return (
       <div className="mt-2 grid gap-1 text-xs text-muted md:grid-cols-2">
         <p><strong className="text-secondary">Category:</strong> {doc.category || 'Uncategorized'}</p>
@@ -1502,9 +1529,23 @@ async function deleteUser(request: AccessRequest) {
         <p><strong className="text-secondary">Uploaded:</strong> {formatDate(doc.uploaded_at)}</p>
         <p><strong className="text-secondary">Pages:</strong> {doc.page_count || 0}</p>
         <p><strong className="text-secondary">Search status:</strong> {isProcessed ? 'Processed' : 'Not processed'}</p>
+        <p><strong className="text-secondary">Processing:</strong> {processingActive ? `${processingStatus}...` : processingStatus}</p>
+        <p><strong className="text-secondary">Progress:</strong> {doc.processing_progress ?? 0}%</p>
+        <p><strong className="text-secondary">Attempts:</strong> {doc.processing_attempts ?? 0}</p>
+        <p><strong className="text-secondary">Last page:</strong> {doc.last_processed_page ?? 0}</p>
         <p><strong className="text-secondary">Document status:</strong> {doc.is_active ? 'Active' : 'Archived'}</p>
         <p><strong className="text-secondary">Approval:</strong> {doc.approval_status || (doc.is_active ? 'active' : 'archived')}</p>
         {doc.replaced_at && <p><strong className="text-secondary">Replaced:</strong> {formatDate(doc.replaced_at)}</p>}
+        {doc.processing_locked_until && (
+          <p>
+            <strong className="text-secondary">Lock until:</strong> {new Date(doc.processing_locked_until).toLocaleString()}
+          </p>
+        )}
+        {doc.processing_error && (
+          <p className="md:col-span-2 text-red-700">
+            <strong className="text-secondary">Last error:</strong> {doc.processing_error}
+          </p>
+        )}
         {doc.document_notes && <p className="md:col-span-2"><strong className="text-secondary">Notes:</strong> {doc.document_notes}</p>}
       </div>
     )

@@ -5,7 +5,10 @@ import PDFParser from 'pdf2json'
 import { getRequestIp, getRequestUserAgent, logAuditEvent } from '../../../lib/audit/logAuditEvent'
 import { checkRateLimit, rateLimitConfigs } from '@/lib/rate-limit'
 
+
 export const maxDuration = 120
+
+const PROCESSING_LOCK_MINUTES = 15
 
 type ProcessingStatus =
   | 'pending'
@@ -27,6 +30,15 @@ function safeDecode(value: string) {
 function getProcessingErrorMessage(error: unknown) {
   if (error instanceof Error) return error.message
   return 'Unknown processing error.'
+}
+
+function getProcessingLockUntil() {
+  return new Date(Date.now() + PROCESSING_LOCK_MINUTES * 60 * 1000).toISOString()
+}
+
+function isProcessingLockActive(value?: string | null) {
+  if (!value) return false
+  return new Date(value).getTime() > Date.now()
 }
 
 function validatePdfBuffer(buffer: Buffer) {
@@ -126,6 +138,7 @@ export async function POST(request: Request) {
 if (rateLimitResponse) {
   return rateLimitResponse
 }
+
   let documentId: string | null = null
   let actorUserId: string | null = null
   let actorEmail: string | null = null
@@ -204,7 +217,13 @@ if (rateLimitResponse) {
       return NextResponse.json({ error: 'Document not found.' }, { status: 404 })
     }
 
-    if (doc.processing_status === 'processing') {
+    const lockActive = isProcessingLockActive(doc.processing_locked_until)
+
+    if (
+      (doc.processing_status === 'processing' ||
+        doc.processing_status === 'validating') &&
+      lockActive
+    ) {
       await logAuditEvent({
         supabaseAdmin,
         actorUserId,
@@ -217,9 +236,11 @@ if (rateLimitResponse) {
         ipAddress,
         userAgent,
         metadata: {
-  documentTitle: doc.title,
-  filename: doc.filename,
+          documentTitle: doc.title,
+          filename: doc.filename,
           reason: 'Document is already processing.',
+          processingStatus: doc.processing_status,
+          processingLockedUntil: doc.processing_locked_until,
         },
       })
 
@@ -232,11 +253,27 @@ if (rateLimitResponse) {
       )
     }
 
+    if (
+      (doc.processing_status === 'processing' ||
+        doc.processing_status === 'validating') &&
+      !lockActive
+    ) {
+      await updateProcessingState(supabaseAdmin, documentId, {
+        processing_status: 'failed',
+        processing_error:
+          'Recovered from stale processing lock. Processing can be retried.',
+        processing_progress: 0,
+        processing_locked_until: null,
+        processing_completed_at: new Date().toISOString(),
+      })
+    }
+
     if (!doc.storage_path) {
       await updateProcessingState(supabaseAdmin, documentId, {
         processing_status: 'failed',
         processing_error: 'Document is missing a storage path.',
         processing_progress: 0,
+        processing_locked_until: null,
         processing_completed_at: new Date().toISOString(),
       })
 
@@ -252,8 +289,8 @@ if (rateLimitResponse) {
         ipAddress,
         userAgent,
         metadata: {
-  documentTitle: doc.title,
-  filename: doc.filename,
+          documentTitle: doc.title,
+          filename: doc.filename,
           reason: 'Document is missing a storage path.',
         },
       })
@@ -270,6 +307,7 @@ if (rateLimitResponse) {
       processing_progress: 5,
       processing_started_at: new Date().toISOString(),
       processing_completed_at: null,
+      processing_locked_until: getProcessingLockUntil(),
       processing_attempts: (doc.processing_attempts ?? 0) + 1,
       last_processed_page: 0,
       is_encrypted: false,
@@ -297,6 +335,7 @@ if (rateLimitResponse) {
         processing_status: validation.status,
         processing_error: validation.error,
         processing_progress: 0,
+        processing_locked_until: null,
         processing_completed_at: new Date().toISOString(),
         is_encrypted: validation.status === 'encrypted',
         file_size_bytes: pdfBuffer.length,
@@ -314,8 +353,8 @@ if (rateLimitResponse) {
         ipAddress,
         userAgent,
         metadata: {
-  documentTitle: doc.title,
-  filename: doc.filename,
+          documentTitle: doc.title,
+          filename: doc.filename,
           reason: validation.error,
           processingStatus: validation.status,
           fileSizeBytes: pdfBuffer.length,
@@ -331,6 +370,7 @@ if (rateLimitResponse) {
     await updateProcessingState(supabaseAdmin, documentId, {
       processing_status: 'processing',
       processing_progress: 20,
+      processing_locked_until: getProcessingLockUntil(),
       file_size_bytes: pdfBuffer.length,
     })
 
@@ -342,6 +382,7 @@ if (rateLimitResponse) {
         processing_error:
           'No readable text was found in this PDF. It may be scanned images only.',
         processing_progress: 0,
+        processing_locked_until: null,
         processing_completed_at: new Date().toISOString(),
       })
 
@@ -357,8 +398,8 @@ if (rateLimitResponse) {
         ipAddress,
         userAgent,
         metadata: {
-  documentTitle: doc.title,
-  filename: doc.filename,
+          documentTitle: doc.title,
+          filename: doc.filename,
           reason: 'No readable text was found in this PDF.',
           fileSizeBytes: pdfBuffer.length,
         },
@@ -376,6 +417,7 @@ if (rateLimitResponse) {
     await updateProcessingState(supabaseAdmin, documentId, {
       processing_status: 'processing',
       processing_progress: 40,
+      processing_locked_until: getProcessingLockUntil(),
     })
 
     const openai = new OpenAI({
@@ -422,6 +464,7 @@ if (rateLimitResponse) {
     await updateProcessingState(supabaseAdmin, documentId, {
       processing_status: 'processing',
       processing_progress: 60,
+      processing_locked_until: getProcessingLockUntil(),
     })
 
     const uploadedPageFileIds: string[] = []
@@ -481,6 +524,7 @@ ${page.text}
       await updateProcessingState(supabaseAdmin, documentId, {
         processing_status: 'processing',
         processing_progress: progress,
+        processing_locked_until: getProcessingLockUntil(),
         last_processed_page: page.pageNumber,
       })
     }
@@ -493,6 +537,7 @@ ${page.text}
         processing_status: 'processed',
         processing_error: null,
         processing_progress: 100,
+        processing_locked_until: null,
         processing_completed_at: new Date().toISOString(),
         last_processed_page: pages.length,
         is_encrypted: false,
@@ -517,8 +562,8 @@ ${page.text}
       ipAddress,
       userAgent,
       metadata: {
-  documentTitle: doc.title,
-  filename: doc.filename,
+        documentTitle: doc.title,
+        filename: doc.filename,
         pagesProcessed: pages.length,
         vectorStoreId,
         fileSizeBytes: pdfBuffer.length,
@@ -542,6 +587,7 @@ ${page.text}
         processing_status: 'failed',
         processing_error: errorMessage,
         processing_progress: 0,
+        processing_locked_until: null,
         processing_completed_at: new Date().toISOString(),
       })
 

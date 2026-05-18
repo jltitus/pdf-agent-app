@@ -13,6 +13,11 @@ type ProcessingStatus =
   | 'encrypted'
   | 'invalid_pdf'
 
+function isProcessingLockActive(value?: string | null) {
+  if (!value) return false
+  return new Date(value).getTime() > Date.now()
+}
+
 function validateReplacementPdf(buffer: Buffer) {
   if (!buffer || buffer.length === 0) {
     return {
@@ -171,7 +176,13 @@ export async function POST(request: Request) {
       )
     }
 
-    if (oldDoc.processing_status === 'processing') {
+    const oldDocumentLockActive = isProcessingLockActive(oldDoc.processing_locked_until)
+
+    if (
+      (oldDoc.processing_status === 'processing' ||
+        oldDoc.processing_status === 'validating') &&
+      oldDocumentLockActive
+    ) {
       await logAuditEvent({
         supabaseAdmin,
         actorUserId,
@@ -187,6 +198,8 @@ export async function POST(request: Request) {
           reason: 'Original document is currently processing.',
           oldTitle: oldDoc.title,
           oldFilename: oldDoc.filename,
+          processingStatus: oldDoc.processing_status,
+          processingLockedUntil: oldDoc.processing_locked_until,
         },
       })
 
@@ -255,6 +268,7 @@ export async function POST(request: Request) {
         processing_progress: 0,
         processing_started_at: null,
         processing_completed_at: null,
+        processing_locked_until: null,
         processing_attempts: 0,
         last_processed_page: 0,
         is_encrypted: false,
