@@ -3,6 +3,7 @@ import OpenAI, { toFile } from 'openai'
 import { createClient } from '@supabase/supabase-js'
 import PDFParser from 'pdf2json'
 import { getRequestIp, getRequestUserAgent, logAuditEvent } from '../../../lib/audit/logAuditEvent'
+import { checkRateLimit, rateLimitConfigs } from '@/lib/rate-limit'
 
 export const maxDuration = 120
 
@@ -117,6 +118,14 @@ async function updateProcessingState(
 }
 
 export async function POST(request: Request) {
+  const rateLimitResponse = checkRateLimit(
+  request,
+  rateLimitConfigs.processDocument
+)
+
+if (rateLimitResponse) {
+  return rateLimitResponse
+}
   let documentId: string | null = null
   let actorUserId: string | null = null
   let actorEmail: string | null = null

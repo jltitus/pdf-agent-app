@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
+import { checkRateLimit, rateLimitConfigs } from '@/lib/rate-limit'
 
 async function requireAdmin(request: Request, supabaseAdmin: any) {
   const authHeader = request.headers.get('authorization')
@@ -66,6 +67,14 @@ async function sendOnboardingEmail({
 }
 
 export async function POST(request: Request) {
+  const rateLimitResponse = checkRateLimit(
+  request,
+  rateLimitConfigs.adminInvite
+)
+
+if (rateLimitResponse) {
+  return rateLimitResponse
+}
   try {
     const { fullName, email } = await request.json()
 

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { createClient } from '@supabase/supabase-js'
+import { checkRateLimit, rateLimitConfigs } from '@/lib/rate-limit'
 
 export const maxDuration = 60
 
@@ -563,6 +564,11 @@ Because this app is source-grounded, it will only answer when it can find suppor
 }
 
 export async function POST(request: Request) {
+  const rateLimitResponse = checkRateLimit(request, rateLimitConfigs.chat)
+
+if (rateLimitResponse) {
+  return rateLimitResponse
+}
   try {
     const {
       question,
