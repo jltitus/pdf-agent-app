@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { getRequestIp, getRequestUserAgent, logAuditEvent } from '../../../lib/audit/logAuditEvent'
 
 export const maxDuration = 120
 
@@ -50,6 +51,9 @@ function validateReplacementPdf(buffer: Buffer) {
 }
 
 export async function POST(request: Request) {
+  const ipAddress = getRequestIp(request)
+  const userAgent = getRequestUserAgent(request)
+
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.SUPABASE_SERVICE_ROLE_KEY!
@@ -57,6 +61,10 @@ export async function POST(request: Request) {
 
   let uploadedStoragePath: string | null = null
   let newDocumentId: string | null = null
+  let actorUserId: string | null = null
+  let actorEmail: string | null = null
+  let actorRole: string | null = null
+  let auditOldDocumentId: string | null = null
 
   try {
     const authHeader = request.headers.get('authorization')
@@ -69,6 +77,7 @@ export async function POST(request: Request) {
     const formData = await request.formData()
 
     const oldDocumentId = String(formData.get('oldDocumentId') || '')
+    auditOldDocumentId = oldDocumentId || null
     const title = String(formData.get('title') || '').trim()
     const category = String(formData.get('category') || '').trim()
     const version = String(formData.get('version') || '').trim()
@@ -117,11 +126,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Not authenticated.' }, { status: 401 })
     }
 
+    actorUserId = user.id
+    actorEmail = user.email ?? null
+
     const { data: profile } = await supabaseAdmin
       .from('profiles')
       .select('role, is_active')
       .eq('id', user.id)
       .single()
+
+    actorRole = profile?.role ?? null
 
     if (profile?.role !== 'admin' || !profile?.is_active) {
       return NextResponse.json(
@@ -137,6 +151,20 @@ export async function POST(request: Request) {
       .single()
 
     if (oldDocError || !oldDoc) {
+      await logAuditEvent({
+        supabaseAdmin,
+        actorUserId,
+        actorEmail,
+        actorRole,
+        action: 'document.replace',
+        targetType: 'document',
+        targetId: oldDocumentId,
+        status: 'failure',
+        ipAddress,
+        userAgent,
+        metadata: { reason: 'Original document not found.' },
+      })
+
       return NextResponse.json(
         { error: 'Original document not found.' },
         { status: 404 }
@@ -144,6 +172,24 @@ export async function POST(request: Request) {
     }
 
     if (oldDoc.processing_status === 'processing') {
+      await logAuditEvent({
+        supabaseAdmin,
+        actorUserId,
+        actorEmail,
+        actorRole,
+        action: 'document.replace',
+        targetType: 'document',
+        targetId: oldDocumentId,
+        status: 'failure',
+        ipAddress,
+        userAgent,
+        metadata: {
+          reason: 'Original document is currently processing.',
+          oldTitle: oldDoc.title,
+          oldFilename: oldDoc.filename,
+        },
+      })
+
       return NextResponse.json(
         {
           error:
@@ -163,6 +209,25 @@ export async function POST(request: Request) {
       })
 
     if (uploadError) {
+      await logAuditEvent({
+        supabaseAdmin,
+        actorUserId,
+        actorEmail,
+        actorRole,
+        action: 'document.replace',
+        targetType: 'document',
+        targetId: oldDocumentId,
+        status: 'failure',
+        ipAddress,
+        userAgent,
+        metadata: {
+          reason: `Replacement upload failed: ${uploadError.message}`,
+          oldTitle: oldDoc.title,
+          oldFilename: oldDoc.filename,
+          replacementFilename: file.name,
+        },
+      })
+
       return NextResponse.json(
         { error: `Replacement upload failed: ${uploadError.message}` },
         { status: 500 }
@@ -203,6 +268,27 @@ export async function POST(request: Request) {
         await supabaseAdmin.storage.from('pdfs').remove([uploadedStoragePath])
       }
 
+      await logAuditEvent({
+        supabaseAdmin,
+        actorUserId,
+        actorEmail,
+        actorRole,
+        action: 'document.replace',
+        targetType: 'document',
+        targetId: oldDocumentId,
+        status: 'failure',
+        ipAddress,
+        userAgent,
+        metadata: {
+          reason: `Replacement document record failed: ${
+            insertError?.message ?? 'No replacement record returned.'
+          }`,
+          oldTitle: oldDoc.title,
+          oldFilename: oldDoc.filename,
+          replacementFilename: file.name,
+        },
+      })
+
       return NextResponse.json(
         {
           error: `Replacement document record failed: ${
@@ -232,11 +318,56 @@ export async function POST(request: Request) {
         await supabaseAdmin.storage.from('pdfs').remove([uploadedStoragePath])
       }
 
+      await logAuditEvent({
+        supabaseAdmin,
+        actorUserId,
+        actorEmail,
+        actorRole,
+        action: 'document.replace',
+        targetType: 'document',
+        targetId: oldDocumentId,
+        status: 'failure',
+        ipAddress,
+        userAgent,
+        metadata: {
+          reason: `Original document archive failed: ${updateOldError.message}`,
+          oldTitle: oldDoc.title,
+          oldFilename: oldDoc.filename,
+          newDocumentId,
+          replacementFilename: file.name,
+        },
+      })
+
       return NextResponse.json(
         { error: `Original document archive failed: ${updateOldError.message}` },
         { status: 500 }
       )
     }
+
+    await logAuditEvent({
+      supabaseAdmin,
+      actorUserId,
+      actorEmail,
+      actorRole,
+      action: 'document.replace',
+      targetType: 'document',
+      targetId: oldDocumentId,
+      status: 'success',
+      ipAddress,
+      userAgent,
+      metadata: {
+        oldDocumentId,
+        newDocumentId,
+        oldTitle: oldDoc.title,
+        oldFilename: oldDoc.filename,
+        replacementTitle: title || oldDoc.title,
+        replacementFilename: file.name,
+        replacementStoragePath: uploadedStoragePath,
+        approvalStatus: approvalStatus || 'active',
+        replacementIsActive,
+        fileSizeBytes: fileBuffer.length,
+      },
+    })
 
     return NextResponse.json({
       success: true,
@@ -254,6 +385,26 @@ export async function POST(request: Request) {
 
     if (uploadedStoragePath) {
       await supabaseAdmin.storage.from('pdfs').remove([uploadedStoragePath])
+    }
+
+    if (actorUserId) {
+      await logAuditEvent({
+        supabaseAdmin,
+        actorUserId,
+        actorEmail,
+        actorRole,
+        action: 'document.replace',
+        targetType: 'document',
+        targetId: auditOldDocumentId ?? newDocumentId,
+        status: 'failure',
+        ipAddress,
+        userAgent,
+        metadata: {
+          reason: error.message ?? 'Unknown replacement error.',
+          newDocumentId,
+          uploadedStoragePath,
+        },
+      })
     }
 
     return NextResponse.json(

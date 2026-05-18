@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import OpenAI, { toFile } from 'openai'
 import { createClient } from '@supabase/supabase-js'
 import PDFParser from 'pdf2json'
+import { getRequestIp, getRequestUserAgent, logAuditEvent } from '../../../lib/audit/logAuditEvent'
 
 export const maxDuration = 120
 
@@ -117,6 +118,11 @@ async function updateProcessingState(
 
 export async function POST(request: Request) {
   let documentId: string | null = null
+  let actorUserId: string | null = null
+  let actorEmail: string | null = null
+  let actorRole: string | null = null
+  const ipAddress = getRequestIp(request)
+  const userAgent = getRequestUserAgent(request)
 
   const supabaseAdmin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -147,11 +153,16 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Not authenticated.' }, { status: 401 })
     }
 
+    actorUserId = user.id
+    actorEmail = user.email ?? null
+
     const { data: profile } = await supabaseAdmin
       .from('profiles')
       .select('role, is_active')
       .eq('id', user.id)
       .single()
+
+    actorRole = profile?.role ?? null
 
     if (profile?.role !== 'admin' || !profile?.is_active) {
       return NextResponse.json(
@@ -167,10 +178,42 @@ export async function POST(request: Request) {
       .single()
 
     if (docError || !doc) {
+      await logAuditEvent({
+        supabaseAdmin,
+        actorUserId,
+        actorEmail,
+        actorRole,
+        action: 'document.process',
+        targetType: 'document',
+        targetId: documentId,
+        status: 'failure',
+        ipAddress,
+        userAgent,
+        metadata: { reason: 'Document not found.' },
+      })
+
       return NextResponse.json({ error: 'Document not found.' }, { status: 404 })
     }
 
     if (doc.processing_status === 'processing') {
+      await logAuditEvent({
+        supabaseAdmin,
+        actorUserId,
+        actorEmail,
+        actorRole,
+        action: 'document.process',
+        targetType: 'document',
+        targetId: documentId,
+        status: 'failure',
+        ipAddress,
+        userAgent,
+        metadata: {
+          title: doc.title,
+          filename: doc.filename,
+          reason: 'Document is already processing.',
+        },
+      })
+
       return NextResponse.json(
         {
           error:
@@ -186,6 +229,24 @@ export async function POST(request: Request) {
         processing_error: 'Document is missing a storage path.',
         processing_progress: 0,
         processing_completed_at: new Date().toISOString(),
+      })
+
+      await logAuditEvent({
+        supabaseAdmin,
+        actorUserId,
+        actorEmail,
+        actorRole,
+        action: 'document.process',
+        targetType: 'document',
+        targetId: documentId,
+        status: 'failure',
+        ipAddress,
+        userAgent,
+        metadata: {
+          title: doc.title,
+          filename: doc.filename,
+          reason: 'Document is missing a storage path.',
+        },
       })
 
       return NextResponse.json(
@@ -232,6 +293,26 @@ export async function POST(request: Request) {
         file_size_bytes: pdfBuffer.length,
       })
 
+      await logAuditEvent({
+        supabaseAdmin,
+        actorUserId,
+        actorEmail,
+        actorRole,
+        action: 'document.process',
+        targetType: 'document',
+        targetId: documentId,
+        status: 'failure',
+        ipAddress,
+        userAgent,
+        metadata: {
+          title: doc.title,
+          filename: doc.filename,
+          reason: validation.error,
+          processingStatus: validation.status,
+          fileSizeBytes: pdfBuffer.length,
+        },
+      })
+
       return NextResponse.json(
         { error: validation.error, processing_status: validation.status },
         { status: 400 }
@@ -253,6 +334,25 @@ export async function POST(request: Request) {
           'No readable text was found in this PDF. It may be scanned images only.',
         processing_progress: 0,
         processing_completed_at: new Date().toISOString(),
+      })
+
+      await logAuditEvent({
+        supabaseAdmin,
+        actorUserId,
+        actorEmail,
+        actorRole,
+        action: 'document.process',
+        targetType: 'document',
+        targetId: documentId,
+        status: 'failure',
+        ipAddress,
+        userAgent,
+        metadata: {
+          title: doc.title,
+          filename: doc.filename,
+          reason: 'No readable text was found in this PDF.',
+          fileSizeBytes: pdfBuffer.length,
+        },
       })
 
       return NextResponse.json(
@@ -396,6 +496,27 @@ ${page.text}
       throw new Error(`Document update failed: ${updateError.message}`)
     }
 
+    await logAuditEvent({
+      supabaseAdmin,
+      actorUserId,
+      actorEmail,
+      actorRole,
+      action: 'document.process',
+      targetType: 'document',
+      targetId: documentId,
+      status: 'success',
+      ipAddress,
+      userAgent,
+      metadata: {
+        title: doc.title,
+        filename: doc.filename,
+        pagesProcessed: pages.length,
+        vectorStoreId,
+        fileSizeBytes: pdfBuffer.length,
+        replacedOldPageFiles: oldPages?.length ?? 0,
+      },
+    })
+
     return NextResponse.json({
       success: true,
       pages_processed: pages.length,
@@ -414,6 +535,22 @@ ${page.text}
         processing_progress: 0,
         processing_completed_at: new Date().toISOString(),
       })
+
+      if (actorUserId) {
+        await logAuditEvent({
+          supabaseAdmin,
+          actorUserId,
+          actorEmail,
+          actorRole,
+          action: 'document.process',
+          targetType: 'document',
+          targetId: documentId,
+          status: 'failure',
+          ipAddress,
+          userAgent,
+          metadata: { reason: errorMessage },
+        })
+      }
     }
 
     return NextResponse.json({ error: errorMessage }, { status: 500 })

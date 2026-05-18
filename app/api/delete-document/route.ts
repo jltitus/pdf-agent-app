@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server'
 import OpenAI from 'openai'
 import { createClient } from '@supabase/supabase-js'
+import { getRequestIp, getRequestUserAgent, logAuditEvent } from '../../../lib/audit/logAuditEvent'
 
 export async function POST(request: Request) {
+  const ipAddress = getRequestIp(request)
+  const userAgent = getRequestUserAgent(request)
+
   try {
     const { documentId } = await request.json()
 
@@ -43,11 +47,25 @@ export async function POST(request: Request) {
 
     const { data: doc, error: docError } = await supabaseAdmin
       .from('documents')
-      .select('id, storage_path')
+      .select('id, title, filename, storage_path')
       .eq('id', documentId)
       .single()
 
     if (docError || !doc) {
+      await logAuditEvent({
+        supabaseAdmin,
+        actorUserId: user.id,
+        actorEmail: user.email,
+        actorRole: profile.role,
+        action: 'document.delete',
+        targetType: 'document',
+        targetId: documentId,
+        status: 'failure',
+        ipAddress,
+        userAgent,
+        metadata: { reason: 'Document not found' },
+      })
+
       return NextResponse.json({ error: 'Document not found' }, { status: 404 })
     }
 
@@ -94,8 +112,45 @@ export async function POST(request: Request) {
       .eq('id', documentId)
 
     if (deleteError) {
+      await logAuditEvent({
+        supabaseAdmin,
+        actorUserId: user.id,
+        actorEmail: user.email,
+        actorRole: profile.role,
+        action: 'document.delete',
+        targetType: 'document',
+        targetId: documentId,
+        status: 'failure',
+        ipAddress,
+        userAgent,
+        metadata: {
+          title: doc.title,
+          filename: doc.filename,
+          reason: deleteError.message,
+        },
+      })
+
       return NextResponse.json({ error: deleteError.message }, { status: 500 })
     }
+
+    await logAuditEvent({
+      supabaseAdmin,
+      actorUserId: user.id,
+      actorEmail: user.email,
+      actorRole: profile.role,
+      action: 'document.delete',
+      targetType: 'document',
+      targetId: documentId,
+      status: 'success',
+      ipAddress,
+      userAgent,
+      metadata: {
+        title: doc.title,
+        filename: doc.filename,
+        storagePathRemoved: Boolean(doc.storage_path),
+        deletedOpenAIPageFiles: pages?.length ?? 0,
+      },
+    })
 
     return NextResponse.json({
       success: true,

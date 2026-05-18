@@ -1,7 +1,11 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { getRequestIp, getRequestUserAgent, logAuditEvent } from '../../../lib/audit/logAuditEvent'
 
 export async function POST(request: Request) {
+  const ipAddress = getRequestIp(request)
+  const userAgent = getRequestUserAgent(request)
+
   try {
     const authHeader = request.headers.get('authorization')
     const token = authHeader?.replace('Bearer ', '')
@@ -48,6 +52,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
+    const { data: existingDoc } = await supabaseAdmin
+      .from('documents')
+      .select('id, title, filename, category, version, publication_date, approval_status, is_active')
+      .eq('id', documentId)
+      .single()
+
     const updatePayload: Record<string, any> = {
       title,
       category,
@@ -72,8 +82,43 @@ export async function POST(request: Request) {
       .eq('id', documentId)
 
     if (error) {
+      await logAuditEvent({
+        supabaseAdmin,
+        actorUserId: user.id,
+        actorEmail: user.email,
+        actorRole: profile.role,
+        action: 'document.update_metadata',
+        targetType: 'document',
+        targetId: documentId,
+        status: 'failure',
+        ipAddress,
+        userAgent,
+        metadata: {
+          reason: error.message,
+          attempted: updatePayload,
+          previous: existingDoc ?? null,
+        },
+      })
+
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
+
+    await logAuditEvent({
+      supabaseAdmin,
+      actorUserId: user.id,
+      actorEmail: user.email,
+      actorRole: profile.role,
+      action: 'document.update_metadata',
+      targetType: 'document',
+      targetId: documentId,
+      status: 'success',
+      ipAddress,
+      userAgent,
+      metadata: {
+        previous: existingDoc ?? null,
+        updated: updatePayload,
+      },
+    })
 
     return NextResponse.json({ success: true })
   } catch (error: any) {
