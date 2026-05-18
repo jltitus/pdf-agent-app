@@ -396,3 +396,15 @@ Documentation updates needed:
 metadata: {
   documentTitle: doc.title,
   filename: doc.filename,
+
+  ## Phase 11B — Admin Audit Logging
+
+- Added audit logging for admin document operations.
+- Added success/failure tracking for:
+  - document processing
+  - document replacement
+  - document deletion
+  - document metadata updates
+  - document archive/unarchive actions
+- Added structured audit metadata including document titles and filenames.
+- Added `target_title` support to improve audit visibility and troubleshooting.

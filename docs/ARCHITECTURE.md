@@ -646,3 +646,23 @@ Audit events capture:
 - user agent
 - action status
 - structured metadata
+
+## Audit Logging
+
+Administrative document operations now generate centralized audit events.
+
+Logged document actions include:
+- document.process
+- document.replace
+- document.delete
+- document.update_metadata
+- document.archive
+
+Audit events capture:
+- actor identity
+- actor role
+- IP address
+- user agent
+- action status
+- target title
+- structured metadata

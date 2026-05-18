@@ -690,3 +690,12 @@ After deployment verify:
 - success and failure states are logged
 - metadata includes document titles and filenames
 - actor identity is captured correctly
+
+## Audit Log Validation
+
+After deployment verify:
+- admin document operations create audit events
+- success and failure states are captured
+- target titles appear correctly
+- actor identity is recorded
+- timestamps are accurate

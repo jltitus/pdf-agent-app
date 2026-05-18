@@ -241,3 +241,22 @@ Public Supabase Storage bucket for user avatars.
 Security:
 - Upload/update/delete restricted to authenticated owner
 - Public read access enabled
+
+## audit_logs
+
+Tracks administrative and operational audit events.
+
+| Column | Type | Purpose |
+|---|---|---|
+| actor_user_id | uuid | Authenticated acting user |
+| actor_email | text | User email |
+| actor_role | text | User role |
+| action | text | Audit action identifier |
+| target_type | text | Entity type |
+| target_id | text | Entity ID |
+| target_title | text | Human-readable target title |
+| status | text | success/failure |
+| ip_address | text | Request IP |
+| user_agent | text | Browser/device info |
+| metadata | jsonb | Structured audit details |
+| created_at | timestamptz | Audit timestamp |
