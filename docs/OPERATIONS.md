@@ -763,3 +763,47 @@ To rollback Phase 11E:
 1. Remove rate limit checks from affected API routes.
 2. Remove `lib/rate-limit.ts`.
 3. Rebuild and redeploy.
+
+## Phase 11F PDF Processing Operations
+
+### Processing Lock Protection
+
+PDF processing now includes lightweight lock protection to prevent:
+
+- duplicate processing
+- concurrent processing collisions
+- replacement during active processing
+- stale processing states
+
+### Stale Lock Recovery
+
+Processing locks automatically expire after the configured lock window.
+
+If processing fails unexpectedly:
+
+- locks automatically recover
+- processing can be safely retried
+- documents do not remain permanently stuck
+
+### Recommended Operational Checks
+
+Periodically review:
+
+- failed processing documents
+- repeated processing attempts
+- processing errors
+- documents with zero processed pages
+- long-running processing states
+
+### Troubleshooting
+
+#### Document stuck in processing
+
+Check:
+
+- processing_locked_until
+- processing_attempts
+- processing_error
+- Vercel execution logs
+
+If the lock has expired, processing can be retried safely.

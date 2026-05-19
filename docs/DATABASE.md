@@ -280,3 +280,20 @@ Tracks administrative and operational audit events.
 | user_agent | text | Browser/client |
 | metadata | jsonb | Additional event context |
 | created_at | timestamptz | Event timestamp |
+
+### Additional PDF Processing Safety Fields
+
+The `documents` table includes operational PDF processing safety fields.
+
+| Column | Type | Purpose |
+|---|---|---|
+| processing_locked_until | timestamptz | Prevents duplicate processing and supports stale lock recovery |
+
+### Processing Locking
+
+The application uses lightweight database-backed processing locks to:
+
+- prevent duplicate processing
+- avoid concurrent PDF processing collisions
+- support stale processing recovery
+- improve operational resilience

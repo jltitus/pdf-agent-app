@@ -218,3 +218,29 @@ Used by:
 - `app/api/send-user-invite/route.ts`
 - `app/api/resend-user-invite/route.ts`
 - `app/api/process-document/route.ts`
+
+### /app/api/process-document
+
+Processes uploaded PDFs into searchable page-level AI content.
+
+Includes:
+
+- encrypted PDF detection
+- invalid PDF validation
+- processing progress tracking
+- duplicate processing prevention
+- stale lock recovery
+- retry attempt tracking
+- OpenAI vector ingestion
+
+### /app/api/replace-document
+
+Handles operationally safe PDF replacement workflows.
+
+Includes:
+
+- replacement validation
+- encrypted PDF validation
+- processing lock protection
+- archive/replacement linkage
+- prevention of replacement during active processing

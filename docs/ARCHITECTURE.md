@@ -703,3 +703,30 @@ Protected areas include:
 - Document processing
 
 This approach avoids external infrastructure and is appropriate for low-volume use. Because it is in-memory, limits are best-effort per server instance and may reset during cold starts or deployments.
+
+## Phase 11F PDF Processing Safety
+
+The PDF ingestion workflow includes lightweight operational safety protections without introducing external queue infrastructure.
+
+### Processing Safety Features
+
+- duplicate processing prevention
+- stale processing recovery
+- processing progress tracking
+- retry attempt visibility
+- processing lock expiration handling
+- encrypted PDF detection
+- invalid PDF validation
+
+### Processing Lock Model
+
+The application uses database-backed processing locks stored on the `documents` table.
+
+This approach:
+
+- remains Vercel-compatible
+- avoids Redis/BullMQ complexity
+- supports operational recovery
+- prevents duplicate processing runs
+- supports safe retries
+- improves admin troubleshooting visibility

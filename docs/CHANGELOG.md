@@ -434,3 +434,35 @@ metadata: {
 ### Security
 - Added basic abuse protection without external infrastructure or paid services.
 - Rate limits return HTTP 429 with retry guidance when exceeded.
+
+## 2026-05-18
+- Completed Phase 11F PDF processing safety improvements.
+- Added lightweight PDF processing lock protection.
+- Added stale processing recovery handling.
+- Added duplicate processing prevention.
+- Improved PDF retry handling and resilience.
+- Added processing progress visibility in Admin.
+- Added processing attempt tracking.
+- Added last processed page visibility.
+- Added safer replacement protections during active processing.
+- Improved operational reliability for PDF ingestion workflows.
+
+## Phase 11G/H — Operational Readiness Improvements
+
+### Added
+- Lightweight admin export workflows for operational reporting and backup readiness
+- CSV export support for feedback and operational datasets
+- JSON export support for lightweight disaster recovery snapshots
+- Operational readiness section on admin dashboard
+- Improved document processing visibility
+- Production readiness and rollback operational guidance
+
+### Improved
+- Mobile admin navigation stability
+- Operational monitoring visibility for document processing
+- Admin usability for lightweight backup/export workflows
+
+### Notes
+- No infrastructure-heavy monitoring systems were introduced
+- No database schema changes required
+- Designed for lightweight single-admin operational management

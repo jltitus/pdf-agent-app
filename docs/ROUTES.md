@@ -191,3 +191,19 @@ The following routes include lightweight rate limiting:
 - `/api/process-document`
 
 Rate-limited requests return HTTP `429` with a user-safe error message.
+- `/api/process-document`
+Additional processing safety protections include:
+
+- processing lock protection
+- duplicate processing prevention
+- stale processing recovery
+- processing progress tracking
+- retry attempt tracking
+- processing error tracking
+- `/api/replace-document`
+Additional replacement protections include:
+
+- encrypted PDF validation
+- invalid PDF validation
+- active processing lock detection
+- prevention of replacement during active processing
