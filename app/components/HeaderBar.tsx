@@ -1,10 +1,8 @@
 'use client'
 
-import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '../../lib/supabase/client'
-import WhatsNewBanner from './WhatsNewBanner'
 
 type UserInfo = {
   email?: string | null
@@ -52,6 +50,7 @@ export default function HeaderBar() {
 
   async function handleSignOut() {
     await supabase.auth.signOut()
+    setMenuOpen(false)
     router.push('/login')
   }
 
@@ -61,8 +60,6 @@ export default function HeaderBar() {
     { href: '/publications', label: 'Publications', icon: '📚' },
     { href: '/profile', label: 'Profile', icon: '👤' },
     { href: '/community', label: 'Community', icon: '🌱' },
-    { href: '/roadmap', label: 'Roadmap', icon: '🛣️' },
-    { href: '/whats-new', label: 'What’s New', icon: '✨' },
     { href: '/help', label: 'Help', icon: '❓' },
   ]
 
@@ -78,8 +75,8 @@ export default function HeaderBar() {
     return [
       'inline-flex min-h-9 items-center rounded-lg px-2.5 py-1.5 text-sm font-semibold transition',
       isActive(path)
-        ? 'bg-black text-white shadow-sm'
-        : 'text-primary hover:bg-white/70 hover:text-black',
+        ? 'bg-[#d73f09] text-white shadow-sm'
+        : 'text-primary hover:bg-[#f3f0ed] hover:text-black',
     ].join(' ')
   }
 
@@ -87,29 +84,30 @@ export default function HeaderBar() {
     return [
       'flex min-h-11 items-center justify-center rounded-xl border px-3 py-2 text-center text-sm font-semibold shadow-sm transition',
       isActive(path)
-        ? 'border-black bg-black text-white'
-        : 'border-gray-300 bg-white text-primary hover:bg-gray-100',
+        ? 'border-[#d73f09] bg-[#d73f09] text-white'
+        : 'border-[#d8d1c7] bg-white text-primary hover:bg-[#f3f0ed]',
     ].join(' ')
   }
 
   return (
-    <>
-      <WhatsNewBanner />
+    <header className="sticky top-0 z-50 border-b border-[#d8d1c7] bg-[#fcfaf7] text-primary shadow-sm">
+      <div className="h-1 bg-[#d73f09]" />
 
-      <header className="sticky top-0 z-50 border-b border-gray-300 bg-gradient-to-r from-blue-100 via-blue-50 to-green-100 text-primary shadow-sm">
-        <div className="mx-auto max-w-7xl px-3 py-3 sm:px-6">
-          <div className="flex items-center gap-3">
+      <div className="mx-auto max-w-7xl px-3 py-3 sm:px-6">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex min-w-0 items-center gap-3">
             <button
               type="button"
               onClick={() => setMenuOpen((value) => !value)}
-              className="shrink-0 rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm font-bold text-primary shadow-sm lg:hidden"
+              className="shrink-0 rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-2xl font-bold leading-none text-primary shadow-sm lg:hidden"
               aria-expanded={menuOpen}
               aria-controls="mobile-main-menu"
+              aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
             >
-              {menuOpen ? 'Close' : 'Menu'}
+              {menuOpen ? '×' : '☰'}
             </button>
 
-            <Link
+            <a
               href="/dashboard"
               className="flex min-w-0 shrink-0 items-center gap-3"
               onClick={() => setMenuOpen(false)}
@@ -124,102 +122,91 @@ export default function HeaderBar() {
                 <h1 className="truncate text-base font-bold leading-tight text-primary sm:text-xl">
                   MFP Publication Agent
                 </h1>
-                <p className="text-[10px] font-semibold tracking-wide text-secondary sm:text-xs">
+                <p className="truncate text-[10px] font-semibold tracking-wide text-secondary sm:text-xs">
                   MASTER FOOD PRESERVERS
                 </p>
               </div>
-            </Link>
-
-            <nav
-              aria-label="Main navigation"
-              className="hidden flex-1 items-center justify-end gap-1 lg:flex"
-            >
-              {navItems.map((item) => (
-                <Link key={item.href} href={item.href} className={desktopNavClass(item.href)}>
-                  <span className="mr-1" aria-hidden="true">
-                    {item.icon}
-                  </span>
-                  {item.label}
-                </Link>
-              ))}
-
-              <div className="mx-1 h-6 w-px bg-gray-300" />
-
-              <Link href={adminItem.href} className={desktopNavClass(adminItem.href)}>
-                <span className="mr-1" aria-hidden="true">
-                  {adminItem.icon}
-                </span>
-                {adminItem.label}
-              </Link>
-
-              {userInfo && (
-                <button
-                  type="button"
-                  onClick={handleSignOut}
-                  className="ml-1 inline-flex min-h-9 items-center rounded-lg border border-gray-300 bg-white/80 px-3 py-1.5 text-sm font-semibold text-primary shadow-sm transition hover:bg-white"
-                >
-                  Sign out
-                </button>
-              )}
-            </nav>
+            </a>
           </div>
 
-          {menuOpen && (
-            <nav
-              id="mobile-main-menu"
-              aria-label="Mobile navigation"
-              className="mt-3 grid grid-cols-2 gap-2 border-t border-gray-300 pt-3 sm:grid-cols-3 lg:hidden"
-            >
-              {[...navItems, adminItem].map((item) => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMenuOpen(false)}
-                  className={mobileNavClass(item.href)}
-                >
-                  <span className="mr-1" aria-hidden="true">
-                    {item.icon}
-                  </span>
-                  {item.label}
-                </Link>
-              ))}
+          <nav aria-label="Main navigation" className="hidden flex-1 items-center justify-end gap-1 lg:flex">
+            {navItems.map((item) => (
+              <a key={item.href} href={item.href} className={desktopNavClass(item.href)}>
+                <span className="mr-1" aria-hidden="true">{item.icon}</span>
+                {item.label}
+              </a>
+            ))}
 
-              {userInfo && (
-                <button
-                  type="button"
-                  onClick={handleSignOut}
-                  className="flex min-h-11 items-center justify-center rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-primary shadow-sm transition hover:bg-gray-100"
-                >
-                  Sign out
-                </button>
-              )}
-            </nav>
-          )}
+            <div className="mx-1 h-6 w-px bg-[#d8d1c7]" />
 
-          {userInfo && (
-            <div className="mt-3 flex flex-col gap-2 border-t border-gray-300 pt-2 text-xs text-primary sm:flex-row sm:items-center sm:justify-between sm:text-sm">
-              <div className="flex min-w-0 items-center gap-2">
-                <span className="truncate font-medium text-primary">
-                  {userInfo.name}
-                </span>
+            <a href={adminItem.href} className={desktopNavClass(adminItem.href)}>
+              <span className="mr-1" aria-hidden="true">{adminItem.icon}</span>
+              {adminItem.label}
+            </a>
 
-                {isAdmin && (
-                  <span className="shrink-0 rounded-full border border-gray-300 bg-white px-2 py-0.5 text-xs font-semibold text-secondary">
-                    admin
-                  </span>
-                )}
-              </div>
-
-              <Link
-                href="/whats-new"
-                className="w-fit text-xs font-semibold text-secondary underline hover:text-primary"
+            {userInfo && (
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="ml-1 inline-flex min-h-9 items-center rounded-lg border border-[#d8d1c7] bg-white px-3 py-1.5 text-sm font-semibold text-primary shadow-sm transition hover:bg-[#f3f0ed]"
               >
-                v{appVersion} • What’s New
-              </Link>
-            </div>
-          )}
+                Sign out
+              </button>
+            )}
+          </nav>
         </div>
-      </header>
-    </>
+
+        {menuOpen && (
+          <nav
+            id="mobile-main-menu"
+            aria-label="Mobile navigation"
+            className="mt-3 grid grid-cols-2 gap-2 border-t border-[#d8d1c7] pt-3 sm:grid-cols-3 lg:hidden"
+          >
+            {[...navItems, adminItem].map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                onClick={() => setMenuOpen(false)}
+                className={mobileNavClass(item.href)}
+              >
+                <span className="mr-1" aria-hidden="true">{item.icon}</span>
+                {item.label}
+              </a>
+            ))}
+
+            {userInfo && (
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="flex min-h-11 items-center justify-center rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-primary shadow-sm transition hover:bg-[#f3f0ed]"
+              >
+                Sign out
+              </button>
+            )}
+          </nav>
+        )}
+
+        {userInfo && (
+          <div className="mt-3 flex flex-col gap-2 border-t border-[#d8d1c7] pt-2 text-xs text-primary sm:flex-row sm:items-center sm:justify-between sm:text-sm">
+            <div className="flex min-w-0 items-center gap-2">
+              <span className="truncate font-medium text-primary">{userInfo.name}</span>
+
+              {isAdmin && (
+                <span className="shrink-0 rounded-full border border-[#d8d1c7] bg-white px-2 py-0.5 text-xs font-semibold text-secondary">
+                  admin
+                </span>
+              )}
+            </div>
+
+            <a
+              href="/whats-new"
+              className="w-fit text-xs font-semibold text-[#d73f09] underline hover:text-[#b23408]"
+            >
+              v{appVersion} • What’s New
+            </a>
+          </div>
+        )}
+      </div>
+    </header>
   )
 }

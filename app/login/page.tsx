@@ -45,86 +45,85 @@ export default function LoginPage() {
     } else {
       window.localStorage.removeItem('mfp_saved_email')
     }
-await fetch('/api/track-user-activity', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify({
-    activityType: 'login',
-  }),
-})
+
+    await fetch('/api/track-user-activity', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        activityType: 'login',
+      }),
+    })
+
     router.push('/dashboard')
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 px-6 py-10 text-primary">
+    <main className="min-h-screen bg-[#f7f4ef] px-4 py-8 text-primary sm:px-6 sm:py-10">
       <div className="mx-auto flex min-h-[calc(100vh-5rem)] max-w-5xl items-center justify-center">
-        <div className="grid w-full overflow-hidden rounded-3xl border border-gray-300 bg-white shadow-sm md:grid-cols-[1fr_420px]">
-          <section className="hidden bg-gradient-to-br from-blue-100 via-blue-50 to-green-100 p-10 text-primary md:flex md:flex-col md:justify-between">
+        <div className="grid w-full overflow-hidden rounded-3xl border border-[#d8d1c7] bg-white shadow-sm md:grid-cols-[1fr_420px]">
+          <section className="hidden bg-[#fcfaf7] p-10 text-primary md:flex md:flex-col md:justify-between">
             <div>
-              <div className="flex items-center gap-4">
-                <img
-                  src="/jar-logosm.png"
-                  alt="MFP Publication Agent logo"
-                  className="h-14 w-14 object-contain"
-                />
+              <div className="border-b border-[#d8d1c7] pb-6">
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#d73f09]">
+                  Oregon State University Extension
+                </p>
 
-                <div>
-                  <h1 className="text-3xl font-bold text-primary">
-                    MFP Publication Agent
-                  </h1>
-                  <p className="text-sm font-semibold tracking-wide text-secondary">
-                    MASTER FOOD PRESERVERS
-                  </p>
+                <div className="mt-4 flex items-center gap-4">
+                  <img
+                    src="/jar-logosm.png"
+                    alt="MFP Publication Agent logo"
+                    className="h-14 w-14 object-contain"
+                  />
+
+                  <div>
+                    <h1 className="text-3xl font-bold text-primary">
+                      MFP Publication Agent
+                    </h1>
+                    <p className="text-sm font-semibold tracking-wide text-secondary">
+                      MASTER FOOD PRESERVERS
+                    </p>
+                  </div>
                 </div>
               </div>
 
-              <div className="mt-10 space-y-5">
-                <div className="rounded-2xl border border-gray-300 bg-white/70 p-5">
-                  <div className="flex gap-4">
-                    <img src="/ask-agent.png" alt="" className="h-10 w-10" />
-                    <div>
-                      <h2 className="font-bold text-primary">
-                        Ask grounded questions
-                      </h2>
-                      <p className="mt-1 text-sm text-secondary">
-                        Search active MFP publications and get answers with source support.
-                      </p>
-                    </div>
-                  </div>
+              <div className="mt-8 space-y-4">
+                <div className="rounded-2xl border border-[#d8d1c7] bg-white p-5">
+                  <h2 className="font-bold text-primary">
+                    Search trusted publications
+                  </h2>
+                  <p className="mt-1 text-sm leading-6 text-secondary">
+                    Find answers, recipes, and safety guidance from active OSU
+                    Extension Master Food Preserver publications.
+                  </p>
                 </div>
 
-                <div className="rounded-2xl border border-gray-300 bg-white/70 p-5">
-                  <div className="flex gap-4">
-                    <img src="/feedback.png" alt="" className="h-10 w-10" />
-                    <div>
-                      <h2 className="font-bold text-primary">Review sources</h2>
-                      <p className="mt-1 text-sm text-secondary">
-                        Verify cited documents and pages before relying on an answer.
-                      </p>
-                    </div>
-                  </div>
+                <div className="rounded-2xl border border-[#d8d1c7] bg-white p-5">
+                  <h2 className="font-bold text-primary">
+                    Review source evidence
+                  </h2>
+                  <p className="mt-1 text-sm leading-6 text-secondary">
+                    Verify cited documents, pages, and excerpts before relying on
+                    an answer.
+                  </p>
                 </div>
 
-                <div className="rounded-2xl border border-gray-300 bg-white/70 p-5">
-                  <div className="flex gap-4">
-                    <img src="/info.png" alt="" className="h-10 w-10" />
-                    <div>
-                      <h2 className="font-bold text-primary">
-                        Designed for MFP learning
-                      </h2>
-                      <p className="mt-1 text-sm text-secondary">
-                        Use the agent to explore publication content, recipes, safety guidance, and process questions.
-                      </p>
-                    </div>
-                  </div>
+                <div className="rounded-2xl border border-[#d8d1c7] bg-white p-5">
+                  <h2 className="font-bold text-primary">
+                    Support Oregon communities
+                  </h2>
+                  <p className="mt-1 text-sm leading-6 text-secondary">
+                    Use current preservation guidance to support the people and
+                    communities served by Master Food Preservers.
+                  </p>
                 </div>
               </div>
             </div>
 
-            <p className="text-xs text-secondary">
-              Answers are limited to uploaded active publications and should be verified against sources.
+            <p className="text-xs leading-5 text-secondary">
+              Answers are limited to uploaded active publications and should be
+              verified against source documents.
             </p>
           </section>
 
@@ -136,6 +135,9 @@ await fetch('/api/track-user-activity', {
                 className="h-12 w-12 object-contain"
               />
               <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#d73f09]">
+                  OSU Extension
+                </p>
                 <h1 className="text-2xl font-bold text-primary">
                   MFP Publication Agent
                 </h1>
@@ -146,9 +148,12 @@ await fetch('/api/track-user-activity', {
             </div>
 
             <div>
-              <h2 className="text-3xl font-bold text-primary">Sign in</h2>
-              <p className="mt-2 text-sm text-secondary">
-                Access the MFP Publication Agent.
+              <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#d73f09]">
+                Secure access
+              </p>
+              <h2 className="mt-2 text-3xl font-bold text-primary">Sign in</h2>
+              <p className="mt-2 text-sm leading-6 text-secondary">
+                Access the OSU Master Food Preserver publication reference system.
               </p>
             </div>
 
@@ -161,7 +166,7 @@ await fetch('/api/track-user-activity', {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-3 text-primary"
+                  className="w-full rounded-lg border border-[#d8d1c7] bg-white px-3 py-3 text-primary"
                   autoComplete="email"
                   inputMode="email"
                   required
@@ -176,7 +181,7 @@ await fetch('/api/track-user-activity', {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-3 text-primary"
+                  className="w-full rounded-lg border border-[#d8d1c7] bg-white px-3 py-3 text-primary"
                   autoComplete="current-password"
                   required
                 />
@@ -193,7 +198,9 @@ await fetch('/api/track-user-activity', {
               </label>
 
               <p className="text-xs leading-5 text-muted">
-                For security, this app does not store your password. Your browser or device password manager can securely autofill it and may use Face ID, Touch ID, or Android biometrics.
+                For security, this app does not store your password. Your browser
+                or device password manager can securely autofill it and may use
+                Face ID, Touch ID, or Android biometrics.
               </p>
 
               {message && (
@@ -205,7 +212,7 @@ await fetch('/api/track-user-activity', {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-lg bg-black py-3 font-semibold !text-white shadow-sm disabled:bg-gray-700 disabled:!text-white disabled:cursor-not-allowed"
+                className="w-full rounded-lg bg-[#d73f09] py-3 font-semibold !text-white shadow-sm hover:bg-[#b23408] disabled:bg-[#9b3518] disabled:!text-white disabled:cursor-not-allowed"
               >
                 {loading ? 'Signing in...' : 'Sign in'}
               </button>
@@ -217,16 +224,10 @@ await fetch('/api/track-user-activity', {
               </Link>
             </div>
 
-            <div className="mt-4 rounded-2xl border border-gray-300 bg-gray-50 p-4 text-center text-sm text-primary">
+            <div className="mt-4 rounded-2xl border border-[#d8d1c7] bg-[#fcfaf7] p-4 text-center text-sm text-primary">
               Need access?{' '}
               <Link href="/request-access" className="font-semibold underline text-primary">
                 Request an account
-              </Link>
-            </div>
-
-            <div className="mt-4 text-center">
-              <Link href="/help" className="text-sm underline text-primary">
-                Tester guide
               </Link>
             </div>
           </section>
