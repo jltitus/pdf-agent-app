@@ -97,19 +97,6 @@ function toggleExpandedSource(
 
   return [...expanded, sourceIndex]
 }
-function answerNeedsSourceSuggestion(turn: ConversationTurn) {
-  const lowerAnswer = turn.answer.toLowerCase();
-
-  return (
-    turn.evidenceStrength?.label === "Not found" ||
-    !turn.sources ||
-    turn.sources.length === 0 ||
-    lowerAnswer.includes("couldn't find") ||
-    lowerAnswer.includes("couldn’t find") ||
-    lowerAnswer.includes("not enough information") ||
-    lowerAnswer.includes("no supported")
-  );
-}
 
 export default function ChatPage() {
   const supabase = createClient();
