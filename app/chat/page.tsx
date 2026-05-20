@@ -1095,9 +1095,7 @@ setMessage('');
 
             <div className="mt-4">
               <a
-                href={`/api/view-source?file=${encodeURIComponent(
-                  source.filename,
-                )}`}
+                href={`/api/view-source?file=${encodeURIComponent(source.filename)}${source.pages && source.pages.length > 0 ? `&page=${source.pages[0]}` : ''}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-xs font-semibold text-primary hover:bg-[#fcfaf7]"

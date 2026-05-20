@@ -8,6 +8,7 @@ const protectedRoutes = [
   '/help',
   '/report-issue',
   '/admin',
+  '/view-pdf',
 ]
 
 const authRoutes = [
