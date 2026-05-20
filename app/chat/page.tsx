@@ -79,10 +79,10 @@ const searchStates: {
 ];
 
 function evidenceBadgeClass(label?: EvidenceStrength["label"]) {
-  if (label === "Strong") return "border-green-300 bg-green-50 text-green-800";
-  if (label === "Moderate") return "border-blue-300 bg-blue-50 text-blue-800";
+  if (label === "Strong") return "border-green-300 bg-[#e7f0e7] text-green-800";
+  if (label === "Moderate") return "border-[#d8d1c7] bg-[#f7f0dd] text-[#6b4a19]";
   if (label === "Limited")
-    return "border-yellow-300 bg-yellow-50 text-yellow-900";
+    return "border-yellow-300 bg-yellow-50 text-[#6b4a19]";
   return "border-red-300 bg-red-50 text-red-800";
 }
 function toggleExpandedSource(
@@ -613,18 +613,18 @@ setMessage('');
     <>
       <HeaderBar />
 
-      <main className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50 pb-32 text-primary md:pb-0">
+      <main className="min-h-screen bg-[#f7f4ef] pb-32 text-primary md:pb-0">
         <div className="mx-auto flex max-w-6xl flex-col gap-5 px-3 py-5 sm:px-6 md:px-8">
-          <section className="rounded-2xl border border-gray-300 bg-white p-4 text-primary shadow-sm sm:p-5">
+          <section className="rounded-2xl border border-[#d8d1c7] bg-white p-4 text-primary shadow-sm sm:p-5">
             <div className="mb-4">
-              <p className="text-xs font-bold uppercase tracking-wide text-green-700">
-                MFP Publication Agent
+              <p className="text-xs font-bold uppercase tracking-wide text-[#d73f09]">
+                Oregon State University Extension
               </p>
               <h1 className="mt-1 text-2xl font-bold text-primary sm:text-3xl">
-                Ask a publication question
+                Ask an OSU publication question
               </h1>
               <p className="mt-2 text-sm leading-6 text-secondary">
-                Search active MFP publications, review cited sources, and submit
+                Search active OSU Extension Master Food Preserver publications, review cited sources, and submit
                 feedback when an answer needs improvement.
               </p>
             </div>
@@ -634,45 +634,51 @@ setMessage('');
                 <button
                   type="button"
                   onClick={() => setFiltersOpen(true)}
-                  className="w-full rounded-2xl border-2 border-blue-300 bg-blue-50 p-3 text-left shadow-sm transition hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-blue-600"
+                  className="w-full rounded-2xl border border-blue-200 bg-white p-3 text-left shadow-sm transition hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-600"
                   aria-expanded={filtersOpen}
                   aria-controls="mobile-search-options"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-blue-900">
+                      <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-wide text-[#8a2a06]">
                         <span aria-hidden="true">🔎</span>
                         Search options
                       </p>
 
-                      <p className="mt-1 line-clamp-2 text-sm font-semibold leading-6 text-primary">
-                        {answerMode === "general"
-                          ? "General question"
-                          : answerMode === "recipe"
-                            ? "Find a recipe"
-                            : answerMode === "compare"
-                              ? "Compare documents"
-                              : "Safety guidance"}
-                        {" · "}
-                        {category === "all" ? "All categories" : category}
-                        {" · "}
-                        {documentId === "all"
-                          ? "All publications"
-                          : filteredDocuments.find(
-                              (doc) => doc.id === documentId,
-                            )?.title ||
-                            filteredDocuments.find(
-                              (doc) => doc.id === documentId,
-                            )?.filename ||
-                            "Selected publication"}
+                      <p className="mt-1 line-clamp-2 text-sm leading-6 text-primary">
+                        <span className="font-bold">
+  {answerMode === "general"
+    ? "General"
+    : answerMode === "recipe"
+      ? "Recipe"
+      : answerMode === "compare"
+        ? "Compare"
+        : "Safety"}
+</span>
+
+<span className="text-secondary"> · </span>
+
+<span>
+  {category === "all" ? "All categories" : category}
+</span>
+
+<span className="text-secondary"> · </span>
+
+<span className="text-secondary">
+  {documentId === "all"
+    ? "All publications"
+    : filteredDocuments.find((doc) => doc.id === documentId)?.title ||
+      filteredDocuments.find((doc) => doc.id === documentId)?.filename ||
+      "Selected publication"}
+</span>
                       </p>
 
-                      <p className="mt-2 text-xs font-medium text-blue-900">
-                        Tap to filter by answer type, category, or publication.
+                      <p className="mt-2 text-xs font-medium text-[#8a2a06]">
+                         Tap to adjust search scope.
                       </p>
                     </div>
 
-                    <span className="shrink-0 rounded-full bg-black px-3 py-1 text-xs font-bold text-white shadow-sm">
+                    <span className="shrink-0 rounded-full bg-[#d73f09] px-3 py-1 text-xs font-bold text-white shadow-sm">
                       Change
                     </span>
                   </div>
@@ -680,7 +686,7 @@ setMessage('');
               ) : (
                 <div
                   id="mobile-search-options"
-                  className="space-y-4 rounded-2xl border border-gray-200 bg-gray-50 p-4"
+                  className="space-y-4 rounded-2xl border border-[#e5ded5] bg-[#fcfaf7] p-4"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
@@ -695,7 +701,7 @@ setMessage('');
                     <button
                       type="button"
                       onClick={() => setFiltersOpen(false)}
-                      className="shrink-0 rounded-full border border-gray-300 bg-white px-3 py-1 text-xs font-semibold text-primary shadow-sm"
+                      className="shrink-0 rounded-full border border-[#d8d1c7] bg-white px-3 py-1 text-xs font-semibold text-primary shadow-sm"
                     >
                       Done
                     </button>
@@ -708,7 +714,7 @@ setMessage('');
                     <select
                       value={answerMode}
                       onChange={(e) => setAnswerMode(e.target.value)}
-                      className="min-h-11 w-full rounded-xl border border-gray-300 bg-white p-2 text-primary"
+                      className="min-h-11 w-full rounded-xl border border-[#d8d1c7] bg-white p-2 text-primary"
                     >
                       <option value="general">General question</option>
                       <option value="recipe">Find a recipe</option>
@@ -724,7 +730,7 @@ setMessage('');
                     <select
                       value={category}
                       onChange={(e) => setCategory(e.target.value)}
-                      className="min-h-11 w-full rounded-xl border border-gray-300 bg-white p-2 text-primary"
+                      className="min-h-11 w-full rounded-xl border border-[#d8d1c7] bg-white p-2 text-primary"
                     >
                       <option value="all">All categories</option>
                       {categories.map((cat) => (
@@ -742,7 +748,7 @@ setMessage('');
                     <select
                       value={documentId}
                       onChange={(e) => setDocumentId(e.target.value)}
-                      className="min-h-11 w-full rounded-xl border border-gray-300 bg-white p-2 text-primary"
+                      className="min-h-11 w-full rounded-xl border border-[#d8d1c7] bg-white p-2 text-primary"
                     >
                       <option value="all">All publications</option>
                       {filteredDocuments.map((doc) => (
@@ -764,7 +770,7 @@ setMessage('');
                 <select
                   value={answerMode}
                   onChange={(e) => setAnswerMode(e.target.value)}
-                  className="min-h-11 w-full rounded-xl border border-gray-300 bg-white p-2 text-primary"
+                  className="min-h-11 w-full rounded-xl border border-[#d8d1c7] bg-white p-2 text-primary"
                 >
                   <option value="general">General question</option>
                   <option value="recipe">Find a recipe</option>
@@ -780,7 +786,7 @@ setMessage('');
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="min-h-11 w-full rounded-xl border border-gray-300 bg-white p-2 text-primary"
+                  className="min-h-11 w-full rounded-xl border border-[#d8d1c7] bg-white p-2 text-primary"
                 >
                   <option value="all">All categories</option>
                   {categories.map((cat) => (
@@ -798,7 +804,7 @@ setMessage('');
                 <select
                   value={documentId}
                   onChange={(e) => setDocumentId(e.target.value)}
-                  className="min-h-11 w-full rounded-xl border border-gray-300 bg-white p-2 text-primary"
+                  className="min-h-11 w-full rounded-xl border border-[#d8d1c7] bg-white p-2 text-primary"
                 >
                   <option value="all">All publications</option>
                   {filteredDocuments.map((doc) => (
@@ -812,19 +818,24 @@ setMessage('');
           </section>
 
           <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
-            <section className="flex min-h-[650px] flex-col overflow-hidden rounded-2xl border border-gray-300 bg-white text-primary shadow-sm">
-              <div className="border-b border-gray-300 p-4 sm:p-5">
+            <section className="flex min-h-[650px] flex-col overflow-hidden rounded-2xl border border-[#d8d1c7] bg-white text-primary shadow-sm">
+              <div className="border-b border-[#d8d1c7] p-4 sm:p-5">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="flex items-center gap-3">
-                    <img src="/chat-icon.png" alt="" className="h-8 w-8" />
+                    <span
+  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#fcfaf7] text-2xl"
+  aria-hidden="true"
+>
+  📋
+</span>
                     <div>
                       <h2 className="text-xl font-bold text-primary">
-                        Current chat
+                        Publication question workspace
                       </h2>
                       <p className="text-sm text-secondary">
                         {conversationTurns.length > 0
                           ? "Ask a follow-up in the message box below."
-                          : "Start with a question about a publication, process, recipe, or safety guidance."}
+                          : "Start with a preservation question about a publication, process, recipe, or safety guidance."}
                       </p>
                     </div>
                   </div>
@@ -832,15 +843,15 @@ setMessage('');
                   <button
                     type="button"
                     onClick={startNewChat}
-                    className="min-h-11 rounded-xl border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-primary shadow-sm hover:bg-gray-100"
+                    className="min-h-11 rounded-xl border border-[#d8d1c7] bg-white px-4 py-2 text-sm font-semibold text-primary shadow-sm hover:bg-[#f3f0ed]"
                   >
-                    ✨ New chat
+                    ✨ New question
                   </button>
                 </div>
               </div>
 
               {conversationTurns.length === 0 && !loading && (
-                <div className="border-b border-gray-300 bg-blue-50 p-4 md:hidden">
+                <div className="border-b border-[#d8d1c7] bg-[#f7f0dd] p-4 md:hidden">
                   <h3 className="text-sm font-bold text-primary">
                     How to use this
                   </h3>
@@ -857,12 +868,12 @@ setMessage('');
 
               <form
                 onSubmit={askQuestion}
-                className="hidden space-y-3 border-b border-gray-300 bg-white p-4 md:block"
+                className="hidden space-y-3 border-b border-[#d8d1c7] bg-white p-4 md:block"
               >
                 <div className="flex justify-end">
                   <Link
                     href="/help"
-                    className="rounded-full border border-gray-300 bg-white px-3 py-1 text-xs font-semibold text-primary shadow-sm hover:bg-gray-100"
+                    className="rounded-full border border-[#d8d1c7] bg-white px-3 py-1 text-xs font-semibold text-primary shadow-sm hover:bg-[#f3f0ed]"
                   >
                     ❓ Help
                   </Link>
@@ -878,7 +889,7 @@ setMessage('');
                   <textarea
                     value={question}
                     onChange={(e) => setQuestion(e.target.value)}
-                    className="min-h-[82px] flex-1 rounded-2xl border border-gray-300 bg-white p-3 text-primary shadow-sm"
+                    className="min-h-[82px] flex-1 rounded-2xl border border-[#d8d1c7] bg-white p-3 text-primary shadow-sm"
                     placeholder={
                       conversationTurns.length > 0
                         ? "Ask a follow-up question..."
@@ -889,7 +900,7 @@ setMessage('');
 
                   <button
                     type="submit"
-                    className="min-h-12 rounded-2xl bg-black px-6 py-3 font-semibold !text-white shadow disabled:cursor-not-allowed disabled:bg-gray-700 disabled:!text-white"
+                    className="min-h-12 rounded-2xl bg-[#d73f09] px-6 py-3 font-semibold !text-white shadow disabled:cursor-not-allowed disabled:bg-[#9b3518] disabled:!text-white"
                     disabled={loading}
                   >
                     {loading ? "Working..." : "Send"}
@@ -899,14 +910,14 @@ setMessage('');
 
               <div className="flex-1 space-y-5 overflow-y-auto p-4">
                 {conversationTurns.length === 0 && !loading ? (
-                  <div className="rounded-2xl border border-dashed border-gray-300 bg-white p-6 text-center">
-                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-50 text-2xl">
+                  <div className="rounded-2xl border border-dashed border-[#d8d1c7] bg-white p-5 text-center">
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#e7f0e7] text-2xl">
                       💬
                     </div>
                     <h3 className="mt-3 text-lg font-bold text-primary">
-                      Ready for your question
+                      Ready for a preservation question
                     </h3>
-                    <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-secondary">
+                    <p className="mx-auto mt-2 max-w-md text-sm leading-5 text-secondary">
                       Include the food, preservation method, jar size,
                       elevation, or publication name when you know it.
                     </p>
@@ -915,10 +926,10 @@ setMessage('');
                   conversationTurns.map((turn, index) => (
                     <article
                       key={`${turn.question}-${index}`}
-                      className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm"
+                      className="rounded-2xl border border-[#e5ded5] bg-white p-4 shadow-sm"
                     >
-                      <div className="rounded-2xl bg-blue-50 p-3">
-                        <p className="text-xs font-bold uppercase tracking-wide text-blue-900">
+                      <div className="rounded-2xl bg-[#f7f0dd] p-3">
+                        <p className="text-xs font-bold uppercase tracking-wide text-[#8a2a06]">
                           Question
                         </p>
                         <p className="mt-1 font-semibold leading-6 text-primary">
@@ -949,7 +960,7 @@ setMessage('');
                       </div>
 
                       {turn.evidenceStrength && (
-                        <div className="mt-4 rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm">
+                        <div className="mt-4 rounded-xl border border-[#e5ded5] bg-[#fcfaf7] p-3 text-sm">
                           <p className="font-bold text-primary">
   Answer confidence: {turn.evidenceStrength.label}
 </p>
@@ -978,7 +989,7 @@ setMessage('');
       return (
         <div
           key={`${source.filename}-${sourceIndex}`}
-          className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm"
+          className="overflow-hidden rounded-2xl border border-[#e5ded5] bg-white shadow-sm"
         >
           <div className="p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -989,14 +1000,14 @@ setMessage('');
                   </p>
 
                   {sourceIndex === 0 && (
-                    <span className="w-fit rounded-full border border-green-300 bg-green-50 px-2 py-1 text-[11px] font-bold text-green-800">
+                    <span className="w-fit rounded-full border border-green-300 bg-[#e7f0e7] px-2 py-1 text-[11px] font-bold text-green-800">
                       Primary source
                     </span>
                   )}
 
                   {source.relevanceScore &&
                     source.relevanceScore >= 45 && (
-                      <span className="w-fit rounded-full border border-blue-300 bg-blue-50 px-2 py-1 text-[11px] font-bold text-blue-800">
+                      <span className="w-fit rounded-full border border-[#d8d1c7] bg-[#f7f0dd] px-2 py-1 text-[11px] font-bold text-blue-800">
                         High relevance
                       </span>
                     )}
@@ -1030,12 +1041,12 @@ setMessage('');
 
             {source.relevanceReasons &&
               source.relevanceReasons.length > 0 && (
-                <div className="mt-3 rounded-xl border border-blue-100 bg-blue-50 p-3">
-                  <p className="text-[11px] font-bold uppercase tracking-wide text-blue-900">
+                <div className="mt-3 rounded-xl border border-[#d8d1c7] bg-[#f7f0dd] p-3">
+                  <p className="text-[11px] font-bold uppercase tracking-wide text-[#8a2a06]">
                     Why this source matched
                   </p>
 
-                  <ul className="mt-2 space-y-1 text-xs leading-5 text-blue-950">
+                  <ul className="mt-2 space-y-1 text-xs leading-5 text-[#4f2b1e]">
                     {(source.relevanceReasons ?? []).map((reason) => (
                       <li key={reason}>• {reason}</li>
                     ))}
@@ -1063,7 +1074,7 @@ setMessage('');
                         ),
                       )
                     }
-                    className="inline-flex min-h-10 items-center justify-center rounded-xl border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-primary hover:bg-gray-50"
+                    className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-xs font-semibold text-primary hover:bg-[#fcfaf7]"
                   >
                     {expanded
                       ? "Hide supporting excerpts"
@@ -1072,19 +1083,19 @@ setMessage('');
 
                   {expanded && (
   <div className="mt-3 space-y-3">
-    <p className="rounded-lg bg-yellow-50 px-3 py-2 text-xs leading-5 text-yellow-900">
+    <p className="rounded-lg bg-yellow-50 px-3 py-2 text-xs leading-5 text-[#6b4a19]">
       These excerpts are pulled directly from the indexed publication text and may include document metadata.
     </p>
                       {(source.excerpts ?? []).map((excerpt, excerptIndex) => (
                         <div
                           key={`${source.filename}-${excerptIndex}`}
-                          className="rounded-xl border border-gray-300 bg-gray-50 p-4 shadow-sm"
+                          className="rounded-xl border border-[#d8d1c7] bg-[#fcfaf7] p-4 shadow-sm"
                         >
                           <p className="text-[11px] font-bold uppercase tracking-wide text-muted">
                             Source excerpt
                           </p>
 
-                         <div className="mt-2 rounded-xl border border-gray-200 bg-white p-4">
+                         <div className="mt-2 rounded-xl border border-[#e5ded5] bg-white p-4">
   <div className="space-y-2 text-sm">
     <div>
       <span className="font-bold text-primary">Title:</span>{" "}
@@ -1121,7 +1132,7 @@ setMessage('');
         Excerpt:
       </p>
 
-      <div className="rounded-lg border-l-4 border-gray-300 bg-gray-50 p-3">
+      <div className="rounded-lg border-l-4 border-[#d8d1c7] bg-[#fcfaf7] p-3">
         <p className="line-clamp-6 whitespace-pre-wrap text-sm leading-7 text-primary">
           {excerpt}
         </p>
@@ -1143,7 +1154,7 @@ setMessage('');
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex min-h-10 items-center justify-center rounded-xl border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-primary hover:bg-gray-50"
+                className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-xs font-semibold text-primary hover:bg-[#fcfaf7]"
               >
                 📄 Open source
               </a>
@@ -1154,7 +1165,7 @@ setMessage('');
     })}
   </div>
 ) : (
-                          <div className="mt-2 rounded-xl border border-yellow-200 bg-yellow-50 p-3 text-sm leading-6 text-yellow-900">
+                          <div className="mt-2 rounded-xl border border-[#ead9bf] bg-[#f7f0dd] p-3 text-sm leading-6 text-[#6b4a19]">
                             No source was found for this answer. Try a broader
                             search or suggest a source for admin review.
                           </div>
@@ -1162,11 +1173,11 @@ setMessage('');
                       </div>
 
                       {answerNeedsSourceSuggestion(turn) && (
-                        <div className="mt-4 rounded-2xl border border-blue-200 bg-blue-50 p-4">
-                          <h4 className="text-sm font-bold text-blue-950">
+                        <div className="mt-4 rounded-2xl border border-[#d8d1c7] bg-[#f7f0dd] p-4">
+                          <h4 className="text-sm font-bold text-[#4f2b1e]">
                             Suggest a source
                           </h4>
-                          <p className="mt-1 text-sm leading-6 text-blue-950">
+                          <p className="mt-1 text-sm leading-6 text-[#4f2b1e]">
                             Know which publication or page should answer this?
                             Send a note so an admin can review it.
                           </p>
@@ -1175,7 +1186,7 @@ setMessage('');
                             <button
                               type="button"
                               onClick={() => toggleSourceSuggestion(index)}
-                              className="mt-3 inline-flex min-h-10 items-center justify-center rounded-xl bg-blue-900 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800"
+                              className="mt-3 inline-flex min-h-10 items-center justify-center rounded-xl bg-[#d73f09] px-4 py-2 text-sm font-semibold text-white hover:bg-[#b23408]"
                             >
                               📎 Suggest source
                             </button>
@@ -1200,7 +1211,7 @@ setMessage('');
                                       turn.sourceSuggestionText,
                                     )
                                   }
-                                  className="inline-flex min-h-10 items-center justify-center rounded-xl bg-blue-900 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-800"
+                                  className="inline-flex min-h-10 items-center justify-center rounded-xl bg-[#d73f09] px-4 py-2 text-sm font-semibold text-white hover:bg-[#b23408]"
                                 >
                                   Send suggestion
                                 </button>
@@ -1208,7 +1219,7 @@ setMessage('');
                                 <button
                                   type="button"
                                   onClick={() => toggleSourceSuggestion(index)}
-                                  className="inline-flex min-h-10 items-center justify-center rounded-xl border border-blue-300 bg-white px-4 py-2 text-sm font-semibold text-blue-950 hover:bg-blue-100"
+                                  className="inline-flex min-h-10 items-center justify-center rounded-xl border border-blue-300 bg-white px-4 py-2 text-sm font-semibold text-[#4f2b1e] hover:bg-blue-100"
                                 >
                                   Cancel
                                 </button>
@@ -1218,102 +1229,104 @@ setMessage('');
                         </div>
                       )}
 
-<div className="mt-4 flex flex-wrap gap-2 border-t border-gray-200 pt-4">
-  <button
-    type="button"
-    onClick={() => submitFeedback(index, 'helpful')}
-    disabled={turn.feedbackSubmitted === 'helpful'}
-    className={`min-h-10 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
-      turn.feedbackSubmitted === 'helpful'
-        ? 'border-green-300 bg-green-100 text-green-800'
-        : 'border-gray-300 bg-white text-primary hover:bg-gray-50'
-    }`}
-  >
-    {turn.feedbackSubmitted === 'helpful' ? '✅ Helpful saved' : '👍 Helpful'}
-  </button>
+<div className="mt-4 border-t border-gray-200 pt-4">
+  <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+    <button
+      type="button"
+      onClick={() => submitFeedback(index, 'helpful')}
+      disabled={turn.feedbackSubmitted === 'helpful'}
+      className={`min-h-11 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
+        turn.feedbackSubmitted === 'helpful'
+          ? 'border-green-300 bg-green-100 text-green-800'
+          : 'border-gray-300 bg-white text-primary hover:bg-gray-50'
+      }`}
+    >
+      {turn.feedbackSubmitted === 'helpful' ? '✅ Saved' : '👍 Helpful'}
+    </button>
 
-  <button
-    type="button"
-    onClick={() => submitFeedback(index, 'not_helpful')}
-    disabled={turn.feedbackSubmitted === 'not_helpful'}
-    className={`min-h-10 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
-      turn.feedbackSubmitted === 'not_helpful'
-        ? 'border-yellow-300 bg-yellow-100 text-yellow-900'
-        : 'border-gray-300 bg-white text-primary hover:bg-gray-50'
-    }`}
-  >
-    {turn.feedbackSubmitted === 'not_helpful'
-      ? '✅ Not helpful saved'
-      : '👎 Not helpful'}
-  </button>
+    <button
+      type="button"
+      onClick={() => submitFeedback(index, 'not_helpful')}
+      disabled={turn.feedbackSubmitted === 'not_helpful'}
+      className={`min-h-11 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
+        turn.feedbackSubmitted === 'not_helpful'
+          ? 'border-yellow-300 bg-yellow-100 text-yellow-900'
+          : 'border-gray-300 bg-white text-primary hover:bg-gray-50'
+      }`}
+    >
+      {turn.feedbackSubmitted === 'not_helpful' ? '✅ Saved' : '👎 Not helpful'}
+    </button>
 
-  <button
-    type="button"
-    onClick={() => submitFeedback(index, 'missing_source')}
-    disabled={turn.feedbackSubmitted === 'missing_source'}
-    className={`min-h-10 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
-      turn.feedbackSubmitted === 'missing_source'
-        ? 'border-blue-300 bg-blue-100 text-blue-800'
-        : 'border-gray-300 bg-white text-primary hover:bg-gray-50'
-    }`}
-  >
-    {turn.feedbackSubmitted === 'missing_source'
-      ? '✅ Source issue saved'
-      : '🔎 Source issue'}
-  </button>
+    <button
+      type="button"
+      onClick={() => submitFeedback(index, 'missing_source')}
+      disabled={turn.feedbackSubmitted === 'missing_source'}
+      className={`min-h-11 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
+        turn.feedbackSubmitted === 'missing_source'
+          ? 'border-blue-300 bg-blue-100 text-blue-800'
+          : 'border-gray-300 bg-white text-primary hover:bg-gray-50'
+      }`}
+    >
+      {turn.feedbackSubmitted === 'missing_source' ? '✅ Saved' : '🔎 Source'}
+    </button>
 
-  <Link
-    href={`/report-issue?question=${encodeURIComponent(turn.question)}`}
-    className="inline-flex min-h-10 items-center rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-gray-50"
-  >
-    🚩 Report issue
-  </Link>
+    <Link
+      href={`/report-issue?question=${encodeURIComponent(turn.question)}`}
+      className="inline-flex min-h-11 items-center justify-center rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-gray-50"
+    >
+      🚩 Report
+    </Link>
+  </div>
 
-  <button
-    type="button"
-    onClick={() => regenerateTurn(index)}
-    disabled={loading}
-    className="min-h-10 rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-gray-50 disabled:opacity-60"
-  >
-    🔄 Regenerate
-  </button>
+  <div className="mt-2 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+    <button
+      type="button"
+      onClick={() => regenerateTurn(index)}
+      disabled={loading}
+      className="min-h-11 rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-gray-50 disabled:opacity-60"
+    >
+      🔄 Regenerate
+    </button>
 
-  <button
-    type="button"
-    onClick={() => tryBroaderSearch(index)}
-    disabled={loading}
-    className="min-h-10 rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-gray-50 disabled:opacity-60"
-  >
-    🌐 Broader search
-  </button>
-<button
-  type="button"
-  onClick={() => saveChatAnswer(index)}
-  disabled={loading || turn.savedChat}
-  className={`min-h-10 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
-    turn.savedChat
-      ? 'border-green-300 bg-green-100 text-green-800'
-      : 'border-gray-300 bg-white text-primary hover:bg-gray-50'
-  } disabled:opacity-80`}
->
-  {turn.savedChat ? '✅ Answer saved' : '💾 Save answer'}
-</button>
-  <button
-    type="button"
-    onClick={() => saveTrustedFromChat(index)}
-    disabled={loading || turn.trustedSaved}
-    className={`min-h-10 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
-      turn.trustedSaved
-        ? 'border-green-300 bg-green-100 text-green-800'
-        : 'border-gray-300 bg-white text-primary hover:bg-gray-50'
-    } disabled:opacity-80`}
-  >
-    {turn.trustedSaved ? '✅ Trusted saved' : '⭐ Save trusted'}
-  </button>
+    <button
+      type="button"
+      onClick={() => tryBroaderSearch(index)}
+      disabled={loading}
+      className="min-h-11 rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-gray-50 disabled:opacity-60"
+    >
+      🌐 Broader
+    </button>
+
+    <button
+      type="button"
+      onClick={() => saveChatAnswer(index)}
+      disabled={loading || turn.savedChat}
+      className={`min-h-11 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
+        turn.savedChat
+          ? 'border-green-300 bg-green-100 text-green-800'
+          : 'border-gray-300 bg-white text-primary hover:bg-gray-50'
+      } disabled:opacity-80`}
+    >
+      {turn.savedChat ? '✅ Saved' : '💾 Save'}
+    </button>
+
+    <button
+      type="button"
+      onClick={() => saveTrustedFromChat(index)}
+      disabled={loading || turn.trustedSaved}
+      className={`min-h-11 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
+        turn.trustedSaved
+          ? 'border-green-300 bg-green-100 text-green-800'
+          : 'border-gray-300 bg-white text-primary hover:bg-gray-50'
+      } disabled:opacity-80`}
+    >
+      {turn.trustedSaved ? '✅ Trusted' : '⭐ Trusted'}
+    </button>
+  </div>
 </div>
 
                      {(turn.feedbackSubmitted || turn.trustedSaved || turn.savedChat) && (
-  <div className="mt-3 rounded-xl border border-green-200 bg-green-50 px-3 py-2 text-xs font-semibold text-green-800">
+  <div className="mt-3 rounded-xl border border-green-200 bg-[#e7f0e7] px-3 py-2 text-xs font-semibold text-green-800">
     {turn.feedbackSubmitted && (
       <p>✅ Feedback saved: {turn.feedbackSubmitted.replaceAll('_', ' ')}</p>
     )}
@@ -1324,7 +1337,7 @@ setMessage('');
 
                       {turn.suggestedFollowUps &&
                         turn.suggestedFollowUps.length > 0 && (
-                          <div className="mt-4 border-t border-gray-200 pt-4">
+                          <div className="mt-4 border-t border-[#e5ded5] pt-4">
                             <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted">
                               Follow-up ideas
                             </p>
@@ -1334,7 +1347,7 @@ setMessage('');
                                   key={followUp}
                                   type="button"
                                   onClick={() => setQuestion(followUp)}
-                                  className="rounded-full border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-gray-50"
+                                  className="rounded-full border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-[#fcfaf7]"
                                 >
                                   {followUp}
                                 </button>
@@ -1347,7 +1360,7 @@ setMessage('');
                 ) : null}
 
                 {loading && (
-                  <div className="rounded-2xl border border-gray-200 bg-white p-4 shadow-sm">
+                  <div className="rounded-2xl border border-[#e5ded5] bg-white p-4 shadow-sm">
                     <div className="space-y-3">
                       {searchStates
                         .filter((item) => item.key !== "idle")
@@ -1366,16 +1379,16 @@ setMessage('');
                               key={item.key}
                               className={`flex gap-3 rounded-2xl p-3 ${
                                 active
-                                  ? "bg-blue-50"
+                                  ? "bg-[#f7f0dd]"
                                   : complete
-                                    ? "bg-green-50"
-                                    : "bg-gray-50"
+                                    ? "bg-[#e7f0e7]"
+                                    : "bg-[#fcfaf7]"
                               }`}
                             >
                               <div
                                 className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
                                   active
-                                    ? "bg-blue-900 text-white"
+                                    ? "bg-[#d73f09] text-white"
                                     : complete
                                       ? "bg-green-700 text-white"
                                       : "bg-gray-300 text-gray-700"
@@ -1401,9 +1414,14 @@ setMessage('');
             </section>
 
             <aside className="space-y-4">
-              <section className="rounded-2xl border border-gray-300 bg-white p-4 text-primary shadow-sm">
+              <section className="rounded-2xl border border-[#d8d1c7] bg-white p-4 text-primary shadow-sm">
                 <div className="mb-3 flex items-center gap-2">
-                  <img src="/feedback.png" alt="" className="h-6 w-6" />
+                  <span
+  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#fcfaf7] text-2xl"
+  aria-hidden="true"
+>
+  💬
+</span>
                   <div>
                     <h2 className="text-lg font-bold text-primary">
                       Recent questions
@@ -1422,7 +1440,7 @@ setMessage('');
                       <button
                         key={item.id}
                         type="button"
-                        className="w-full rounded-xl border border-gray-300 bg-white p-3 text-left text-primary hover:bg-gray-100"
+                        className="w-full rounded-xl border border-[#d8d1c7] bg-white p-3 text-left text-primary hover:bg-[#f3f0ed]"
                         onClick={() => loadHistoryItem(item)}
                       >
                         <p className="line-clamp-2 text-sm font-semibold text-primary">
@@ -1442,10 +1460,15 @@ setMessage('');
                 )}
               </section>
 
-              <section className="rounded-2xl border border-gray-300 bg-white p-4 text-primary shadow-sm">
+              <section className="rounded-2xl border border-[#d8d1c7] bg-white p-4 text-primary shadow-sm">
                 <div className="mb-2 flex items-center gap-2">
-                  <img src="/info.png" alt="" className="h-6 w-6" />
-                  <h2 className="text-lg font-bold text-primary">Tips</h2>
+                 <span
+  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#fcfaf7] text-2xl"
+  aria-hidden="true"
+>
+  ℹ️
+</span>
+                  <h2 className="text-lg font-bold text-primary">Source review tips</h2>
                 </div>
 
                 <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-6 text-secondary">
@@ -1461,8 +1484,7 @@ setMessage('');
 
         <form
   onSubmit={askQuestion}
-  className="fixed inset-x-0 bottom-0 z-50 w-full max-w-full overflow-hidden border-t border-gray-300 bg-white p-3 text-primary shadow-lg md:hidden"
->
+className="fixed inset-x-0 bottom-0 z-50 w-full max-w-full overflow-hidden border-t border-gray-200 bg-white/95 p-2 backdrop-blur text-primary shadow-lg md:hidden">
           {message && (
             <div className="mb-2 rounded-lg border border-red-300 bg-red-50 p-2 text-xs font-medium text-red-800">
               {message}
@@ -1473,7 +1495,7 @@ setMessage('');
             <textarea
               value={question}
               onChange={(e) => setQuestion(e.target.value)}
-              className="min-h-[52px] min-w-0 flex-1 resize-none rounded-xl border border-gray-300 bg-white p-3 text-sm text-primary shadow-sm"
+              className="min-h-[52px] min-w-0 flex-1 resize-none rounded-xl border border-[#d8d1c7] bg-white p-3 text-sm text-primary shadow-sm"
               placeholder={
                 conversationTurns.length > 0
                   ? "Ask a follow-up..."
@@ -1484,7 +1506,7 @@ setMessage('');
 
             <button
               type="submit"
-              className="min-h-[52px] shrink-0 rounded-xl bg-black px-4 py-2 text-sm font-semibold text-white shadow disabled:opacity-60"
+              className="min-h-[52px] shrink-0 rounded-xl bg-[#d73f09] px-4 py-2 text-sm font-semibold text-white shadow disabled:opacity-60"
               disabled={loading}
             >
               {loading ? "..." : "Send"}
