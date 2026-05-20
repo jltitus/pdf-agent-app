@@ -1127,62 +1127,6 @@ setMessage('');
                         )}
                       </div>
 
-                      {answerNeedsSourceSuggestion(turn) && (
-                        <div className="mt-4 rounded-2xl border border-[#d8d1c7] bg-[#f7f0dd] p-4">
-                          <h4 className="text-sm font-bold text-[#4f2b1e]">
-                            Suggest a source
-                          </h4>
-                          <p className="mt-1 text-sm leading-6 text-[#4f2b1e]">
-                            Know which publication or page should answer this?
-                            Send a note so an admin can review it.
-                          </p>
-
-                          {!turn.sourceSuggestionOpen ? (
-                            <button
-                              type="button"
-                              onClick={() => toggleSourceSuggestion(index)}
-                              className="mt-3 inline-flex min-h-10 items-center justify-center rounded-xl bg-[#d73f09] px-4 py-2 text-sm font-semibold text-white hover:bg-[#b23408]"
-                            >
-                              📎 Suggest source
-                            </button>
-                          ) : (
-                            <div className="mt-3 space-y-3">
-                              <textarea
-                                value={turn.sourceSuggestionText ?? ""}
-                                onChange={(e) =>
-                                  updateSourceSuggestion(index, e.target.value)
-                                }
-                                className="min-h-24 w-full rounded-xl border border-blue-200 bg-white p-3 text-sm text-primary"
-                                placeholder="Example: I think this should come from the tomatoes publication, page 12..."
-                              />
-
-                              <div className="flex flex-col gap-2 sm:flex-row">
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    submitFeedback(
-                                      index,
-                                      "suggest_source",
-                                      turn.sourceSuggestionText,
-                                    )
-                                  }
-                                  className="inline-flex min-h-10 items-center justify-center rounded-xl bg-[#d73f09] px-4 py-2 text-sm font-semibold text-white hover:bg-[#b23408]"
-                                >
-                                  Send suggestion
-                                </button>
-
-                                <button
-                                  type="button"
-                                  onClick={() => toggleSourceSuggestion(index)}
-                                  className="inline-flex min-h-10 items-center justify-center rounded-xl border border-blue-300 bg-white px-4 py-2 text-sm font-semibold text-[#4f2b1e] hover:bg-blue-100"
-                                >
-                                  Cancel
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      )}
 
 <div className="mt-4 border-t border-gray-200 pt-4">
   <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
@@ -1214,15 +1158,17 @@ setMessage('');
 
     <button
       type="button"
-      onClick={() => submitFeedback(index, 'missing_source')}
-      disabled={turn.feedbackSubmitted === 'missing_source'}
+      onClick={() => toggleSourceSuggestion(index)}
+      disabled={turn.feedbackSubmitted === 'source_issue'}
       className={`min-h-11 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
-        turn.feedbackSubmitted === 'missing_source'
+        turn.feedbackSubmitted === 'source_issue'
           ? 'border-blue-300 bg-blue-100 text-blue-800'
-          : 'border-[#d8d1c7] bg-white text-primary hover:bg-gray-50'
+          : turn.sourceSuggestionOpen
+            ? 'border-[#d8d1c7] bg-[#f3f0ed] text-primary'
+            : 'border-[#d8d1c7] bg-white text-primary hover:bg-gray-50'
       }`}
     >
-      {turn.feedbackSubmitted === 'missing_source' ? '✅ Saved' : '🔎 Source'}
+      {turn.feedbackSubmitted === 'source_issue' ? '✅ Saved' : '🔎 Source'}
     </button>
 
     <Link
@@ -1278,6 +1224,33 @@ setMessage('');
       {turn.trustedSaved ? '✅ Trusted' : '⭐ Trusted'}
     </button>
   </div>
+
+  {turn.sourceSuggestionOpen && !turn.feedbackSubmitted && (
+    <div className="mt-3 space-y-2">
+      <textarea
+        value={turn.sourceSuggestionText ?? ""}
+        onChange={(e) => updateSourceSuggestion(index, e.target.value)}
+        className="min-h-24 w-full rounded-xl border border-[#d8d1c7] bg-white p-3 text-sm text-primary"
+        placeholder="Example: I think this should come from the tomatoes publication, page 12..."
+      />
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <button
+          type="button"
+          onClick={() => submitFeedback(index, 'source_issue', turn.sourceSuggestionText)}
+          className="inline-flex min-h-10 items-center justify-center rounded-xl bg-[#d73f09] px-4 py-2 text-sm font-semibold text-white hover:bg-[#b23408]"
+        >
+          Send suggestion
+        </button>
+        <button
+          type="button"
+          onClick={() => toggleSourceSuggestion(index)}
+          className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[#d8d1c7] bg-white px-4 py-2 text-sm font-semibold text-primary hover:bg-[#f3f0ed]"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  )}
 </div>
 
                      {(turn.feedbackSubmitted || turn.trustedSaved || turn.savedChat) && (
