@@ -55,6 +55,7 @@ export default function PublicationsTable({ documents }: PublicationsTableProps)
   const [search, setSearch] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [savedOnly, setSavedOnly] = useState(false)
+  const [sort, setSort] = useState<'title_asc' | 'title_desc' | 'recent'>('title_asc')
 
   useEffect(() => {
     async function loadFavorites() {
@@ -98,7 +99,7 @@ export default function PublicationsTable({ documents }: PublicationsTableProps)
   const filteredDocuments = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase()
 
-    return documents.filter((document) => {
+    const filtered = documents.filter((document) => {
       const matchesSearch =
         !normalizedSearch ||
         getPublicationTitle(document).toLowerCase().includes(normalizedSearch) ||
@@ -113,7 +114,19 @@ export default function PublicationsTable({ documents }: PublicationsTableProps)
 
       return matchesSearch && matchesCategory && matchesSaved
     })
-  }, [documents, search, categoryFilter, savedOnly, favoriteIds])
+
+    return [...filtered].sort((a, b) => {
+      if (sort === 'title_desc') {
+        return getPublicationTitle(b).localeCompare(getPublicationTitle(a))
+      }
+      if (sort === 'recent') {
+        const dateA = a.uploaded_at ? new Date(a.uploaded_at).getTime() : 0
+        const dateB = b.uploaded_at ? new Date(b.uploaded_at).getTime() : 0
+        return dateB - dateA
+      }
+      return getPublicationTitle(a).localeCompare(getPublicationTitle(b))
+    })
+  }, [documents, search, categoryFilter, savedOnly, favoriteIds, sort])
 
   async function toggleFavorite(documentId: string) {
     try {
@@ -186,7 +199,7 @@ export default function PublicationsTable({ documents }: PublicationsTableProps)
           </Link>
         </div>
 
-        <div className="mt-5 grid gap-3 lg:grid-cols-[1fr_240px_auto_auto] lg:items-end">
+        <div className="mt-5 grid gap-3 lg:grid-cols-[1fr_200px_180px_auto_auto] lg:items-end">
           <div>
             <label className="mb-1 block text-sm font-semibold text-primary">
               Search publications
@@ -217,6 +230,21 @@ export default function PublicationsTable({ documents }: PublicationsTableProps)
             </select>
           </div>
 
+          <div>
+            <label className="mb-1 block text-sm font-semibold text-primary">
+              Sort by
+            </label>
+            <select
+              value={sort}
+              onChange={(event) => setSort(event.target.value as typeof sort)}
+              className="w-full rounded-xl border border-[#d8d1c7] bg-white px-4 py-3 text-sm text-primary"
+            >
+              <option value="title_asc">Title A→Z</option>
+              <option value="title_desc">Title Z→A</option>
+              <option value="recent">Recently added</option>
+            </select>
+          </div>
+
           <label className="flex min-h-11 items-center gap-2 rounded-xl border border-[#d8d1c7] bg-[#fcfaf7] px-4 py-3 text-sm font-semibold text-primary">
             <input
               type="checkbox"
@@ -233,6 +261,7 @@ export default function PublicationsTable({ documents }: PublicationsTableProps)
               setSearch('')
               setCategoryFilter('all')
               setSavedOnly(false)
+              setSort('title_asc')
             }}
             className="min-h-11 rounded-xl border border-[#d8d1c7] bg-white px-4 py-3 text-sm font-semibold text-primary shadow-sm hover:bg-[#f3f0ed]"
           >
@@ -368,8 +397,8 @@ export default function PublicationsTable({ documents }: PublicationsTableProps)
                       </div>
                     </td>
 
-                    <td className="px-5 py-5">
-                      <span className="rounded-full bg-[#f3f0ed] px-3 py-1 text-xs font-semibold text-secondary">
+                    <td className="w-40 px-5 py-5">
+                      <span className="inline-block whitespace-nowrap rounded-full bg-[#f3f0ed] px-3 py-1 text-xs font-semibold text-secondary">
                         {displayValue(document.category)}
                       </span>
                     </td>
