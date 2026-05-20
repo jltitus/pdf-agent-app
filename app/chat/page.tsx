@@ -598,6 +598,15 @@ setMessage('');
     setMessage("");
   }
 
+  function handleFollowUp(followUpQuestion: string) {
+    setQuestion(followUpQuestion)
+    setTimeout(() => {
+      const textarea = document.querySelector('textarea')
+      textarea?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      textarea?.focus()
+    }, 50)
+  }
+
   function toggleSourceSuggestion(index: number) {
     setConversationTurns((prev) =>
       prev.map((turn, turnIndex) =>
@@ -1280,21 +1289,22 @@ setMessage('');
   </div>
 )}
 
-                      {turn.suggestedFollowUps &&
+                      {index === conversationTurns.length - 1 &&
+                        turn.suggestedFollowUps &&
                         turn.suggestedFollowUps.length > 0 && (
-                          <div className="mt-4 border-t border-[#e5ded5] pt-4">
-                            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-muted">
-                              Follow-up ideas
+                          <div className="mt-5 rounded-2xl border border-[#e0dbd4] bg-[#fcfaf7] p-4">
+                            <p className="mb-3 text-xs font-bold uppercase tracking-wide text-muted">
+                              Continue the conversation
                             </p>
-                            <div className="flex flex-wrap gap-2">
+                            <div className="flex flex-col gap-2">
                               {turn.suggestedFollowUps.map((followUp) => (
                                 <button
                                   key={followUp}
                                   type="button"
-                                  onClick={() => setQuestion(followUp)}
-                                  className="rounded-full border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-[#fcfaf7]"
+                                  onClick={() => handleFollowUp(followUp)}
+                                  className="w-full rounded-xl border border-[#d8d1c7] bg-white px-4 py-3 text-left text-sm font-semibold text-primary hover:border-[#d73f09] hover:bg-[#fff8f6] transition"
                                 >
-                                  {followUp}
+                                  {followUp} →
                                 </button>
                               ))}
                             </div>
