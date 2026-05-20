@@ -963,21 +963,16 @@ setMessage('');
                           )}
                         </div>
 
+                        {turn.evidenceStrength && (
+                          <p className="mt-1 text-xs leading-5 text-secondary">
+                            {turn.evidenceStrength.description}
+                          </p>
+                        )}
+
                         <div className="mt-2 rounded-2xl bg-white text-[15px] leading-7 text-primary">
                           <p className="whitespace-pre-wrap">{turn.answer}</p>
                         </div>
                       </div>
-
-                      {turn.evidenceStrength && (
-                        <div className="mt-4 rounded-xl border border-[#e5ded5] bg-[#fcfaf7] p-3 text-sm">
-                          <p className="font-bold text-primary">
-  Answer confidence: {turn.evidenceStrength.label}
-</p>
-                          <p className="mt-1 text-xs leading-5 text-secondary">
-                            {turn.evidenceStrength.description}
-                          </p>
-                        </div>
-                      )}
 
                       <div className="mt-4">
                         <div className="flex items-center justify-between gap-3">
