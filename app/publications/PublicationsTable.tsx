@@ -240,18 +240,12 @@ export default function PublicationsTable({ documents }: PublicationsTableProps)
                 className="overflow-hidden rounded-3xl border border-[#d8d1c7] bg-white shadow-sm"
               >
                 <div className="border-b border-[#e8e1d8] bg-[#fcfaf7] px-5 py-4">
-                  <div className="flex flex-col gap-3">
-                    <div className="flex flex-wrap gap-2">
-                      <span className="rounded-full bg-[#e7f0e7] px-2.5 py-1 text-xs font-semibold text-[#36543b]">
-                        Current
+                  <div className="flex flex-col gap-2">
+                    {document.category && (
+                      <span className="w-fit rounded-full bg-[#f3f0ed] px-2.5 py-1 text-xs font-semibold text-secondary">
+                        {document.category}
                       </span>
-
-                      {document.category && (
-                        <span className="rounded-full bg-[#f3f0ed] px-2.5 py-1 text-xs font-semibold text-secondary">
-                          {document.category}
-                        </span>
-                      )}
-                    </div>
+                    )}
 
                     <h3 className="text-lg font-bold leading-snug text-primary">
                       {getPublicationTitle(document)}
