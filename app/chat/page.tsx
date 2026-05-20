@@ -1086,64 +1086,15 @@ setMessage('');
                   </button>
 
                   {expanded && (
-  <div className="mt-3 space-y-3">
-    <p className="rounded-xl bg-yellow-50 px-3 py-2 text-xs leading-5 text-[#6b4a19]">
-      These excerpts are pulled directly from the indexed publication text and may include document metadata.
-    </p>
+                    <div className="mt-3 space-y-2">
                       {(source.excerpts ?? []).map((excerpt, excerptIndex) => (
                         <div
                           key={`${source.filename}-${excerptIndex}`}
-                          className="rounded-xl border border-[#d8d1c7] bg-[#fcfaf7] p-4 shadow-sm"
+                          className="rounded-xl border-l-4 border-[#d8d1c7] bg-[#fcfaf7] p-3"
                         >
-                          <p className="text-[11px] font-bold uppercase tracking-wide text-muted">
-                            Source excerpt
+                          <p className="line-clamp-6 whitespace-pre-wrap text-sm leading-7 text-primary">
+                            {excerpt}
                           </p>
-
-                         <div className="mt-2 rounded-xl border border-[#e5ded5] bg-white p-4">
-  <div className="space-y-2 text-sm">
-    <div>
-      <span className="font-bold text-primary">Title:</span>{" "}
-      <span className="text-secondary">{source.title}</span>
-    </div>
-
-    <div>
-      <span className="font-bold text-primary">File name:</span>{" "}
-      <span className="break-all text-secondary">
-        {source.filename}
-      </span>
-    </div>
-
-    {source.category && (
-      <div>
-        <span className="font-bold text-primary">Category:</span>{" "}
-        <span className="text-secondary">{source.category}</span>
-      </div>
-    )}
-
-    {source.pages && source.pages.length > 0 && (
-      <div>
-        <span className="font-bold text-primary">
-          Page number{source.pages.length > 1 ? "s" : ""}:
-        </span>{" "}
-        <span className="text-secondary">
-          {(source.pages ?? []).join(", ")}
-        </span>
-      </div>
-    )}
-
-    <div className="pt-2">
-      <p className="mb-1 font-bold text-primary">
-        Excerpt:
-      </p>
-
-      <div className="rounded-xl border-l-4 border-[#d8d1c7] bg-[#fcfaf7] p-3">
-        <p className="line-clamp-6 whitespace-pre-wrap text-sm leading-7 text-primary">
-          {excerpt}
-        </p>
-      </div>
-    </div>
-  </div>
-</div>
                         </div>
                       ))}
                     </div>
