@@ -41,6 +41,13 @@ function getPdfHref(document: DocumentRow) {
   return `/api/view-source?file=${encodeURIComponent(document.filename)}`
 }
 
+function isNew(uploadedAt?: string | null) {
+  if (!uploadedAt) return false
+  const cutoff = new Date()
+  cutoff.setDate(cutoff.getDate() - 60)
+  return new Date(uploadedAt) >= cutoff
+}
+
 export default function PublicationsTable({ documents }: PublicationsTableProps) {
   const [favoriteIds, setFavoriteIds] = useState<string[]>([])
   const [loadingFavorites, setLoadingFavorites] = useState(true)
@@ -76,6 +83,16 @@ export default function PublicationsTable({ documents }: PublicationsTableProps)
           .filter((value): value is string => Boolean(value && value.trim()))
       )
     ).sort()
+  }, [documents])
+
+  const categoryCounts = useMemo(() => {
+    const counts: Record<string, number> = {}
+    for (const doc of documents) {
+      if (doc.category) {
+        counts[doc.category] = (counts[doc.category] ?? 0) + 1
+      }
+    }
+    return counts
   }, [documents])
 
   const filteredDocuments = useMemo(() => {
@@ -194,7 +211,7 @@ export default function PublicationsTable({ documents }: PublicationsTableProps)
               <option value="all">All categories</option>
               {categories.map((category) => (
                 <option key={category} value={category}>
-                  {category}
+                  {category} ({categoryCounts[category] ?? 0})
                 </option>
               ))}
             </select>
@@ -241,11 +258,18 @@ export default function PublicationsTable({ documents }: PublicationsTableProps)
               >
                 <div className="border-b border-[#e8e1d8] bg-[#fcfaf7] px-5 py-4">
                   <div className="flex flex-col gap-2">
-                    {document.category && (
-                      <span className="w-fit rounded-full bg-[#f3f0ed] px-2.5 py-1 text-xs font-semibold text-secondary">
-                        {document.category}
-                      </span>
-                    )}
+                    <div className="flex flex-wrap gap-2">
+                      {document.category && (
+                        <span className="rounded-full bg-[#f3f0ed] px-2.5 py-1 text-xs font-semibold text-secondary">
+                          {document.category}
+                        </span>
+                      )}
+                      {isNew(document.uploaded_at) && (
+                        <span className="rounded-full bg-indigo-50 border border-indigo-200 px-2.5 py-1 text-xs font-semibold text-indigo-700">
+                          New
+                        </span>
+                      )}
+                    </div>
 
                     <h3 className="text-lg font-bold leading-snug text-primary">
                       {getPublicationTitle(document)}
@@ -327,8 +351,15 @@ export default function PublicationsTable({ documents }: PublicationsTableProps)
                       <div className="flex items-start gap-3">
                         <div className="mt-1 h-3 w-3 shrink-0 rounded-full bg-[#5f8a63]" />
                         <div>
-                          <div className="font-bold text-primary">
-                            {getPublicationTitle(document)}
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="font-bold text-primary">
+                              {getPublicationTitle(document)}
+                            </span>
+                            {isNew(document.uploaded_at) && (
+                              <span className="rounded-full border border-indigo-200 bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold text-indigo-700">
+                                New
+                              </span>
+                            )}
                           </div>
                           <div className="mt-2 break-words text-xs text-muted">
                             {document.filename}
