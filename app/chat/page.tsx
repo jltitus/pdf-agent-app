@@ -151,6 +151,17 @@ export default function ChatPage() {
 
       setCategories(uniqueCategories);
 
+      const urlParams = new URLSearchParams(window.location.search)
+      const urlDocumentId = urlParams.get('documentId')
+      if (urlDocumentId) {
+        const targetDoc = activeDocs.find((d) => d.id === urlDocumentId)
+        if (targetDoc) {
+          if (targetDoc.category) setCategory(targetDoc.category)
+          setDocumentId(urlDocumentId)
+          setFiltersOpen(true)
+        }
+      }
+
       const { data: hist } = await supabase
         .from("chat_history")
         .select("*")
