@@ -44,7 +44,7 @@ const cardClass =
 const statCardClass =
 'rounded-xl border border-[#d8d1c7] bg-white p-4 shadow-sm'
 const secondaryButton =
-  'rounded-lg border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-[#f3f0ed] disabled:opacity-60'
+  'rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-[#f3f0ed] disabled:opacity-60'
 useEffect(() => {
 async function init() {
 const { data } = await supabase.auth.getSession()

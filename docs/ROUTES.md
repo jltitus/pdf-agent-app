@@ -1,4 +1,4 @@
-# MFP Publication Agent Routes
+# MFP Publication Reference system Routes
 
 ## Pages
 
@@ -14,7 +14,7 @@
 
 ## API Routes
 
-- `/api/chat` — handles document-grounded AI answers
+- `/api/chat` — handles document-grounded Publication-grounded answers
 - `/api/access-requests` — creates and lists access requests
 - `/api/approve-access-request` — approves users and sends setup email
 - `/api/send-user-invite` — direct admin invite

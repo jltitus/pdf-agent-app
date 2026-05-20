@@ -48,11 +48,11 @@ export default function WhatsNewPage() {
   return (
     <>
 
-      <main className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 text-primary">
+      <main className="min-h-screen bg-[#f7f4ef] from-blue-50 to-green-50 text-primary">
         <div className="mx-auto max-w-5xl space-y-6 px-3 py-5 sm:px-6 sm:py-8">
-          <section className="rounded-2xl border border-gray-300 bg-white p-5 shadow-sm sm:p-6">
+          <section className="rounded-2xl border border-[#d8d1c7] bg-white p-5 shadow-sm sm:p-6">
             <p className="text-sm font-semibold uppercase tracking-wide text-muted">
-              MFP Publication Agent
+              MFP Publication Reference system
             </p>
 
             <h1 className="mt-2 text-3xl font-bold text-primary">
@@ -64,7 +64,7 @@ export default function WhatsNewPage() {
             </p>
 
             <div className="mt-5 grid gap-3 sm:grid-cols-2">
-              <div className="rounded-xl border border-gray-300 bg-gray-50 p-4">
+              <div className="rounded-xl border border-[#d8d1c7] bg-gray-50 p-4">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted">
                   Current app version
                 </p>
@@ -73,7 +73,7 @@ export default function WhatsNewPage() {
                 </p>
               </div>
 
-              <div className="rounded-xl border border-gray-300 bg-gray-50 p-4">
+              <div className="rounded-xl border border-[#d8d1c7] bg-gray-50 p-4">
                 <p className="text-xs font-semibold uppercase tracking-wide text-muted">
                   Latest production release
                 </p>
@@ -85,12 +85,12 @@ export default function WhatsNewPage() {
           </section>
 
           {message && (
-            <div className="rounded-xl border border-gray-300 bg-white p-3 text-sm text-primary shadow-sm">
+            <div className="rounded-xl border border-[#d8d1c7] bg-white p-3 text-sm text-primary shadow-sm">
               {message}
             </div>
           )}
 
-          <section className="rounded-2xl border border-gray-300 bg-white p-5 shadow-sm sm:p-6">
+          <section className="rounded-2xl border border-[#d8d1c7] bg-white p-5 shadow-sm sm:p-6">
             <h2 className="text-xl font-bold text-primary">
               Release notes
             </h2>
@@ -98,7 +98,7 @@ export default function WhatsNewPage() {
             {loading ? (
               <p className="mt-3 text-sm text-secondary">Loading release notes...</p>
             ) : releases.length === 0 ? (
-              <p className="mt-3 rounded-xl border border-gray-300 bg-gray-50 p-4 text-sm text-secondary">
+              <p className="mt-3 rounded-xl border border-[#d8d1c7] bg-gray-50 p-4 text-sm text-secondary">
                 No published release notes are available yet.
               </p>
             ) : (
@@ -106,7 +106,7 @@ export default function WhatsNewPage() {
                 {releases.map((release) => (
                   <article
                     key={release.id}
-                    className="rounded-2xl border border-gray-300 bg-gray-50 p-4"
+                    className="rounded-2xl border border-[#d8d1c7] bg-gray-50 p-4"
                   >
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                       <div>

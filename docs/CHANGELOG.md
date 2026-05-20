@@ -12,7 +12,7 @@
 - Fixed Publications page PDF links to use the existing `/api/view-source?file=` route.
 - Continued Phase 2 chat experience improvements.
 - Improved mobile chat usability by collapsing answer mode, category, and publication filters into a clearer tappable Search Options card.
-- Updated chat empty-state behavior so “How to use this” and “Ready for your question” hide once a question is submitted or the agent is loading.
+- Updated chat empty-state behavior so “How to use this” and “Ready for your question” hide once a question is submitted or the Reference system is loading.
 - Added a mobile hamburger navigation menu to reduce vertical space used by the shared header on phone and tablet widths.
 - Preserved desktop navigation and desktop chat filter behavior.
 ## 2026-05-16
@@ -306,7 +306,7 @@ Documentation updates needed:
 ## Phase 10A Step 3 — Admin AI Quality Analytics
 
 ### Added
-- Added AI answer confidence analytics to the admin dashboard.
+- Added Publication-grounded answer confidence analytics to the admin dashboard.
 - Added overview metrics for:
   - high confidence answers
   - medium confidence answers
@@ -342,7 +342,7 @@ Documentation updates needed:
 
 ### Retrieval & Grounding
 - Preserved strict retrieval grounding for all follow-up responses.
-- Added stronger safeguards preventing prior AI answers from being treated as evidence.
+- Added stronger safeguards preventing prior Publication-grounded answers from being treated as evidence.
 - Improved retrieval continuity for conversational follow-up questions.
 
 ### Reliability
@@ -382,7 +382,7 @@ Documentation updates needed:
 ## Phase 10 — AI Quality, Citation UX, and Stabilization
 
 ### Improved
-- Improved AI answer grounding, retrieval ranking, citation transparency, and source relevance.
+- Improved Publication-grounded answer grounding, retrieval ranking, citation transparency, and source relevance.
 - Improved conversational follow-up handling and topic continuity.
 - Added semantic preservation-topic weighting for retrieval and trusted-answer matching.
 - Added admin AI quality analytics for confidence monitoring.

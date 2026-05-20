@@ -37,20 +37,20 @@ export default function RequestAccessPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-green-50 p-8 text-primary">
-      <div className="w-full max-w-lg rounded-2xl border border-gray-300 bg-white p-6 shadow-sm space-y-5">
+    <main className="min-h-screen flex items-center justify-center bg-[#f7f4ef] from-blue-50 to-green-50 p-8 text-primary">
+      <div className="w-full max-w-lg rounded-2xl border border-[#d8d1c7] bg-white p-6 shadow-sm space-y-5">
         
         {/* Header */}
         <div>
           <h1 className="text-2xl font-bold text-primary">Request Access</h1>
           <p className="mt-2 text-sm text-secondary">
-            Request access to the MFP Publication Agent. Access is manually approved.
+            Request access to the MFP Publication Reference system. Access is manually approved.
           </p>
         </div>
 
         {submitted ? (
           <div className="space-y-4">
-            <div className="rounded-lg border border-gray-300 bg-gray-50 p-4 text-sm text-primary">
+            <div className="rounded-xl border border-[#d8d1c7] bg-gray-50 p-4 text-sm text-primary">
               {message}
             </div>
 
@@ -69,7 +69,7 @@ export default function RequestAccessPage() {
               <input
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-primary"
+                className="w-full rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-primary"
                 required
               />
             </div>
@@ -83,7 +83,7 @@ export default function RequestAccessPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-primary"
+                className="w-full rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-primary"
                 required
               />
             </div>
@@ -96,7 +96,7 @@ export default function RequestAccessPage() {
               <textarea
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                className="w-full min-h-28 rounded-lg border border-gray-300 bg-white px-3 py-2 text-primary"
+                className="w-full min-h-28 rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-primary"
                 placeholder="Optional"
               />
             </div>
@@ -111,7 +111,7 @@ export default function RequestAccessPage() {
             {/* Submit */}
             <button
               type="submit"
-              className="w-full rounded-lg bg-black py-2 font-semibold text-white shadow-sm"
+              className="w-full rounded-xl bg-[#d73f09] py-2 font-semibold text-white shadow-sm"
             >
               Submit request
             </button>

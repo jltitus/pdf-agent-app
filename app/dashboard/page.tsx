@@ -86,7 +86,7 @@ export default function DashboardPage() {
 
         <main className="min-h-screen bg-[#f7f4ef] p-6 text-primary">
           <div className="mx-auto max-w-6xl rounded-2xl border border-[#d8d1c7] bg-white p-5 shadow-sm">
-            Loading MFP Publication Agent...
+            Loading MFP Publication Reference system...
           </div>
         </main>
       </>
@@ -264,7 +264,7 @@ export default function DashboardPage() {
                     href="/admin"
                     className="rounded-xl border border-[#d8d1c7] bg-[#fcfaf7] px-4 py-3 text-center text-sm font-semibold text-primary hover:bg-[#f3f0ed]"
                   >
-                    Admin tools
+                    Admin Reference workspaces
                   </Link>
                 )}
               </div>

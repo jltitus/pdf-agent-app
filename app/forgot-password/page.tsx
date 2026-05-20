@@ -38,7 +38,7 @@ export default function ForgotPasswordPage() {
           <input
             type="email"
             placeholder="Email"
-            className="w-full rounded-lg border px-3 py-2"
+            className="w-full rounded-xl border px-3 py-2"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -49,7 +49,7 @@ export default function ForgotPasswordPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-black text-white py-2 disabled:opacity-60"
+            className="w-full rounded-xl bg-[#d73f09] text-white py-2 disabled:opacity-60"
           >
             {loading ? 'Sending...' : 'Send reset email'}
           </button>

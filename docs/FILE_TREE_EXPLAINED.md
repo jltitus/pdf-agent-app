@@ -179,7 +179,7 @@ Enhanced retrieval orchestration workflow for:
 ## Phase 10 Stabilization
 
 ### `app/api/chat/route.ts`
-Enhanced AI chat orchestration for retrieval ranking, citation grounding, follow-up context, semantic topic weighting, and trusted-answer matching.
+Enhanced Preservation guidance orchestration for retrieval ranking, citation grounding, follow-up context, semantic topic weighting, and trusted-answer matching.
 
 ### `app/chat/page.tsx`
 Enhanced citation transparency, source excerpt display, mobile chat stability, and confidence indicator UX.
@@ -188,7 +188,7 @@ Enhanced citation transparency, source excerpt display, mobile chat stability, a
 Enhanced admin dashboard visibility for AI quality and confidence monitoring.
 
 ### `app/api/admin-analytics/route.ts`
-Enhanced analytics aggregation for AI answer confidence monitoring.
+Enhanced analytics aggregation for Publication-grounded answer confidence monitoring.
 
 ### `app/publications/PublicationsTable.tsx`
 Restored stable publication list behavior after removing optional publication summary controls.

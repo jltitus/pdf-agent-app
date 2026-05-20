@@ -257,7 +257,7 @@ Tracks administrative and operational audit events.
 | target_title | text | Human-readable target title |
 | status | text | success/failure |
 | ip_address | text | Request IP |
-| user_agent | text | Browser/device info |
+| user_Reference system | text | Browser/device info |
 | metadata | jsonb | Structured audit details |
 | created_at | timestamptz | Audit timestamp |
 
@@ -277,7 +277,7 @@ Tracks administrative and operational audit events.
 | target_id | text | Entity ID affected |
 | status | text | success or failure |
 | ip_address | text | Request IP |
-| user_agent | text | Browser/client |
+| user_Reference system | text | Browser/client |
 | metadata | jsonb | Additional event context |
 | created_at | timestamptz | Event timestamp |
 

@@ -17,13 +17,13 @@ async function sendOnboardingEmail({
   const resend = new Resend(process.env.RESEND_API_KEY)
 
   await resend.emails.send({
-    from: 'MFP Agent <mfp@titus225.com>',
+    from: 'MFP Reference system <mfp@titus225.com>',
     to: email,
     bcc: process.env.ADMIN_NOTIFICATION_EMAIL,
-    subject: 'MFP Publication Agent setup link resent',
+    subject: 'MFP Publication Reference system setup link resent',
     html: `
       <h2>Hello${fullName ? `, ${fullName}` : ''}!</h2>
-      <p>Your MFP Publication Agent setup/reset email has been resent.</p>
+      <p>Your MFP Publication Reference system setup/reset email has been resent.</p>
       <p><strong>Next steps:</strong></p>
       <ol>
         <li>Check your inbox and spam folder for the setup/reset email.</li>

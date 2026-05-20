@@ -25,7 +25,7 @@ export default function HelpPage() {
                 </h1>
 
                 <p className="mt-5 max-w-3xl text-base leading-7 text-secondary sm:text-lg">
-                  Learn how to use the MFP Publication Agent effectively,
+                  Learn how to use the MFP Publication Reference system effectively,
                   interpret evidence labels, review citations, and confirm
                   preservation guidance using OSU Extension source publications.
                 </p>
@@ -60,7 +60,7 @@ export default function HelpPage() {
               </h2>
 
               <p className="mt-4 text-sm leading-7 text-secondary">
-                The MFP Publication Agent helps Oregon Master Food Preservers
+                The MFP Publication Reference system helps Oregon Master Food Preservers
                 search active OSU Extension preservation publications, retrieve
                 supporting evidence, and review source citations more quickly.
               </p>
@@ -212,7 +212,7 @@ export default function HelpPage() {
             </p>
 
             <h2 className="mt-2 text-3xl font-bold text-primary">
-              Reference tools
+              Reference Reference workspaces
             </h2>
 
             <div className="mt-6 flex flex-wrap gap-3">

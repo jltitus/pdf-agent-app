@@ -67,7 +67,7 @@ export default function ReportIssuePage() {
     setIssueType('Incorrect answer')
     setDescription('')
     setRelatedQuestion('')
-    setMessage('Issue submitted. Thank you for helping improve the agent.')
+    setMessage('Issue submitted. Thank you for helping improve the Reference system.')
     setLoading(false)
   }
 
@@ -75,15 +75,15 @@ export default function ReportIssuePage() {
     <>
    
 
-      <main className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 text-primary">
+      <main className="min-h-screen bg-[#f7f4ef] from-blue-50 to-green-50 text-primary">
         <div className="mx-auto max-w-3xl px-6 py-8">
-          <section className="rounded-3xl border border-gray-300 bg-white p-8 shadow-sm">
+          <section className="rounded-3xl border border-[#d8d1c7] bg-white p-8 shadow-sm">
             
             {/* Header */}
             <div className="flex items-center gap-4">
               <img
                 src="/jar-logosm.png"
-                alt="MFP Publication Agent logo"
+                alt="MFP Publication Reference system logo"
                 className="h-14 w-14 object-contain"
               />
 
@@ -92,7 +92,7 @@ export default function ReportIssuePage() {
                   Report an Issue
                 </h1>
                 <p className="text-sm font-semibold tracking-wide text-secondary">
-                  MFP PUBLICATION AGENT
+                  MFP PUBLICATION Reference system
                 </p>
               </div>
             </div>
@@ -113,7 +113,7 @@ export default function ReportIssuePage() {
                 <select
                   value={issueType}
                   onChange={(e) => setIssueType(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-3 text-primary"
+                  className="w-full rounded-xl border border-[#d8d1c7] bg-white px-3 py-3 text-primary"
                 >
                   <option>Incorrect answer</option>
                   <option>Missing source</option>
@@ -132,7 +132,7 @@ export default function ReportIssuePage() {
                 <input
                   value={relatedQuestion}
                   onChange={(e) => setRelatedQuestion(e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 bg-white px-3 py-3 text-primary"
+                  className="w-full rounded-xl border border-[#d8d1c7] bg-white px-3 py-3 text-primary"
                   placeholder="Paste the question you asked, if relevant"
                 />
               </div>
@@ -145,7 +145,7 @@ export default function ReportIssuePage() {
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  className="min-h-[160px] w-full rounded-lg border border-gray-300 bg-white px-3 py-3 text-primary"
+                  className="min-h-[160px] w-full rounded-xl border border-[#d8d1c7] bg-white px-3 py-3 text-primary"
                   placeholder="Describe what seemed wrong, missing, confusing, or unexpected."
                   required
                 />
@@ -153,7 +153,7 @@ export default function ReportIssuePage() {
 
               {/* Message */}
               {message && (
-                <div className="rounded-lg border border-gray-300 bg-gray-50 p-3 text-sm text-primary">
+                <div className="rounded-xl border border-[#d8d1c7] bg-gray-50 p-3 text-sm text-primary">
                   {message}
                 </div>
               )}
@@ -163,14 +163,14 @@ export default function ReportIssuePage() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="rounded-lg bg-black px-4 py-2 font-semibold text-white shadow-sm disabled:opacity-60"
+                  className="rounded-xl bg-[#d73f09] px-4 py-2 font-semibold text-white shadow-sm disabled:opacity-60"
                 >
                   {loading ? 'Submitting...' : 'Submit issue'}
                 </button>
 
                 <Link
                   href="/help"
-                  className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-primary hover:bg-gray-100"
+                  className="rounded-xl border border-[#d8d1c7] bg-white px-4 py-2 text-sm font-semibold text-primary hover:bg-gray-100"
                 >
                   Back to help
                 </Link>

@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'MFP Publication Agent',
-  description: 'Master Food Preservers tool',
+  title: 'MFP Publication Reference system',
+  description: 'Master Food Preservers Reference workspace',
   icons: {
     icon: '/icon.png',
     apple: '/apple-touch-icon.png',

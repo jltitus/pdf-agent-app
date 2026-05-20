@@ -1,6 +1,6 @@
 # Local Development
 
-cd ~/Documents/pdf-agent-project/pdf-agent-app
+cd ~/Documents/pdf-Reference system-project/pdf-Reference system-app
 nvm use 24
 NODE_TLS_REJECT_UNAUTHORIZED=0 npm run dev
 
@@ -17,7 +17,7 @@ Recommended browser widths:
 Run before deployment:
 
 ```bash
-cd ~/Documents/pdf-agent-project/pdf-agent-app
+cd ~/Documents/pdf-Reference system-project/pdf-Reference system-app
 nvm use 24
 npm run build
 
@@ -43,7 +43,7 @@ Recommended viewport widths:
 Before deployment, run:
 
 ```bash
-cd ~/Documents/pdf-agent-project/pdf-agent-app
+cd ~/Documents/pdf-Reference system-project/pdf-Reference system-app
 nvm use 24
 npm run build
 
@@ -90,7 +90,7 @@ Verify:
 Before deployment, run:
 
 ```bash
-cd ~/Documents/pdf-agent-project/pdf-agent-app
+cd ~/Documents/pdf-Reference system-project/pdf-Reference system-app
 nvm use 24
 npm run build
 
@@ -117,7 +117,7 @@ Recommended checks:
 Before deployment, run:
 
 ```bash
-cd ~/Documents/pdf-agent-project/pdf-agent-app
+cd ~/Documents/pdf-Reference system-project/pdf-Reference system-app
 nvm use 24
 npm run build
 
@@ -198,7 +198,7 @@ Common statuses:
 Before deployment, run:
 
 ```bash
-cd ~/Documents/pdf-agent-project/pdf-agent-app
+cd ~/Documents/pdf-Reference system-project/pdf-Reference system-app
 nvm use 24
 npm run build
 NODE_TLS_REJECT_UNAUTHORIZED=0 npm run dev
@@ -248,7 +248,7 @@ Verify after upgrades:
 Before production deployment:
 
 ```bash
-cd ~/Documents/pdf-agent-project/pdf-agent-app
+cd ~/Documents/pdf-Reference system-project/pdf-Reference system-app
 nvm use 24
 npm run build
 
@@ -267,15 +267,15 @@ After auth/session changes, verify:
 Before deployment, run:
 
 ```bash
-cd ~/Documents/pdf-agent-project/pdf-agent-app
+cd ~/Documents/pdf-Reference system-project/pdf-Reference system-app
 nvm use 24
 npm run build
 
-# MFP Publication Agent Operational Playbook
+# MFP Publication Reference system Operational Playbook
 
 ## 1. Architecture Overview
 
-The MFP Publication Agent is a Next.js 16 App Router application using TypeScript, Tailwind CSS, Supabase, OpenAI, Resend, and Vercel. Core areas include authentication, chat, publications, admin, and PDF processing. The current architecture documentation identifies these as the major app areas. :contentReference[oaicite:0]{index=0}
+The MFP Publication Reference system is a Next.js 16 App Router application using TypeScript, Tailwind CSS, Supabase, OpenAI, Resend, and Vercel. Core areas include authentication, chat, publications, admin, and PDF processing. The current architecture documentation identifies these as the major app areas. :contentReference[oaicite:0]{index=0}
 
 Primary user workflows:
 - Users sign in through Supabase Auth.
@@ -292,7 +292,7 @@ Key folders:
 - `/app` — pages, layouts, and route groups
 - `/app/api` — server-side API routes
 - `/app/admin` — admin dashboard and admin review pages
-- `/app/chat` — main AI chat interface
+- `/app/chat` — main Preservation guidance interface
 - `/app/publications` — active publication library
 - `/lib/supabase` — Supabase browser/server clients
 - `/public` — icons, logos, screenshots, and static assets
@@ -336,7 +336,7 @@ Deployment is handled through Vercel.
 
 Standard deployment process:
 ```bash
-cd ~/Documents/pdf-agent-project/pdf-agent-app
+cd ~/Documents/pdf-Reference system-project/pdf-Reference system-app
 nvm use 24
 npm run build
 git status
@@ -438,7 +438,7 @@ Only expose:
 
 Do not expose:
 - security issues
-- internal-only tooling
+- internal-only Reference workspaceing
 - sensitive operational changes
 - unresolved vulnerability details
 
@@ -625,7 +625,7 @@ Verify:
 - citations still appear correctly
 - source excerpts still expand correctly
 - unsupported follow-up questions still return safe fallback responses
-- prior AI answers are not reused as evidence
+- prior Publication-grounded answers are not reused as evidence
 
 ### Performance
 Verify:

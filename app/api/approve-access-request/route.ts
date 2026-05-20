@@ -153,10 +153,10 @@ const { data: linkData, error: linkError } = existingUser
     const resend = new Resend(resendKey)
 
     await resend.emails.send({
-      from: 'MFP Publication Agent <mfp@titus225.com>',
+      from: 'MFP Publication Reference system <mfp@titus225.com>',
       to: normalizedEmail,
       bcc: process.env.ADMIN_NOTIFICATION_EMAIL || undefined,
-      subject: 'Your MFP Publication Agent access has been approved',
+      subject: 'Your MFP Publication Reference system access has been approved',
       html: `
         <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #111827;">
           <h2>Your access has been approved</h2>
@@ -164,7 +164,7 @@ const { data: linkData, error: linkError } = existingUser
           <p>Hello ${accessRequest.full_name || ''},</p>
 
           <p>
-            Your access to the <strong>MFP Publication Agent</strong> has been approved.
+            Your access to the <strong>MFP Publication Reference system</strong> has been approved.
           </p>
 
           <p>
@@ -202,7 +202,7 @@ const { data: linkData, error: linkError } = existingUser
 
           <p>
             Thank you,<br />
-            MFP Publication Agent
+            MFP Publication Reference system
           </p>
         </div>
       `,

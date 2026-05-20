@@ -48,7 +48,7 @@ export default function WhatsNewBanner() {
         <div className="flex flex-wrap gap-2">
           <Link
             href="/whats-new"
-            className="rounded-lg border border-blue-300 bg-white px-4 py-2 text-sm font-semibold text-blue-900 hover:bg-blue-100"
+            className="rounded-xl border border-blue-300 bg-white px-4 py-2 text-sm font-semibold text-blue-900 hover:bg-blue-100"
           >
             View updates
           </Link>
@@ -56,7 +56,7 @@ export default function WhatsNewBanner() {
           <button
             type="button"
             onClick={dismissBanner}
-            className="rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-primary hover:bg-gray-100"
+            className="rounded-xl border border-[#d8d1c7] bg-white px-4 py-2 text-sm font-semibold text-primary hover:bg-gray-100"
           >
             Dismiss
           </button>

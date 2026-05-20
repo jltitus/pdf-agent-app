@@ -2,7 +2,7 @@
 ./.DS_Store
 ./.env.local
 ./.gitignore
-./AGENTS.md
+./Reference systemS.md
 ./app
 ./app/.DS_Store
 ./app/admin
@@ -151,7 +151,7 @@
 ./public/.DS_Store
 ./public/admin.png
 ./public/apple-touch-icon.png
-./public/ask-agent.png
+./public/ask-Reference system.png
 ./public/chat-icon.png
 ./public/feedback.png
 ./public/file.svg

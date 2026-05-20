@@ -693,7 +693,7 @@ setMessage('');
                         Search options
                       </p>
                       <p className="text-xs leading-5 text-secondary">
-                        Adjust how the agent searches publications.
+                        Adjust how the Reference system searches publications.
                       </p>
                     </div>
 
@@ -1082,7 +1082,7 @@ setMessage('');
 
                   {expanded && (
   <div className="mt-3 space-y-3">
-    <p className="rounded-lg bg-yellow-50 px-3 py-2 text-xs leading-5 text-[#6b4a19]">
+    <p className="rounded-xl bg-yellow-50 px-3 py-2 text-xs leading-5 text-[#6b4a19]">
       These excerpts are pulled directly from the indexed publication text and may include document metadata.
     </p>
                       {(source.excerpts ?? []).map((excerpt, excerptIndex) => (
@@ -1131,7 +1131,7 @@ setMessage('');
         Excerpt:
       </p>
 
-      <div className="rounded-lg border-l-4 border-[#d8d1c7] bg-[#fcfaf7] p-3">
+      <div className="rounded-xl border-l-4 border-[#d8d1c7] bg-[#fcfaf7] p-3">
         <p className="line-clamp-6 whitespace-pre-wrap text-sm leading-7 text-primary">
           {excerpt}
         </p>
@@ -1237,7 +1237,7 @@ setMessage('');
       className={`min-h-11 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
         turn.feedbackSubmitted === 'helpful'
           ? 'border-green-300 bg-green-100 text-green-800'
-          : 'border-gray-300 bg-white text-primary hover:bg-gray-50'
+          : 'border-[#d8d1c7] bg-white text-primary hover:bg-gray-50'
       }`}
     >
       {turn.feedbackSubmitted === 'helpful' ? '✅ Saved' : '👍 Helpful'}
@@ -1250,7 +1250,7 @@ setMessage('');
       className={`min-h-11 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
         turn.feedbackSubmitted === 'not_helpful'
           ? 'border-yellow-300 bg-yellow-100 text-yellow-900'
-          : 'border-gray-300 bg-white text-primary hover:bg-gray-50'
+          : 'border-[#d8d1c7] bg-white text-primary hover:bg-gray-50'
       }`}
     >
       {turn.feedbackSubmitted === 'not_helpful' ? '✅ Saved' : '👎 Not helpful'}
@@ -1263,7 +1263,7 @@ setMessage('');
       className={`min-h-11 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
         turn.feedbackSubmitted === 'missing_source'
           ? 'border-blue-300 bg-blue-100 text-blue-800'
-          : 'border-gray-300 bg-white text-primary hover:bg-gray-50'
+          : 'border-[#d8d1c7] bg-white text-primary hover:bg-gray-50'
       }`}
     >
       {turn.feedbackSubmitted === 'missing_source' ? '✅ Saved' : '🔎 Source'}
@@ -1271,7 +1271,7 @@ setMessage('');
 
     <Link
       href={`/report-issue?question=${encodeURIComponent(turn.question)}`}
-      className="inline-flex min-h-11 items-center justify-center rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-gray-50"
+      className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-gray-50"
     >
       🚩 Report
     </Link>
@@ -1282,7 +1282,7 @@ setMessage('');
       type="button"
       onClick={() => regenerateTurn(index)}
       disabled={loading}
-      className="min-h-11 rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-gray-50 disabled:opacity-60"
+      className="min-h-11 rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-gray-50 disabled:opacity-60"
     >
       🔄 Regenerate
     </button>
@@ -1291,7 +1291,7 @@ setMessage('');
       type="button"
       onClick={() => tryBroaderSearch(index)}
       disabled={loading}
-      className="min-h-11 rounded-xl border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-gray-50 disabled:opacity-60"
+      className="min-h-11 rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-gray-50 disabled:opacity-60"
     >
       🌐 Broader
     </button>
@@ -1303,7 +1303,7 @@ setMessage('');
       className={`min-h-11 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
         turn.savedChat
           ? 'border-green-300 bg-green-100 text-green-800'
-          : 'border-gray-300 bg-white text-primary hover:bg-gray-50'
+          : 'border-[#d8d1c7] bg-white text-primary hover:bg-gray-50'
       } disabled:opacity-80`}
     >
       {turn.savedChat ? '✅ Saved' : '💾 Save'}
@@ -1316,7 +1316,7 @@ setMessage('');
       className={`min-h-11 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
         turn.trustedSaved
           ? 'border-green-300 bg-green-100 text-green-800'
-          : 'border-gray-300 bg-white text-primary hover:bg-gray-50'
+          : 'border-[#d8d1c7] bg-white text-primary hover:bg-gray-50'
       } disabled:opacity-80`}
     >
       {turn.trustedSaved ? '✅ Trusted' : '⭐ Trusted'}
@@ -1474,7 +1474,7 @@ setMessage('');
                   <li>Ask follow-ups in the same chat.</li>
                   <li>Use the publication filter to narrow answers.</li>
                   <li>Click sources to verify the answer.</li>
-                  <li>Suggest a source when the agent cannot find support.</li>
+                  <li>Suggest a source when the Reference system cannot find support.</li>
                 </ul>
               </section>
             </aside>
@@ -1485,7 +1485,7 @@ setMessage('');
   onSubmit={askQuestion}
 className="fixed inset-x-0 bottom-0 z-50 w-full max-w-full overflow-hidden border-t border-gray-200 bg-white/95 p-2 backdrop-blur text-primary shadow-lg md:hidden">
           {message && (
-            <div className="mb-2 rounded-lg border border-red-300 bg-red-50 p-2 text-xs font-medium text-red-800">
+            <div className="mb-2 rounded-xl border border-red-300 bg-red-50 p-2 text-xs font-medium text-red-800">
               {message}
             </div>
           )}

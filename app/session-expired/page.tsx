@@ -14,19 +14,19 @@ export default async function SessionExpiredPage({
   const loginHref = `/login?redirectTo=${encodeURIComponent(redirectTo)}&message=session-expired`
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 px-4 py-8 text-primary">
+    <main className="min-h-screen bg-[#f7f4ef] from-blue-50 to-green-50 px-4 py-8 text-primary">
       <section className="mx-auto flex min-h-[80vh] max-w-md items-center">
-        <div className="w-full rounded-2xl border border-gray-300 bg-white p-6 shadow-sm">
+        <div className="w-full rounded-2xl border border-[#d8d1c7] bg-white p-6 shadow-sm">
           <div className="mb-5 flex items-center gap-3">
             <img
               src="/jar-logosm.png"
-              alt="MFP Publication Agent logo"
+              alt="MFP Publication Reference system logo"
               className="h-12 w-12 object-contain"
             />
 
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-secondary">
-                MFP Publication Agent
+                MFP Publication Reference system
               </p>
               <h1 className="text-2xl font-bold text-primary">
                 Session expired
@@ -41,14 +41,14 @@ export default async function SessionExpiredPage({
           <div className="mt-6 grid gap-3">
             <Link
               href={loginHref}
-              className="min-h-12 rounded-xl bg-black px-4 py-3 text-center text-sm font-semibold !text-white shadow-sm"
+              className="min-h-12 rounded-xl bg-[#d73f09] px-4 py-3 text-center text-sm font-semibold !text-white shadow-sm"
             >
               Sign in again
             </Link>
 
             <Link
               href="/request-access"
-              className="min-h-12 rounded-xl border border-gray-300 bg-white px-4 py-3 text-center text-sm font-semibold text-primary shadow-sm hover:bg-gray-100"
+              className="min-h-12 rounded-xl border border-[#d8d1c7] bg-white px-4 py-3 text-center text-sm font-semibold text-primary shadow-sm hover:bg-gray-100"
             >
               Request access
             </Link>

@@ -263,7 +263,7 @@ export default function AdminPage() {
   const secondaryButton =
     "rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-primary shadow-sm hover:bg-[#f3f0ed] disabled:opacity-60";
   const smallSecondaryButton =
-    "rounded-lg border border-[#d8d1c7] bg-white px-3 py-1 text-xs font-semibold text-primary shadow-sm hover:bg-[#f3f0ed] disabled:opacity-60";
+    "rounded-xl border border-[#d8d1c7] bg-white px-3 py-1 text-xs font-semibold text-primary shadow-sm hover:bg-[#f3f0ed] disabled:opacity-60";
   const primaryButton =
     "rounded-xl bg-[#d73f09] px-4 py-2 text-sm font-semibold !text-white shadow-sm hover:bg-[#b23408] disabled:bg-[#e8a08a] disabled:!text-white disabled:cursor-not-allowed";
   const blueButton =
@@ -1839,7 +1839,7 @@ export default function AdminPage() {
                 The user has been approved and should receive an email
                 invitation to set their password.
               </p>
-              <div className="space-y-1 rounded-lg border border-[#d8d1c7] bg-[#fcfaf7] p-3 text-sm text-primary">
+              <div className="space-y-1 rounded-xl border border-[#d8d1c7] bg-[#fcfaf7] p-3 text-sm text-primary">
                 <p>
                   <strong>Email:</strong> {approvedUserInfo.email}
                 </p>
@@ -1849,7 +1849,7 @@ export default function AdminPage() {
               </div>
             </section>
           )}
-          <div className="sticky top-[155px] z-40 rounded-3xl border border-[#d8d1c7] bg-white/90 p-2 shadow-md backdrop-blur sm:top-[145px] lg:top-[92px]">
+          <div className="sticky top-[155px] z-40 rounded-3xl border border-[#d8d1c7] bg-white/90 p-2 shadow-sm backdrop-blur sm:top-[145px] lg:top-[92px]">
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:flex lg:flex-wrap">
               {[
                 { key: "overview", label: "Overview" },
@@ -1870,7 +1870,7 @@ export default function AdminPage() {
                     }
                     setActiveTab(tab.key as any);
                   }}
-                  className={`min-h-11 rounded-lg px-2 py-2 text-center text-xs font-semibold leading-tight sm:px-3 sm:text-sm lg:w-auto ${
+                  className={`min-h-11 rounded-xl px-2 py-2 text-center text-xs font-semibold leading-tight sm:px-3 sm:text-sm lg:w-auto ${
                     activeTab === tab.key
                       ? "bg-[#d73f09] !text-white shadow-sm"
                       : "border border-[#d8d1c7] bg-white text-primary hover:bg-[#f3f0ed]"
@@ -2101,7 +2101,7 @@ export default function AdminPage() {
                     </p>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="rounded-lg border border-[#d8d1c7] p-4">
+                    <div className="rounded-xl border border-[#d8d1c7] p-4">
                       <p className="text-xs font-medium text-muted">
                         Not processed
                       </p>
@@ -2109,7 +2109,7 @@ export default function AdminPage() {
                         {documentHealth.notProcessed}
                       </p>
                     </div>
-                    <div className="rounded-lg border border-[#d8d1c7] p-4">
+                    <div className="rounded-xl border border-[#d8d1c7] p-4">
                       <p className="text-xs font-medium text-muted">
                         Zero pages
                       </p>
@@ -2128,7 +2128,7 @@ export default function AdminPage() {
                         key={key}
                         type="button"
                         onClick={() => setDocumentHealthView(key as any)}
-                        className={`rounded-lg border px-3 py-2 text-sm font-semibold ${documentHealthView === key ? "bg-[#d73f09] !text-white shadow-sm" : "border-[#d8d1c7] bg-white text-primary hover:bg-[#f3f0ed]"}`}
+                        className={`rounded-xl border px-3 py-2 text-sm font-semibold ${documentHealthView === key ? "bg-[#d73f09] !text-white shadow-sm" : "border-[#d8d1c7] bg-white text-primary hover:bg-[#f3f0ed]"}`}
                       >
                         {label}
                       </button>
@@ -2136,7 +2136,7 @@ export default function AdminPage() {
                   </div>
                   <div className="max-h-[420px] space-y-2 overflow-y-auto pr-1">
                     {documentHealthDocs.length === 0 ? (
-                      <p className="rounded-lg border border-[#d8d1c7] p-3 text-sm text-muted">
+                      <p className="rounded-xl border border-[#d8d1c7] p-3 text-sm text-muted">
                         No documents found for this view.
                       </p>
                     ) : (
@@ -2145,7 +2145,7 @@ export default function AdminPage() {
                         return (
                           <div
                             key={doc.id}
-                            className="rounded-lg border border-[#d8d1c7] p-3"
+                            className="rounded-xl border border-[#d8d1c7] p-3"
                           >
                             <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                               <div>
@@ -2302,7 +2302,7 @@ export default function AdminPage() {
                                   approvingId === request.id ||
                                   decliningId === request.id
                                 }
-                                className="min-h-11 rounded-lg bg-[#d73f09] px-3 py-2 text-sm font-semibold !text-white shadow-sm disabled:bg-[#e8a08a]"
+                                className="min-h-11 rounded-xl bg-[#d73f09] px-3 py-2 text-sm font-semibold !text-white shadow-sm disabled:bg-[#e8a08a]"
                               >
                                 {approvingId === request.id
                                   ? "Approving..."
@@ -2315,7 +2315,7 @@ export default function AdminPage() {
                                   approvingId === request.id ||
                                   decliningId === request.id
                                 }
-                                className="min-h-11 rounded-lg border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-[#f3f0ed] disabled:opacity-60"
+                                className="min-h-11 rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-[#f3f0ed] disabled:opacity-60"
                               >
                                 {decliningId === request.id
                                   ? "Declining..."
@@ -2326,7 +2326,7 @@ export default function AdminPage() {
                         </article>
                       ))}
                     </div>
-                    <div className="mt-3 hidden overflow-x-auto rounded-lg border border-[#d8d1c7] lg:block">
+                    <div className="mt-3 hidden overflow-x-auto rounded-xl border border-[#d8d1c7] lg:block">
                       <table className="w-full text-sm text-primary">
                         <thead className="bg-[#fcfaf7]">
                           <tr>
@@ -2448,7 +2448,7 @@ export default function AdminPage() {
                     No users or invites yet.
                   </p>
                 ) : filteredInviteDirectory.length === 0 ? (
-                  <p className="mt-3 rounded-lg border border-[#d8d1c7] p-3 text-sm text-secondary">
+                  <p className="mt-3 rounded-xl border border-[#d8d1c7] p-3 text-sm text-secondary">
                     No users or invites match your search/filter.
                   </p>
                 ) : (
@@ -2535,7 +2535,7 @@ export default function AdminPage() {
                                   type="button"
                                   onClick={() => resendInvite(request)}
                                   disabled={resendingInviteId === request.id}
-                                  className="min-h-11 rounded-lg border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-[#f3f0ed] disabled:opacity-60"
+                                  className="min-h-11 rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-[#f3f0ed] disabled:opacity-60"
                                 >
                                   {resendingInviteId === request.id
                                     ? "Resending..."
@@ -2550,7 +2550,7 @@ export default function AdminPage() {
                                     disabled={
                                       updatingUserEmail === request.email
                                     }
-                                    className="min-h-11 rounded-lg border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-green-700 hover:bg-green-50 disabled:opacity-60"
+                                    className="min-h-11 rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-green-700 hover:bg-green-50 disabled:opacity-60"
                                   >
                                     {updatingUserEmail === request.email
                                       ? "Updating..."
@@ -2565,7 +2565,7 @@ export default function AdminPage() {
                                     disabled={
                                       updatingUserEmail === request.email
                                     }
-                                    className="min-h-11 rounded-lg border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
+                                    className="min-h-11 rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
                                   >
                                     {updatingUserEmail === request.email
                                       ? "Updating..."
@@ -2576,7 +2576,7 @@ export default function AdminPage() {
                                   type="button"
                                   onClick={() => deleteUser(request)}
                                   disabled={deletingUserEmail === request.email}
-                                  className="min-h-11 rounded-lg border border-red-300 bg-white px-3 py-2 text-sm font-semibold text-red-800 hover:bg-red-50 disabled:opacity-60"
+                                  className="min-h-11 rounded-xl border border-red-300 bg-white px-3 py-2 text-sm font-semibold text-red-800 hover:bg-red-50 disabled:opacity-60"
                                 >
                                   {deletingUserEmail === request.email
                                     ? "Deleting..."
@@ -2588,7 +2588,7 @@ export default function AdminPage() {
                         </article>
                       ))}
                     </div>
-                    <div className="mt-3 hidden max-h-[420px] overflow-y-auto rounded-lg border border-[#d8d1c7] lg:block">
+                    <div className="mt-3 hidden max-h-[420px] overflow-y-auto rounded-xl border border-[#d8d1c7] lg:block">
                       <table className="w-full text-sm text-primary">
                         <thead className="sticky top-0 bg-[#fcfaf7]">
                           <tr>
@@ -2695,7 +2695,7 @@ export default function AdminPage() {
                                           disabled={
                                             updatingUserEmail === request.email
                                           }
-                                          className="rounded-lg border border-[#d8d1c7] px-3 py-1 text-xs font-semibold text-green-700 hover:bg-green-50 disabled:opacity-60"
+                                          className="rounded-xl border border-[#d8d1c7] px-3 py-1 text-xs font-semibold text-green-700 hover:bg-green-50 disabled:opacity-60"
                                         >
                                           {updatingUserEmail === request.email
                                             ? "Updating..."
@@ -2710,7 +2710,7 @@ export default function AdminPage() {
                                           disabled={
                                             updatingUserEmail === request.email
                                           }
-                                          className="rounded-lg border border-[#d8d1c7] px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
+                                          className="rounded-xl border border-[#d8d1c7] px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
                                         >
                                           {updatingUserEmail === request.email
                                             ? "Updating..."
@@ -2723,7 +2723,7 @@ export default function AdminPage() {
                                         disabled={
                                           deletingUserEmail === request.email
                                         }
-                                        className="rounded-lg border border-red-300 bg-white px-3 py-1 text-xs font-semibold text-red-800 hover:bg-red-50 disabled:opacity-60"
+                                        className="rounded-xl border border-red-300 bg-white px-3 py-1 text-xs font-semibold text-red-800 hover:bg-red-50 disabled:opacity-60"
                                       >
                                         {deletingUserEmail === request.email
                                           ? "Deleting..."
@@ -2751,7 +2751,7 @@ export default function AdminPage() {
                     Upload PDF
                   </h2>
                   <p className="text-sm text-secondary">
-                    Add active publications for the agent to search. Publication
+                    Add active publications for the Reference system to search. Publication
                     date and notes are optional but recommended.
                   </p>
                 </div>
@@ -2802,7 +2802,7 @@ export default function AdminPage() {
                       value={documentNotes}
                       onChange={(e) => setDocumentNotes(e.target.value)}
                       placeholder="Optional notes for admins, such as source, update context, or review notes."
-                      className="min-h-[84px] w-full rounded-lg border border-[#d8d1c7] bg-white px-3 py-2 text-sm text-primary"
+                      className="min-h-[84px] w-full rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm text-primary"
                     />
                   </div>
                   <div>
@@ -2811,7 +2811,7 @@ export default function AdminPage() {
                       type="file"
                       accept="application/pdf"
                       onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                      className="w-full rounded-lg border border-[#d8d1c7] bg-white px-3 py-2 text-sm text-primary"
+                      className="w-full rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm text-primary"
                       required
                     />
                   </div>
@@ -2873,7 +2873,7 @@ export default function AdminPage() {
                   )}
                 </div>
                 {filteredDocumentsForAdmin.length === 0 ? (
-                  <p className="rounded-lg border border-[#d8d1c7] p-3 text-sm text-secondary">
+                  <p className="rounded-xl border border-[#d8d1c7] p-3 text-sm text-secondary">
                     No documents match your search/filter.
                   </p>
                 ) : (
@@ -2982,7 +2982,7 @@ export default function AdminPage() {
                                 disabled={
                                   deletingId === doc.id || isReplacingThis
                                 }
-                                className="rounded-lg border border-[#d8d1c7] bg-white px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
+                                className="rounded-xl border border-[#d8d1c7] bg-white px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
                               >
                                 {deletingId === doc.id
                                   ? "Deleting..."
@@ -3100,7 +3100,7 @@ export default function AdminPage() {
                                         documentNotes: e.target.value,
                                       }))
                                     }
-                                    className="min-h-[80px] w-full rounded-lg border border-[#d8d1c7] bg-white px-3 py-2 text-sm text-primary"
+                                    className="min-h-[80px] w-full rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm text-primary"
                                   />
                                 </div>
                               </div>
@@ -3240,7 +3240,7 @@ export default function AdminPage() {
                                         documentNotes: e.target.value,
                                       }))
                                     }
-                                    className="min-h-[80px] w-full rounded-lg border border-[#d8d1c7] bg-white px-3 py-2 text-sm text-primary"
+                                    className="min-h-[80px] w-full rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm text-primary"
                                   />
                                 </div>
                                 <div className="md:col-span-2">
@@ -3256,7 +3256,7 @@ export default function AdminPage() {
                                         file: e.target.files?.[0] ?? null,
                                       }))
                                     }
-                                    className="w-full rounded-lg border border-[#d8d1c7] bg-white px-3 py-2 text-sm text-primary"
+                                    className="w-full rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm text-primary"
                                   />
                                 </div>
                               </div>
@@ -3383,7 +3383,7 @@ export default function AdminPage() {
                         {topProblemQuestions.map((item, index) => (
                           <div
                             key={`${item.question}-${index}`}
-                            className="rounded-lg border border-[#d8d1c7] bg-white p-3"
+                            className="rounded-xl border border-[#d8d1c7] bg-white p-3"
                           >
                             <div className="flex items-start justify-between gap-3">
                               <p className="line-clamp-2 text-sm font-semibold text-primary">
@@ -3417,7 +3417,7 @@ export default function AdminPage() {
                         {issueTypeCounts.map(([issueType, count]) => (
                           <div
                             key={issueType}
-                            className="flex items-center justify-between rounded-lg border border-[#d8d1c7] bg-white p-3 text-sm text-primary"
+                            className="flex items-center justify-between rounded-xl border border-[#d8d1c7] bg-white p-3 text-sm text-primary"
                           >
                             <span>{issueType}</span>
                             <span className="rounded-full border border-[#d8d1c7] px-2 py-1 text-xs text-secondary">
@@ -3585,7 +3585,7 @@ export default function AdminPage() {
                                   updateIssueStatus(item, "reviewed")
                                 }
                                 disabled={updatingIssueId === item.id}
-                                className="min-h-11 rounded-lg border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-[#f3f0ed] disabled:opacity-60"
+                                className="min-h-11 rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-[#f3f0ed] disabled:opacity-60"
                               >
                                 Mark reviewed
                               </button>
@@ -3600,7 +3600,7 @@ export default function AdminPage() {
                                   )
                                 }
                                 disabled={updatingIssueId === item.id}
-                                className="min-h-11 rounded-lg border border-blue-300 bg-white px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50 disabled:opacity-60"
+                                className="min-h-11 rounded-xl border border-blue-300 bg-white px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50 disabled:opacity-60"
                               >
                                 Enhancement
                               </button>
@@ -3612,7 +3612,7 @@ export default function AdminPage() {
                                   updateIssueStatus(item, "resolved")
                                 }
                                 disabled={updatingIssueId === item.id}
-                                className="min-h-11 rounded-lg border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-[#f3f0ed] disabled:opacity-60"
+                                className="min-h-11 rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-[#f3f0ed] disabled:opacity-60"
                               >
                                 Mark resolved
                               </button>
@@ -3623,7 +3623,7 @@ export default function AdminPage() {
                                   type="button"
                                   onClick={() => updateIssueStatus(item, "new")}
                                   disabled={updatingIssueId === item.id}
-                                  className="min-h-11 rounded-lg border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-[#f3f0ed] disabled:opacity-60"
+                                  className="min-h-11 rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-[#f3f0ed] disabled:opacity-60"
                                 >
                                   Reopen
                                 </button>
@@ -3641,7 +3641,7 @@ export default function AdminPage() {
                     Content Gaps
                   </h2>
                   <p className="text-sm text-secondary">
-                    Questions the agent could not answer and frequently
+                    Questions the Reference system could not answer and frequently
                     requested topics.
                   </p>
                 </div>
@@ -3659,7 +3659,7 @@ export default function AdminPage() {
                         {contentGaps.map((gap, index) => (
                           <div
                             key={index}
-                            className="rounded-lg border border-[#d8d1c7] p-3"
+                            className="rounded-xl border border-[#d8d1c7] p-3"
                           >
                             <div className="flex justify-between gap-3">
                               <p className="text-sm font-semibold text-primary">
@@ -3693,7 +3693,7 @@ export default function AdminPage() {
                         {noAnswerItems.slice(0, 8).map((item) => (
                           <div
                             key={item.id}
-                            className="rounded-lg border border-[#d8d1c7] p-3"
+                            className="rounded-xl border border-[#d8d1c7] p-3"
                           >
                             <p className="text-sm font-semibold text-primary">
                               {item.question}
@@ -3853,7 +3853,7 @@ export default function AdminPage() {
                               <p className="text-xs font-semibold uppercase tracking-wide text-muted">
                                 Metadata
                               </p>
-                              <pre className="mt-1 max-h-28 max-w-full overflow-hidden whitespace-pre-wrap break-all rounded-lg bg-white p-2 text-xs text-muted">
+                              <pre className="mt-1 max-h-28 max-w-full overflow-hidden whitespace-pre-wrap break-all rounded-xl bg-white p-2 text-xs text-muted">
                                 {formatAuditMetadata(log.metadata)}
                               </pre>
                             </div>
@@ -3862,7 +3862,7 @@ export default function AdminPage() {
                       </article>
                     ))}
                   </div>
-                  <div className="hidden max-h-[620px] overflow-y-auto rounded-lg border border-[#d8d1c7] lg:block">
+                  <div className="hidden max-h-[620px] overflow-y-auto rounded-xl border border-[#d8d1c7] lg:block">
                     <table className="w-full text-sm text-primary">
                       <thead className="sticky top-0 bg-[#fcfaf7]">
                         <tr>
@@ -3941,7 +3941,7 @@ export default function AdminPage() {
                   {trustedAnswers.map((item) => (
                     <div
                       key={item.id}
-                      className="space-y-3 rounded-lg border border-[#d8d1c7] p-4"
+                      className="space-y-3 rounded-xl border border-[#d8d1c7] p-4"
                     >
                       {editingTrustedId === item.id ? (
                         <>
@@ -3964,7 +3964,7 @@ export default function AdminPage() {
                               onChange={(e) =>
                                 setTrustedEditAnswer(e.target.value)
                               }
-                              className="min-h-[160px] w-full rounded-lg border border-[#d8d1c7] bg-white px-3 py-2 text-sm text-primary"
+                              className="min-h-[160px] w-full rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm text-primary"
                             />
                           </div>
                           <div className="flex flex-wrap gap-2">
@@ -4026,7 +4026,7 @@ export default function AdminPage() {
                             <button
                               type="button"
                               onClick={() => deleteTrustedAnswer(item)}
-                              className="rounded-lg border border-[#d8d1c7] bg-white px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-50"
+                              className="rounded-xl border border-[#d8d1c7] bg-white px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-50"
                             >
                               Delete
                             </button>

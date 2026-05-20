@@ -58,7 +58,7 @@ export default function RoadmapPage() {
 
   function RoadmapCard({ item }: { item: RoadmapItem }) {
     return (
-      <article className="rounded-2xl border border-gray-300 bg-white p-4 shadow-sm">
+      <article className="rounded-2xl border border-[#d8d1c7] bg-white p-4 shadow-sm">
         <div className="flex flex-wrap items-center gap-2">
           <span
             className={`rounded-full px-2 py-1 text-xs font-semibold ${statusClass(
@@ -99,11 +99,11 @@ export default function RoadmapPage() {
     <>
 
 
-      <main className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 text-primary">
+      <main className="min-h-screen bg-[#f7f4ef] from-blue-50 to-green-50 text-primary">
         <div className="mx-auto max-w-6xl space-y-6 px-3 py-5 sm:px-6 sm:py-8">
-          <section className="rounded-2xl border border-gray-300 bg-white p-5 shadow-sm sm:p-6">
+          <section className="rounded-2xl border border-[#d8d1c7] bg-white p-5 shadow-sm sm:p-6">
             <p className="text-sm font-semibold uppercase tracking-wide text-muted">
-              MFP Publication Agent
+              MFP Publication Reference system
             </p>
 
             <h1 className="mt-2 text-3xl font-bold text-primary">
@@ -116,23 +116,23 @@ export default function RoadmapPage() {
           </section>
 
           {message && (
-            <div className="rounded-xl border border-gray-300 bg-white p-3 text-sm text-primary shadow-sm">
+            <div className="rounded-xl border border-[#d8d1c7] bg-white p-3 text-sm text-primary shadow-sm">
               {message}
             </div>
           )}
 
           {loading ? (
-            <section className="rounded-2xl border border-gray-300 bg-white p-5 shadow-sm">
+            <section className="rounded-2xl border border-[#d8d1c7] bg-white p-5 shadow-sm">
               Loading roadmap...
             </section>
           ) : items.length === 0 ? (
-            <section className="rounded-2xl border border-gray-300 bg-white p-5 text-sm text-secondary shadow-sm">
+            <section className="rounded-2xl border border-[#d8d1c7] bg-white p-5 text-sm text-secondary shadow-sm">
               No public roadmap items are available yet.
             </section>
           ) : (
             <div className="grid gap-5 lg:grid-cols-3">
               <section className="space-y-3">
-                <div className="rounded-2xl border border-gray-300 bg-white p-4 shadow-sm">
+                <div className="rounded-2xl border border-[#d8d1c7] bg-white p-4 shadow-sm">
                   <h2 className="text-xl font-bold text-primary">Planned</h2>
                   <p className="text-sm text-secondary">
                     Ideas and improvements being reviewed or planned.
@@ -140,7 +140,7 @@ export default function RoadmapPage() {
                 </div>
 
                 {plannedItems.length === 0 ? (
-                  <p className="rounded-xl border border-gray-300 bg-white p-4 text-sm text-secondary">
+                  <p className="rounded-xl border border-[#d8d1c7] bg-white p-4 text-sm text-secondary">
                     No planned items.
                   </p>
                 ) : (
@@ -149,7 +149,7 @@ export default function RoadmapPage() {
               </section>
 
               <section className="space-y-3">
-                <div className="rounded-2xl border border-gray-300 bg-white p-4 shadow-sm">
+                <div className="rounded-2xl border border-[#d8d1c7] bg-white p-4 shadow-sm">
                   <h2 className="text-xl font-bold text-primary">In Progress</h2>
                   <p className="text-sm text-secondary">
                     Improvements currently being worked on.
@@ -157,7 +157,7 @@ export default function RoadmapPage() {
                 </div>
 
                 {inProgressItems.length === 0 ? (
-                  <p className="rounded-xl border border-gray-300 bg-white p-4 text-sm text-secondary">
+                  <p className="rounded-xl border border-[#d8d1c7] bg-white p-4 text-sm text-secondary">
                     No in-progress items.
                   </p>
                 ) : (
@@ -168,7 +168,7 @@ export default function RoadmapPage() {
               </section>
 
               <section className="space-y-3">
-                <div className="rounded-2xl border border-gray-300 bg-white p-4 shadow-sm">
+                <div className="rounded-2xl border border-[#d8d1c7] bg-white p-4 shadow-sm">
                   <h2 className="text-xl font-bold text-primary">Released</h2>
                   <p className="text-sm text-secondary">
                     Improvements that have been completed.
@@ -176,7 +176,7 @@ export default function RoadmapPage() {
                 </div>
 
                 {releasedItems.length === 0 ? (
-                  <p className="rounded-xl border border-gray-300 bg-white p-4 text-sm text-secondary">
+                  <p className="rounded-xl border border-[#d8d1c7] bg-white p-4 text-sm text-secondary">
                     No released items.
                   </p>
                 ) : (

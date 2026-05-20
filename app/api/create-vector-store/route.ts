@@ -15,7 +15,7 @@ export async function POST() {
     })
 
     const vectorStore = await openai.vectorStores.create({
-      name: 'PDF Agent Page-Aware Knowledge Base',
+      name: 'PDF Reference system Page-Aware Knowledge Base',
     })
 
     return NextResponse.json({

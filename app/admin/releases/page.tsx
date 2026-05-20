@@ -133,11 +133,11 @@ null>(null)
 const [standardizingDeploymentId, setStandardizingDeploymentId] =
 useState<string | null>(null)
 const appVersion = process.env.NEXT_PUBLIC_APP_VERSION || 'Not set'
-const inputClass = "w-full rounded-lg border border-[#d8d1c7] bg-white px-3 py-2 text-sm text-primary"
+const inputClass = "w-full rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm text-primary"
 const labelClass = 'mb-1 block text-sm font-semibold text-primary'
-const primaryButton = 'rounded-lg bg-[#d73f09] px-4 py-2 text-sm font-semibold !text-white shadow-sm disabled:bg-[#9b3518] disabled:cursor-not-allowed'
-const secondaryButton = 'rounded-lg border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-[#f3f0ed] disabled:opacity-60'
-const smallButton = 'rounded-lg border border-[#d8d1c7] bg-white px-3 py-1 text-xs font-semibold text-primary hover:bg-[#f3f0ed] disabled:opacity-60'
+const primaryButton = 'rounded-xl bg-[#d73f09] px-4 py-2 text-sm font-semibold !text-white shadow-sm disabled:bg-[#9b3518] disabled:cursor-not-allowed'
+const secondaryButton = 'rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-[#f3f0ed] disabled:opacity-60'
+const smallButton = 'rounded-xl border border-[#d8d1c7] bg-white px-3 py-1 text-xs font-semibold text-primary hover:bg-[#f3f0ed] disabled:opacity-60'
 const cardClass = 'rounded-2xl border border-[#d8d1c7] bg-white p-4 shadow-sm sm:p-6'
 useEffect(() => {
 async function init() {
@@ -936,7 +936,7 @@ className={inputClass}
 value={description}
 onChange={(e) => setDescription(e.target.value)}
 placeholder="Describe the purpose of this release."
-className="min-h-[96px] w-full rounded-lg border border-[#d8d1c7]
+className="min-h-[96px] w-full rounded-xl border border-[#d8d1c7]
 bg-white px-3 py-2 text-sm text-primary"
 />
 </div>
@@ -1001,7 +1001,7 @@ Edit
 type="button"
 onClick={() => deleteOrArchiveRelease(release)}
 disabled={deletingReleaseId === release.id}
-className="rounded-lg border border-red-300 bg-white px-3 py-1 text-xs
+className="rounded-xl border border-red-300 bg-white px-3 py-1 text-xs
 font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
 >
 {deletingReleaseId === release.id ? 'Removing...' : 'Delete / Archive'}
@@ -1098,7 +1098,7 @@ Priority: {enhancement.priority || 'medium'}
 type="button"
 onClick={() => removeItemFromRelease(item.id)}
 disabled={removingItemId === item.id}
-className="rounded-lg border border-red-300 bg-white px-3 py-2 text-sm
+className="rounded-xl border border-red-300 bg-white px-3 py-2 text-sm
 font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
 >
 {removingItemId === item.id ? 'Removing...' : 'Remove'}
@@ -1144,7 +1144,7 @@ type="button"
 onClick={() => addItemToRelease(selectedRelease.id, 'enhancement',
 item.id)}
 disabled={addingItemId === item.id}
-className="mt-3 rounded-lg border border-[#d8d1c7] bg-white px-3 py-2
+className="mt-3 rounded-xl border border-[#d8d1c7] bg-white px-3 py-2
 text-sm font-semibold text-primary hover:bg-[#f3f0ed]
 disabled:opacity-60"
 >
@@ -1180,7 +1180,7 @@ Status: {item.status}{item.user_email ? ` • ${item.user_email}` : ''}
 type="button"
 onClick={() => addItemToRelease(selectedRelease.id, 'issue', item.id)}
 disabled={addingItemId === item.id}
-className="mt-3 rounded-lg border border-[#d8d1c7] bg-white px-3 py-2
+className="mt-3 rounded-xl border border-[#d8d1c7] bg-white px-3 py-2
 text-sm font-semibold text-primary hover:bg-[#f3f0ed]
 disabled:opacity-60"
 >
@@ -1237,7 +1237,7 @@ value={deploymentNotes}
 onChange={(e) => setDeploymentNotes(e.target.value)}
 placeholder="Example: Vercel deployed successfully. Smoke test passed on
 admin releases page."
-className="min-h-[96px] w-full rounded-lg border border-[#d8d1c7]
+className="min-h-[96px] w-full rounded-xl border border-[#d8d1c7]
 bg-white px-3 py-2 text-sm text-primary"
 />
 </div>
@@ -1306,7 +1306,7 @@ value={smokeNotes}
 onChange={(e) => setSmokeNotes(e.target.value)}
 placeholder="Example: Page loaded, release list displayed, edit/delete
 controls worked."
-className="min-h-[96px] w-full rounded-lg border border-[#d8d1c7]
+className="min-h-[96px] w-full rounded-xl border border-[#d8d1c7]
 bg-white px-3 py-2 text-sm text-primary"
 />
 </div>
@@ -1398,7 +1398,7 @@ Edit
 type="button"
 onClick={() => deleteDeployment(deployment.id)}
 disabled={deletingDeploymentId === deployment.id}
-className="rounded-lg border border-red-300 bg-white px-3 py-1 text-xs
+className="rounded-xl border border-red-300 bg-white px-3 py-1 text-xs
 font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
 >
 {deletingDeploymentId === deployment.id ? 'Deleting...' : 'Delete'}
@@ -1425,7 +1425,7 @@ className={inputClass}
 <textarea
 value={editDeploymentNotes}
 onChange={(e) => setEditDeploymentNotes(e.target.value)}
-className="min-h-[96px] w-full rounded-lg border border-[#d8d1c7]
+className="min-h-[96px] w-full rounded-xl border border-[#d8d1c7]
 bg-white px-3 py-2 text-sm text-primary"
 />
 </div>
@@ -1487,7 +1487,7 @@ className={smallButton}
 type="button"
 onClick={() => deleteSmokeTest(test.id)}
 disabled={deletingSmokeTestId === test.id}
-className="rounded-lg border border-red-300 bg-white px-3 py-1 text-xs
+className="rounded-xl border border-red-300 bg-white px-3 py-1 text-xs
 font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
 >
 {deletingSmokeTestId === test.id ? 'Deleting...' : 'Delete'}

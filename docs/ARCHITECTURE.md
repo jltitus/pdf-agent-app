@@ -1,4 +1,4 @@
-# MFP Publication Agent Architecture
+# MFP Publication Reference system Architecture
 
 ## Stack
 
@@ -45,8 +45,8 @@ Phase 2 mobile refinements include:
 
 - Mobile chat filters are collapsed into a tappable Search Options card.
 - Desktop chat filters remain visible inline.
-- The mobile-only “How to use this” guidance hides after a question is submitted or while the agent is loading.
-- The empty “Ready for your question” state hides after a question is submitted or while the agent is loading.
+- The mobile-only “How to use this” guidance hides after a question is submitted or while the Reference system is loading.
+- The empty “Ready for your question” state hides after a question is submitted or while the Reference system is loading.
 - Shared navigation now uses a hamburger menu on mobile and tablet widths to reduce vertical space.
 - Desktop navigation remains visible inline at large screen widths.
 
@@ -193,7 +193,7 @@ Admin-only authorization remains enforced by admin profile checks in the admin U
 
 ## Operational Playbook Reference
 
-The operational playbook in `docs/OPERATIONS.md` is now the primary runbook for maintaining the MFP Publication Agent. It includes architecture overview, deployment workflow, authentication flow, PDF processing workflow, OpenAI workflow, admin operations, troubleshooting, backup/recovery, and mobile testing.
+The operational playbook in `docs/OPERATIONS.md` is now the primary runbook for maintaining the MFP Publication Reference system. It includes architecture overview, deployment workflow, authentication flow, PDF processing workflow, OpenAI workflow, admin operations, troubleshooting, backup/recovery, and mobile testing.
 
 # Release Governance Architecture
 
@@ -488,7 +488,7 @@ Fallback rendering guards prevent runtime rendering failures for older stored co
 
 ## Admin Retrieval Quality Monitoring
 
-The admin dashboard now includes AI answer quality aggregation metrics sourced from chat history retrieval metadata.
+The admin dashboard now includes Publication-grounded answer quality aggregation metrics sourced from chat history retrieval metadata.
 
 ### Confidence Aggregation
 
@@ -498,7 +498,7 @@ Analytics aggregate retrieval evidence strength into four categories:
 - Low confidence
 - Not found
 
-These metrics are derived from stored evidence metadata associated with AI chat responses.
+These metrics are derived from stored evidence metadata associated with Preservation guidance responses.
 
 ### Evidence Metadata Compatibility
 
@@ -617,7 +617,7 @@ This improves trusted-answer recall while reducing unrelated trusted-answer matc
 
 # Phase 10 Stabilization
 
-Phase 10 focused on improving the AI answer quality layer while preserving the existing production architecture.
+Phase 10 focused on improving the Publication-grounded answer quality layer while preserving the existing production architecture.
 
 Key improvements included:
 - retrieval ranking
@@ -626,7 +626,7 @@ Key improvements included:
 - semantic topic weighting
 - admin AI quality monitoring
 
-The optional publication summary workflow was removed because summaries were not core to the app’s purpose and introduced additional cost, latency, and maintenance surface. The app remains focused on grounded AI answers with citations and direct source access.
+The optional publication summary workflow was removed because summaries were not core to the app’s purpose and introduced additional cost, latency, and maintenance surface. The app remains focused on grounded Publication-grounded answers with citations and direct source access.
 
 ## Audit Logging
 
@@ -643,7 +643,7 @@ Audit events capture:
 - actor identity
 - role
 - IP address
-- user agent
+- user Reference system
 - action status
 - structured metadata
 
@@ -662,7 +662,7 @@ Audit events capture:
 - actor identity
 - actor role
 - IP address
-- user agent
+- user Reference system
 - action status
 - target title
 - structured metadata

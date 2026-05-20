@@ -21,11 +21,11 @@ created_at: string
 admin_user_id?: string | null
 }
 const inputClass =
-  "w-full rounded-lg border border-[#d8d1c7] bg-white px-3 py-2 text-sm text-primary";
+  "w-full rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm text-primary";
 const secondaryButton =
-  'rounded-lg border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-[#f3f0ed] disabled:opacity-60'
+  'rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-[#f3f0ed] disabled:opacity-60'
 const primaryButton =
-  'inline-flex min-h-11 items-center justify-center rounded-lg bg-[#d73f09] px-4 py-2 text-sm font-semibold !text-white shadow-sm hover:bg-[#b23408] disabled:bg-[#9b3518] disabled:cursor-not-allowed'
+  'inline-flex min-h-11 items-center justify-center rounded-xl bg-[#d73f09] px-4 py-2 text-sm font-semibold !text-white shadow-sm hover:bg-[#b23408] disabled:bg-[#9b3518] disabled:cursor-not-allowed'
 function formatDate(value?: string | null) {
 if (!value) return '—'
 return new Date(value).toLocaleString()
@@ -395,7 +395,7 @@ text-[#b23408]">Admin notes</p>
 {(notesByIssueId[item.id]?.length ?? 0) > 0 && (
 <div className="mt-3 space-y-2">
 {notesByIssueId[item.id].map((note) => (
-<div key={note.id} className="rounded-lg border border-[#d8d1c7] bg-white
+<div key={note.id} className="rounded-xl border border-[#d8d1c7] bg-white
 p-3">
 <p className="whitespace-pre-wrap text-sm
 text-primary">{note.note_text}</p>
@@ -411,7 +411,7 @@ onChange={(e) => setNoteDrafts((prev) => ({ ...prev, [item.id]:
 e.target.value }))}
 placeholder="Add internal notes, follow-up context, or reviewer
 decisions..."
-className="min-h-[88px] w-full rounded-lg border border-[#d8d1c7]
+className="min-h-[88px] w-full rounded-xl border border-[#d8d1c7]
 bg-white px-3 py-2 text-sm text-primary"
 />
 <button
@@ -419,7 +419,7 @@ type="button"
 onClick={() => saveAdminNote(item.id)}
 disabled={savingNoteId === item.id}
 className="inline-flex min-h-11 w-full items-center justify-center
-rounded-lg bg-[#d73f09] px-3 py-2 text-sm font-semibold !text-white
+rounded-xl bg-[#d73f09] px-3 py-2 text-sm font-semibold !text-white
 hover:bg-[#b23408] disabled:bg-[#e8a08a] sm:w-fit"
 >
 {savingNoteId === item.id ? 'Saving note...' : 'Save note'}
@@ -444,7 +444,7 @@ Mark reviewed
 type="button"
 onClick={() => updateIssueStatus(item, 'enhancement_candidate')}
 disabled={updatingIssueId === item.id}
-className="inline-flex min-h-11 items-center justify-center rounded-lg
+className="inline-flex min-h-11 items-center justify-center rounded-xl
 border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold
 text-[#d73f09] hover:bg-[#f7f0dd] disabled:opacity-60"
 >

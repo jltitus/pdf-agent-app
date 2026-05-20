@@ -172,7 +172,7 @@ export default function ProfilePage() {
 
       <a
         href="/profile/edit"
-        className="min-h-11 rounded-lg bg-[#d73f09] px-4 py-2 text-center text-sm font-semibold !text-white shadow-sm hover:bg-[#b23408]"
+        className="min-h-11 rounded-xl bg-[#d73f09] px-4 py-2 text-center text-sm font-semibold !text-white shadow-sm hover:bg-[#b23408]"
       >
         Edit profile
       </a>
@@ -202,7 +202,7 @@ export default function ProfilePage() {
 
                   <a
                     href="/publications"
-                    className="min-h-11 rounded-lg border border-[#d8d1c7] bg-white px-4 py-2 text-center text-sm font-semibold text-primary shadow-sm hover:bg-[#b23408]"
+                    className="min-h-11 rounded-xl border border-[#d8d1c7] bg-white px-4 py-2 text-center text-sm font-semibold text-primary shadow-sm hover:bg-[#b23408]"
                   >
                     Browse publications
                   </a>
@@ -238,7 +238,7 @@ export default function ProfilePage() {
                             href={getPdfHref(doc.filename)}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-black px-4 py-2 text-sm font-semibold !text-white shadow-sm hover:bg-[#b23408] sm:w-auto"
+                            className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-[#d73f09] px-4 py-2 text-sm font-semibold !text-white shadow-sm hover:bg-[#b23408] sm:w-auto"
                           >
                             Open PDF
                           </a>
@@ -260,7 +260,7 @@ export default function ProfilePage() {
 
                   <a
                     href="/chat"
-                    className="min-h-11 rounded-lg border border-[#d8d1c7] bg-white px-4 py-2 text-center text-sm font-semibold text-primary shadow-sm hover:bg-[#b23408]"
+                    className="min-h-11 rounded-xl border border-[#d8d1c7] bg-white px-4 py-2 text-center text-sm font-semibold text-primary shadow-sm hover:bg-[#b23408]"
                   >
                     Go to chat
                   </a>

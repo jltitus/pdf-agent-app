@@ -74,7 +74,7 @@ export default function HeaderBar() {
 
   function desktopNavClass(path: string) {
     return [
-      'inline-flex min-h-9 items-center rounded-lg px-2.5 py-1.5 text-sm font-semibold transition',
+      'inline-flex min-h-9 items-center rounded-xl px-2.5 py-1.5 text-sm font-semibold transition',
       isActive(path)
         ? 'bg-[#d73f09] text-white shadow-sm'
         : 'text-primary hover:bg-[#f3f0ed] hover:text-black',
@@ -115,13 +115,13 @@ export default function HeaderBar() {
             >
               <img
                 src="/jar-logosm.png"
-                alt="MFP Publication Agent logo"
+                alt="MFP Publication Reference system logo"
                 className="h-10 w-10 shrink-0 object-contain"
               />
 
               <div className="min-w-0">
                 <h1 className="truncate text-base font-bold leading-tight text-primary sm:text-xl">
-                  MFP Publication Agent
+                  MFP Publication Reference system
                 </h1>
                 <p className="truncate text-[10px] font-semibold tracking-wide text-secondary sm:text-xs">
                   MASTER FOOD PRESERVERS
@@ -149,7 +149,7 @@ export default function HeaderBar() {
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="ml-1 inline-flex min-h-9 items-center rounded-lg border border-[#d8d1c7] bg-white px-3 py-1.5 text-sm font-semibold text-primary shadow-sm transition hover:bg-[#f3f0ed]"
+                className="ml-1 inline-flex min-h-9 items-center rounded-xl border border-[#d8d1c7] bg-white px-3 py-1.5 text-sm font-semibold text-primary shadow-sm transition hover:bg-[#f3f0ed]"
               >
                 Sign out
               </button>

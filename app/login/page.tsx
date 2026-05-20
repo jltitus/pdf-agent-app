@@ -73,13 +73,13 @@ export default function LoginPage() {
                 <div className="mt-4 flex items-center gap-4">
                   <img
                     src="/jar-logosm.png"
-                    alt="MFP Publication Agent logo"
+                    alt="MFP Publication Reference system logo"
                     className="h-14 w-14 object-contain"
                   />
 
                   <div>
                     <h1 className="text-3xl font-bold text-primary">
-                      MFP Publication Agent
+                      MFP Publication Reference system
                     </h1>
                     <p className="text-sm font-semibold tracking-wide text-secondary">
                       MASTER FOOD PRESERVERS
@@ -131,7 +131,7 @@ export default function LoginPage() {
             <div className="mb-8 flex items-center gap-3 md:hidden">
               <img
                 src="/jar-logosm.png"
-                alt="MFP Publication Agent logo"
+                alt="MFP Publication Reference system logo"
                 className="h-12 w-12 object-contain"
               />
               <div>
@@ -139,7 +139,7 @@ export default function LoginPage() {
                   OSU Extension
                 </p>
                 <h1 className="text-2xl font-bold text-primary">
-                  MFP Publication Agent
+                  MFP Publication Reference system
                 </h1>
                 <p className="text-xs font-semibold tracking-wide text-secondary">
                   MASTER FOOD PRESERVERS
@@ -166,7 +166,7 @@ export default function LoginPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-lg border border-[#d8d1c7] bg-white px-3 py-3 text-primary"
+                  className="w-full rounded-xl border border-[#d8d1c7] bg-white px-3 py-3 text-primary"
                   autoComplete="email"
                   inputMode="email"
                   required
@@ -181,7 +181,7 @@ export default function LoginPage() {
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-lg border border-[#d8d1c7] bg-white px-3 py-3 text-primary"
+                  className="w-full rounded-xl border border-[#d8d1c7] bg-white px-3 py-3 text-primary"
                   autoComplete="current-password"
                   required
                 />
@@ -204,7 +204,7 @@ export default function LoginPage() {
               </p>
 
               {message && (
-                <div className="rounded-lg border border-red-300 bg-red-50 p-3 text-sm font-medium text-red-800">
+                <div className="rounded-xl border border-red-300 bg-red-50 p-3 text-sm font-medium text-red-800">
                   {message}
                 </div>
               )}
@@ -212,7 +212,7 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-lg bg-[#d73f09] py-3 font-semibold !text-white shadow-sm hover:bg-[#b23408] disabled:bg-[#9b3518] disabled:!text-white disabled:cursor-not-allowed"
+                className="w-full rounded-xl bg-[#d73f09] py-3 font-semibold !text-white shadow-sm hover:bg-[#b23408] disabled:bg-[#9b3518] disabled:!text-white disabled:cursor-not-allowed"
               >
                 {loading ? 'Signing in...' : 'Sign in'}
               </button>

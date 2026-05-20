@@ -97,12 +97,12 @@ function UpdatePasswordContent() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-green-50 p-8">
+    <main className="flex min-h-screen items-center justify-center bg-[#f7f4ef] from-blue-50 to-green-50 p-8">
       <div className="w-full max-w-md space-y-5 rounded-2xl border bg-white p-6 shadow-sm">
         <h1 className="text-2xl font-bold">Set New Password</h1>
 
         {message && (
-          <div className="rounded-lg border bg-gray-50 p-3 text-sm text-gray-700">
+          <div className="rounded-xl border bg-gray-50 p-3 text-sm text-gray-700">
             {message}
           </div>
         )}
@@ -111,7 +111,7 @@ function UpdatePasswordContent() {
           <input
             type="password"
             placeholder="New password"
-            className="w-full rounded-lg border px-3 py-2"
+            className="w-full rounded-xl border px-3 py-2"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -121,7 +121,7 @@ function UpdatePasswordContent() {
           <input
             type="password"
             placeholder="Confirm new password"
-            className="w-full rounded-lg border px-3 py-2"
+            className="w-full rounded-xl border px-3 py-2"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
@@ -131,7 +131,7 @@ function UpdatePasswordContent() {
           <button
             type="submit"
             disabled={!sessionReady || loading}
-            className="w-full rounded-lg bg-black py-2 text-white disabled:opacity-60"
+            className="w-full rounded-xl bg-[#d73f09] py-2 text-white disabled:opacity-60"
           >
             {loading ? 'Updating...' : 'Update password'}
           </button>
@@ -141,7 +141,7 @@ function UpdatePasswordContent() {
           <button
             type="button"
             onClick={() => router.push('/forgot-password')}
-            className="w-full rounded-lg border px-3 py-2 text-sm hover:bg-gray-50"
+            className="w-full rounded-xl border px-3 py-2 text-sm hover:bg-gray-50"
           >
             Request a new password link
           </button>
@@ -155,7 +155,7 @@ export default function UpdatePasswordPage() {
   return (
     <Suspense
       fallback={
-        <main className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-green-50 p-8">
+        <main className="flex min-h-screen items-center justify-center bg-[#f7f4ef] from-blue-50 to-green-50 p-8">
           <div className="rounded-2xl border bg-white p-6 shadow-sm">
             Checking password reset link...
           </div>
