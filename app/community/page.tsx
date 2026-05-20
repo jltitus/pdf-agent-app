@@ -78,146 +78,220 @@ export default function CommunityPage() {
     <>
       <HeaderBar />
 
-      <main className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 px-3 py-5 text-primary sm:px-6 sm:py-8">
-        <div className="mx-auto max-w-6xl space-y-6">
-          <section className="rounded-2xl border border-gray-300 bg-white p-5 shadow-sm sm:p-6">
-            <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+      <main className="min-h-screen bg-[#f7f4ef] px-3 py-5 text-primary sm:px-6 sm:py-8">
+        <div className="mx-auto max-w-7xl space-y-6">
+          <section className="overflow-hidden rounded-3xl border border-[#d8d1c7] bg-white shadow-sm">
+            <div className="bg-[#d73f09] px-5 py-3 text-white">
+              <p className="text-xs font-bold uppercase tracking-[0.18em]">
+                Oregon State University Extension
+              </p>
+            </div>
+
+            <div className="grid gap-6 p-5 sm:p-8 lg:grid-cols-[1.15fr_0.85fr] lg:p-10">
               <div>
-                <h1 className="text-2xl font-bold sm:text-3xl">Community Directory</h1>
-                <p className="mt-1 text-secondary">
-                  Discover other MFP Publication Agent users who chose to share a public profile.
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#d73f09]">
+                  Professional preservation directory
+                </p>
+
+                <h1 className="mt-3 text-3xl font-bold leading-tight text-primary sm:text-4xl">
+                  Connect with Oregon Master Food Preservers
+                </h1>
+
+                <p className="mt-5 max-w-3xl text-base leading-7 text-secondary sm:text-lg">
+                  Discover fellow Master Food Preservers by region,
+                  specialties, interests, and preservation experience.
+                </p>
+
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <a
+                    href="/profile/edit"
+                    className="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#d73f09] px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#b23408]"
+                  >
+                    Update my profile
+                  </a>
+
+                  <a
+                    href="/profile"
+                    className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[#d8d1c7] bg-white px-5 py-3 text-sm font-semibold text-primary hover:bg-[#f3f0ed]"
+                  >
+                    View my profile
+                  </a>
+                </div>
+              </div>
+
+              <aside className="rounded-2xl border border-[#d8d1c7] bg-[#fcfaf7] p-5">
+                <h2 className="text-xl font-bold text-primary">
+                  Community expertise network
+                </h2>
+
+                <p className="mt-3 text-sm leading-6 text-secondary">
+                  Public profiles help Oregon Master Food Preservers connect
+                  with peers who share similar preservation interests,
+                  specialties, and regional expertise.
+                </p>
+
+                <div className="mt-5 rounded-xl border border-[#ead9bf] bg-[#f7f0dd] p-4 text-sm leading-6 text-secondary">
+                  <strong className="text-primary">
+                    Privacy reminder:
+                  </strong>{' '}
+                  Only profiles marked public appear in this directory.
+                </div>
+              </aside>
+            </div>
+          </section>
+
+          <section className="rounded-3xl border border-[#d8d1c7] bg-white p-5 shadow-sm sm:p-6">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#d73f09]">
+                  Search directory
+                </p>
+
+                <h2 className="mt-2 text-2xl font-bold text-primary">
+                  Find preservation expertise
+                </h2>
+
+                <p className="mt-2 text-sm leading-6 text-secondary">
+                  Search by name, specialty, county, affiliation, or preservation interests.
                 </p>
               </div>
 
-              <a
-                href="/profile/edit"
-                className="min-h-11 rounded-lg bg-black px-4 py-2 text-center text-sm font-semibold !text-white shadow-sm"
-              >
-                Edit my profile
-              </a>
-            </div>
-
-            <div className="mt-5">
-              <label className="mb-1 block text-sm font-semibold text-primary">
-                Search community
-              </label>
-              <input
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search name, county, state, affiliation, or interests..."
-                className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-primary"
-              />
+              <div className="w-full lg:max-w-md">
+                <input
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search specialties, county, interests..."
+                  className="w-full rounded-xl border border-[#d8d1c7] bg-white px-4 py-3 text-sm text-primary"
+                />
+              </div>
             </div>
           </section>
 
           {loading ? (
-            <section className="rounded-2xl border border-gray-300 bg-white p-5 shadow-sm">
-              Loading community directory...
+            <section className="rounded-3xl border border-[#d8d1c7] bg-white p-6 shadow-sm">
+              Loading professional directory...
             </section>
           ) : profiles.length === 0 ? (
-            <section className="rounded-2xl border border-gray-300 bg-white p-5 shadow-sm">
-              <h2 className="text-xl font-bold">No public profiles yet</h2>
-              <p className="mt-2 text-secondary">
-                Profiles only appear here when users turn on public directory visibility.
+            <section className="rounded-3xl border border-[#d8d1c7] bg-white p-6 shadow-sm">
+              <h2 className="text-2xl font-bold text-primary">
+                No public profiles yet
+              </h2>
+
+              <p className="mt-3 text-secondary">
+                Profiles appear here when users enable public directory visibility.
               </p>
             </section>
           ) : filteredProfiles.length === 0 ? (
-            <section className="rounded-2xl border border-gray-300 bg-white p-5 shadow-sm">
-              <h2 className="text-xl font-bold">No matches</h2>
-              <p className="mt-2 text-secondary">
-                Try a different name, county, state, affiliation, or specialty.
+            <section className="rounded-3xl border border-[#d8d1c7] bg-white p-6 shadow-sm">
+              <h2 className="text-2xl font-bold text-primary">
+                No matching profiles
+              </h2>
+
+              <p className="mt-3 text-secondary">
+                Try searching by specialty, county, affiliation, or preservation topic.
               </p>
             </section>
           ) : (
-            <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
               {filteredProfiles.map((profile) => (
                 <article
                   key={profile.id}
-                  className="rounded-2xl border border-gray-300 bg-white p-5 shadow-sm"
+                  className="overflow-hidden rounded-3xl border border-[#d8d1c7] bg-white shadow-sm"
                 >
-                  <div className="flex items-start gap-4">
-                    <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border border-gray-300 bg-gray-100 text-xl font-bold text-secondary">
-                      {profile.avatar_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={profile.avatar_url}
-                          alt={`${profile.full_name || 'Community member'} avatar`}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        profile.full_name?.charAt(0)?.toUpperCase() || '?'
-                      )}
-                    </div>
+                  <div className="border-b border-[#e8e1d8] bg-[#fcfaf7] p-5">
+                    <div className="flex items-start gap-4">
+                      <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#d8d1c7] bg-[#f3f0ed] text-xl font-bold text-secondary">
+                        {profile.avatar_url ? (
+                          <img
+                            src={profile.avatar_url}
+                            alt={`${profile.full_name || 'Community member'} avatar`}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          profile.full_name?.charAt(0)?.toUpperCase() || '?'
+                        )}
+                      </div>
 
-                    <div className="min-w-0">
-                      <h2 className="break-words text-lg font-bold text-primary">
-                        {profile.full_name || 'Community member'}
-                      </h2>
+                      <div className="min-w-0">
+                        <h2 className="break-words text-xl font-bold text-primary">
+                          {profile.full_name || 'Community member'}
+                        </h2>
 
-                      <p className="mt-1 text-sm text-secondary">
-                        {[profile.city, profile.county, profile.state].filter(Boolean).join(', ') || 'Location not shared'}
-                      </p>
-
-                      {profile.mfp_affiliation && (
-                        <p className="mt-1 text-sm font-semibold text-secondary">
-                          {profile.mfp_affiliation}
+                        <p className="mt-1 text-sm text-secondary">
+                          {[profile.city, profile.county, profile.state]
+                            .filter(Boolean)
+                            .join(', ') || 'Location not shared'}
                         </p>
-                      )}
+
+                        {profile.mfp_affiliation && (
+                          <p className="mt-2 inline-flex rounded-full bg-[#e7f0e7] px-3 py-1 text-xs font-semibold text-[#36543b]">
+                            {profile.mfp_affiliation}
+                          </p>
+                        )}
+                      </div>
                     </div>
                   </div>
 
-                  {profile.bio && (
-                    <p className="mt-4 line-clamp-4 whitespace-pre-wrap text-sm text-secondary">
-                      {profile.bio}
-                    </p>
-                  )}
+                  <div className="space-y-5 p-5">
+                    {profile.bio && (
+                      <p className="line-clamp-5 whitespace-pre-wrap text-sm leading-6 text-secondary">
+                        {profile.bio}
+                      </p>
+                    )}
 
-                  {(profile.specialties ?? []).length > 0 && (
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {profile.specialties?.map((item) => (
-                        <span
-                          key={item}
-                          className="rounded-full border border-gray-300 bg-gray-50 px-3 py-1 text-xs font-semibold text-secondary"
+                    {(profile.specialties ?? []).length > 0 && (
+                      <div>
+                        <p className="mb-2 text-xs font-bold uppercase tracking-[0.14em] text-muted">
+                          Specialties
+                        </p>
+
+                        <div className="flex flex-wrap gap-2">
+                          {profile.specialties?.map((item) => (
+                            <span
+                              key={item}
+                              className="rounded-full border border-[#d8d1c7] bg-[#f7f4ef] px-3 py-1 text-xs font-semibold text-secondary"
+                            >
+                              {item}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="flex flex-wrap gap-2 border-t border-[#ece5dc] pt-4">
+                      {profile.website_url && (
+                        <a
+                          href={profile.website_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-xs font-semibold text-primary hover:bg-[#f3f0ed]"
                         >
-                          {item}
-                        </span>
-                      ))}
+                          Website
+                        </a>
+                      )}
+
+                      {profile.social_url && (
+                        <a
+                          href={profile.social_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-xs font-semibold text-primary hover:bg-[#f3f0ed]"
+                        >
+                          Social
+                        </a>
+                      )}
+
+                      {profile.profile_url && (
+                        <a
+                          href={profile.profile_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-xs font-semibold text-primary hover:bg-[#f3f0ed]"
+                        >
+                          Profile
+                        </a>
+                      )}
                     </div>
-                  )}
-
-                  <div className="mt-4 flex flex-wrap gap-2 border-t border-gray-200 pt-4">
-                    {profile.website_url && (
-                      <a
-                        href={profile.website_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-primary hover:bg-gray-100"
-                      >
-                        Website
-                      </a>
-                    )}
-
-                    {profile.social_url && (
-                      <a
-                        href={profile.social_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-primary hover:bg-gray-100"
-                      >
-                        Social
-                      </a>
-                    )}
-
-                    {profile.profile_url && (
-                      <a
-                        href={profile.profile_url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-xs font-semibold text-primary hover:bg-gray-100"
-                      >
-                        Profile
-                      </a>
-                    )}
                   </div>
                 </article>
               ))}

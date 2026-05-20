@@ -109,14 +109,14 @@ export default function ProfilePage() {
     <>
       <HeaderBar />
 
-      <main className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 px-3 py-5 text-primary sm:px-6 sm:py-8">
+      <main className="min-h-screen bg-[#f7f4ef] px-3 py-5 text-primary sm:px-6 sm:py-8">
         <div className="mx-auto max-w-5xl space-y-6">
           {loading ? (
-            <section className="rounded-2xl border border-gray-300 bg-white p-5 shadow-sm">
+            <section className="rounded-2xl border border-[#d8d1c7] bg-white p-5 shadow-sm">
               Loading profile...
             </section>
           ) : !profile ? (
-            <section className="rounded-2xl border border-gray-300 bg-white p-5 shadow-sm">
+            <section className="rounded-2xl border border-[#d8d1c7] bg-white p-5 shadow-sm">
               <h1 className="text-2xl font-bold">Profile not found</h1>
               <p className="mt-2 text-secondary">
                 Your account exists, but no profile record was found.
@@ -124,64 +124,75 @@ export default function ProfilePage() {
             </section>
           ) : (
             <>
-              <section className="rounded-2xl border border-gray-300 bg-white p-5 shadow-sm sm:p-6">
-                <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-                    <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-gray-300 bg-gray-100 text-3xl font-bold text-secondary">
-                      {profile.avatar_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={profile.avatar_url}
-                          alt={`${profile.full_name || 'User'} avatar`}
-                          className="h-full w-full object-cover"
-                        />
-                      ) : (
-                        profile.full_name?.charAt(0)?.toUpperCase() || '?'
-                      )}
-                    </div>
+<section className="overflow-hidden rounded-3xl border border-[#d8d1c7] bg-white shadow-sm">
+  <div className="bg-[#d73f09] px-5 py-2.5 text-white">
+    <p className="text-xs font-bold uppercase tracking-[0.18em]">
+      Oregon State University Extension
+    </p>
+  </div>
 
-                    <div>
-                      <h1 className="text-2xl font-bold sm:text-3xl">
-                        {profile.full_name || 'My Profile'}
-                      </h1>
-                      <p className="mt-1 text-sm text-secondary">{email}</p>
+  <div className="p-5 sm:p-6">
+    <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+        <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-[#d8d1c7] bg-[#f3f0ed] text-3xl font-bold text-secondary">
+          {profile.avatar_url ? (
+            <img
+              src={profile.avatar_url}
+              alt={`${profile.full_name || 'User'} avatar`}
+              className="h-full w-full object-cover"
+            />
+          ) : (
+            profile.full_name?.charAt(0)?.toUpperCase() || '?'
+          )}
+        </div>
 
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-semibold text-secondary">
-                          {profile.role || 'user'}
-                        </span>
-                        <span
-                          className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                            profile.is_profile_public
-                              ? 'bg-green-100 text-green-700'
-                              : 'bg-yellow-100 text-yellow-800'
-                          }`}
-                        >
-                          {profile.is_profile_public ? 'Public profile' : 'Private profile'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
+        <div>
+          <h1 className="text-2xl font-bold sm:text-3xl">
+            {profile.full_name || 'My Profile'}
+          </h1>
 
-                  <a
-                    href="/profile/edit"
-                    className="min-h-11 rounded-lg bg-black px-4 py-2 text-center text-sm font-semibold !text-white shadow-sm"
-                  >
-                    Edit profile
-                  </a>
-                </div>
+          <p className="mt-1 text-sm text-secondary">{email}</p>
 
-                {profile.bio && (
-                  <div className="mt-6 rounded-xl border border-gray-300 bg-gray-50 p-4">
-                    <h2 className="text-sm font-bold uppercase tracking-wide text-muted">
-                      About
-                    </h2>
-                    <p className="mt-2 whitespace-pre-wrap text-secondary">{profile.bio}</p>
-                  </div>
-                )}
-              </section>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <span className="rounded-full bg-[#f3f0ed] px-3 py-1 text-xs font-semibold text-secondary">
+              {profile.role || 'user'}
+            </span>
 
-              <section className="rounded-2xl border border-gray-300 bg-white p-5 shadow-sm">
+            <span
+              className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                profile.is_profile_public
+                  ? 'bg-green-100 text-green-700'
+                  : 'bg-yellow-100 text-yellow-800'
+              }`}
+            >
+              {profile.is_profile_public ? 'Public profile' : 'Private profile'}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <a
+        href="/profile/edit"
+        className="min-h-11 rounded-lg bg-[#d73f09] px-4 py-2 text-center text-sm font-semibold !text-white shadow-sm hover:bg-[#b23408]"
+      >
+        Edit profile
+      </a>
+    </div>
+
+    {profile.bio && (
+      <div className="mt-6 rounded-xl border border-[#d8d1c7] bg-[#fcfaf7] p-4">
+        <h2 className="text-sm font-bold uppercase tracking-wide text-muted">
+          About
+        </h2>
+        <p className="mt-2 whitespace-pre-wrap text-secondary">
+          {profile.bio}
+        </p>
+      </div>
+    )}
+  </div>
+</section>
+
+              <section className="rounded-2xl border border-[#d8d1c7] bg-white p-5 shadow-sm">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
                     <h2 className="text-xl font-bold">Saved Publications</h2>
@@ -192,14 +203,14 @@ export default function ProfilePage() {
 
                   <a
                     href="/publications"
-                    className="min-h-11 rounded-lg border border-gray-300 bg-white px-4 py-2 text-center text-sm font-semibold text-primary shadow-sm hover:bg-gray-100"
+                    className="min-h-11 rounded-lg border border-[#d8d1c7] bg-white px-4 py-2 text-center text-sm font-semibold text-primary shadow-sm hover:bg-[#b23408]"
                   >
                     Browse publications
                   </a>
                 </div>
 
                 {favorites.length === 0 ? (
-                  <div className="mt-4 rounded-xl border border-gray-300 bg-gray-50 p-4 text-sm text-secondary">
+                  <div className="mt-4 rounded-xl border border-[#d8d1c7] bg-[#fcfaf7] p-4 text-sm text-secondary">
                     No saved publications yet.
                   </div>
                 ) : (
@@ -211,7 +222,7 @@ export default function ProfilePage() {
                       return (
                         <article
                           key={favorite.id}
-                          className="rounded-xl border border-gray-300 bg-gray-50 p-4"
+                          className="rounded-xl border border-[#d8d1c7] bg-[#fcfaf7] p-4"
                         >
                           <h3 className="font-bold text-primary">
                             {doc.title || doc.filename}
@@ -228,7 +239,7 @@ export default function ProfilePage() {
                             href={getPdfHref(doc.filename)}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-black px-4 py-2 text-sm font-semibold !text-white shadow-sm hover:bg-gray-800 sm:w-auto"
+                            className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-black px-4 py-2 text-sm font-semibold !text-white shadow-sm hover:bg-[#b23408] sm:w-auto"
                           >
                             Open PDF
                           </a>
@@ -239,25 +250,25 @@ export default function ProfilePage() {
                 )}
               </section>
 
-              <section className="rounded-2xl border border-gray-300 bg-white p-5 shadow-sm">
+              <section className="rounded-2xl border border-[#d8d1c7] bg-white p-5 shadow-sm">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <h2 className="text-xl font-bold">Saved Answers</h2>
+                    <h2 className="text-xl font-bold">Saved preservation guidance</h2>
                     <p className="mt-1 text-sm text-secondary">
-                      Chat answers you saved for later reference.
+                      Publication-grounded answers you saved for later reference.
                     </p>
                   </div>
 
                   <a
                     href="/chat"
-                    className="min-h-11 rounded-lg border border-gray-300 bg-white px-4 py-2 text-center text-sm font-semibold text-primary shadow-sm hover:bg-gray-100"
+                    className="min-h-11 rounded-lg border border-[#d8d1c7] bg-white px-4 py-2 text-center text-sm font-semibold text-primary shadow-sm hover:bg-[#b23408]"
                   >
                     Go to chat
                   </a>
                 </div>
 
                 {savedChats.length === 0 ? (
-                  <div className="mt-4 rounded-xl border border-gray-300 bg-gray-50 p-4 text-sm text-secondary">
+                  <div className="mt-4 rounded-xl border border-[#d8d1c7] bg-[#fcfaf7] p-4 text-sm text-secondary">
                     No saved answers yet.
                   </div>
                 ) : (
@@ -265,7 +276,7 @@ export default function ProfilePage() {
                     {savedChats.map((chat) => (
                       <article
                         key={chat.id}
-                        className="rounded-xl border border-gray-300 bg-gray-50 p-4"
+                        className="rounded-xl border border-[#d8d1c7] bg-[#fcfaf7] p-4"
                       >
                         <p className="text-xs font-bold uppercase tracking-wide text-muted">
                           Question
@@ -287,15 +298,15 @@ export default function ProfilePage() {
                         )}
 
                         <div className="mt-3 flex flex-wrap gap-2 text-xs">
-                          <span className="rounded-full border border-gray-300 bg-white px-2 py-1 font-semibold text-secondary">
+                          <span className="rounded-full border border-[#d8d1c7] bg-white px-2 py-1 font-semibold text-secondary">
                             {chat.answer_mode || 'general'}
                           </span>
 
-                          <span className="rounded-full border border-gray-300 bg-white px-2 py-1 font-semibold text-secondary">
+                          <span className="rounded-full border border-[#d8d1c7] bg-white px-2 py-1 font-semibold text-secondary">
                             {chat.category || 'all categories'}
                           </span>
 
-                          <span className="rounded-full border border-gray-300 bg-white px-2 py-1 font-semibold text-secondary">
+                          <span className="rounded-full border border-[#d8d1c7] bg-white px-2 py-1 font-semibold text-secondary">
                             Saved {formatDate(chat.created_at)}
                           </span>
                         </div>
@@ -306,7 +317,7 @@ export default function ProfilePage() {
               </section>
 
               <section className="grid gap-4 md:grid-cols-2">
-                <div className="rounded-2xl border border-gray-300 bg-white p-5 shadow-sm">
+                <div className="rounded-2xl border border-[#d8d1c7] bg-white p-5 shadow-sm">
                   <h2 className="text-xl font-bold">MFP Details</h2>
 
                   <dl className="mt-4 space-y-3 text-sm">
@@ -329,7 +340,7 @@ export default function ProfilePage() {
                           profile.specialties?.map((item) => (
                             <span
                               key={item}
-                              className="rounded-full border border-gray-300 bg-gray-50 px-3 py-1 text-xs font-semibold text-secondary"
+                              className="rounded-full border border-[#d8d1c7] bg-[#fcfaf7] px-3 py-1 text-xs font-semibold text-secondary"
                             >
                               {item}
                             </span>
@@ -342,7 +353,7 @@ export default function ProfilePage() {
                   </dl>
                 </div>
 
-                <div className="rounded-2xl border border-gray-300 bg-white p-5 shadow-sm">
+                <div className="rounded-2xl border border-[#d8d1c7] bg-white p-5 shadow-sm">
                   <h2 className="text-xl font-bold">Links</h2>
 
                   <div className="mt-4 space-y-3 text-sm">
@@ -371,26 +382,26 @@ export default function ProfilePage() {
                 </div>
               </section>
 
-              <section className="rounded-2xl border border-gray-300 bg-white p-5 shadow-sm">
+              <section className="rounded-2xl border border-[#d8d1c7] bg-white p-5 shadow-sm">
                 <h2 className="text-xl font-bold">Activity Summary</h2>
 
                 <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                  <div className="rounded-xl border border-gray-300 bg-gray-50 p-4">
+                  <div className="rounded-xl border border-[#d8d1c7] bg-[#fcfaf7] p-4">
                     <p className="text-xs font-semibold uppercase tracking-wide text-muted">Questions asked</p>
                     <p className="mt-1 text-2xl font-bold">{profile.total_questions_asked ?? 0}</p>
                   </div>
 
-                  <div className="rounded-xl border border-gray-300 bg-gray-50 p-4">
+                  <div className="rounded-xl border border-[#d8d1c7] bg-[#fcfaf7] p-4">
                     <p className="text-xs font-semibold uppercase tracking-wide text-muted">Last login</p>
                     <p className="mt-1 text-sm text-secondary">{formatDate(profile.last_login_at)}</p>
                   </div>
 
-                  <div className="rounded-xl border border-gray-300 bg-gray-50 p-4">
+                  <div className="rounded-xl border border-[#d8d1c7] bg-[#fcfaf7] p-4">
                     <p className="text-xs font-semibold uppercase tracking-wide text-muted">Last chat</p>
                     <p className="mt-1 text-sm text-secondary">{formatDate(profile.last_chat_at)}</p>
                   </div>
 
-                  <div className="rounded-xl border border-gray-300 bg-gray-50 p-4">
+                  <div className="rounded-xl border border-[#d8d1c7] bg-[#fcfaf7] p-4">
                     <p className="text-xs font-semibold uppercase tracking-wide text-muted">Last activity</p>
                     <p className="mt-1 text-sm text-secondary">{formatDate(profile.last_activity_at)}</p>
                   </div>
