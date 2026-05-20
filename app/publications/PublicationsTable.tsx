@@ -15,6 +15,7 @@ type DocumentRow = {
 
 type PublicationsTableProps = {
   documents: DocumentRow[]
+  pageCounts?: Record<string, number>
 }
 
 function formatDate(value?: string | null) {
@@ -48,7 +49,7 @@ function isNew(uploadedAt?: string | null) {
   return new Date(uploadedAt) >= cutoff
 }
 
-export default function PublicationsTable({ documents }: PublicationsTableProps) {
+export default function PublicationsTable({ documents, pageCounts }: PublicationsTableProps) {
   const [favoriteIds, setFavoriteIds] = useState<string[]>([])
   const [loadingFavorites, setLoadingFavorites] = useState(true)
   const [savingFavoriteId, setSavingFavoriteId] = useState<string | null>(null)
@@ -214,6 +215,7 @@ export default function PublicationsTable({ documents }: PublicationsTableProps)
   }
 
   function mobileCardBody(document: DocumentRow) {
+    const pageCount = pageCounts?.[document.id]
     return (
       <div className="space-y-4 px-5 py-5">
         <div className="grid gap-3 sm:grid-cols-2">
@@ -225,17 +227,31 @@ export default function PublicationsTable({ documents }: PublicationsTableProps)
             <p className="text-xs font-bold uppercase tracking-wide text-muted">Updated</p>
             <p className="mt-1 text-sm font-semibold text-primary">{formatDate(document.uploaded_at)}</p>
           </div>
+          {pageCount && (
+            <div className="rounded-2xl bg-[#f7f4ef] p-4">
+              <p className="text-xs font-bold uppercase tracking-wide text-muted">Pages</p>
+              <p className="mt-1 text-sm font-semibold text-primary">{pageCount}</p>
+            </div>
+          )}
         </div>
-        <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
+        <div className="grid gap-2">
+          <div className="grid gap-2 sm:grid-cols-[1fr_auto]">
+            <Link
+              href={getPdfHref(document)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-[#d73f09] px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#b23408]"
+            >
+              Open publication PDF
+            </Link>
+            {favoriteButton(document.id)}
+          </div>
           <Link
-            href={getPdfHref(document)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-[#d73f09] px-4 py-3 text-sm font-semibold text-white shadow-sm hover:bg-[#b23408]"
+            href={`/chat?documentId=${document.id}`}
+            className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-[#d8d1c7] bg-white px-4 py-3 text-sm font-semibold text-primary shadow-sm hover:bg-[#f3f0ed]"
           >
-            Open publication PDF
+            Ask about this publication →
           </Link>
-          {favoriteButton(document.id)}
         </div>
       </div>
     )
@@ -255,6 +271,7 @@ export default function PublicationsTable({ documents }: PublicationsTableProps)
   )
 
   function tableRow(document: DocumentRow) {
+    const pageCount = pageCounts?.[document.id]
     return (
       <tr key={document.id} className="transition hover:bg-[#fcfaf7]">
         <td className="max-w-md px-5 py-5">
@@ -269,7 +286,10 @@ export default function PublicationsTable({ documents }: PublicationsTableProps)
                   </span>
                 )}
               </div>
-              <div className="mt-2 break-words text-xs text-muted">{document.filename}</div>
+              <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted">
+                <span className="break-words">{document.filename}</span>
+                {pageCount && <span>{pageCount} pages</span>}
+              </div>
             </div>
           </div>
         </td>
@@ -282,14 +302,22 @@ export default function PublicationsTable({ documents }: PublicationsTableProps)
         <td className="px-5 py-5 text-sm font-medium text-secondary">{formatDate(document.uploaded_at)}</td>
         <td className="px-5 py-5 text-center">{favoriteButton(document.id)}</td>
         <td className="px-5 py-5 text-right">
-          <Link
-            href={getPdfHref(document)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex min-h-10 items-center justify-center rounded-xl bg-[#d73f09] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#b23408]"
-          >
-            Open PDF
-          </Link>
+          <div className="flex flex-col items-end gap-2">
+            <Link
+              href={getPdfHref(document)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-10 items-center justify-center rounded-xl bg-[#d73f09] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#b23408]"
+            >
+              Open PDF
+            </Link>
+            <Link
+              href={`/chat?documentId=${document.id}`}
+              className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[#d8d1c7] bg-white px-4 py-2 text-sm font-semibold text-primary shadow-sm hover:bg-[#f3f0ed]"
+            >
+              Ask about this →
+            </Link>
+          </div>
         </td>
       </tr>
     )

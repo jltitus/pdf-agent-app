@@ -25,6 +25,16 @@ export default async function PublicationsPage() {
     .eq('is_active', true)
     .order('title', { ascending: true })
 
+  const docIds = (documents ?? []).map((d) => d.id)
+  const { data: pageRows } = docIds.length
+    ? await supabase.from('document_pages').select('document_id').in('document_id', docIds)
+    : { data: [] }
+
+  const pageCounts: Record<string, number> = {}
+  for (const row of pageRows ?? []) {
+    pageCounts[row.document_id] = (pageCounts[row.document_id] ?? 0) + 1
+  }
+
   return (
     <>
       
@@ -89,7 +99,7 @@ export default async function PublicationsPage() {
               </p>
             </section>
           ) : (
-            <PublicationsTable documents={documents as DocumentRow[]} />
+            <PublicationsTable documents={documents as DocumentRow[]} pageCounts={pageCounts} />
           )}
         </div>
       </main>
