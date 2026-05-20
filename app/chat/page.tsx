@@ -46,11 +46,12 @@ type ConversationTurn = {
   chatHistoryId?: string | null
   feedbackSubmitted?: string | null
   trustedSaved?: boolean
-savedChat?: boolean
+  savedChat?: boolean
+  trustedAnswer?: boolean
   suggestedFollowUps?: string[]
   sourceSuggestionOpen?: boolean
   sourceSuggestionText?: string
-expandedSources?: number[]
+  expandedSources?: number[]
 }
 
 type SearchState = "idle" | "searching" | "reviewing" | "generating";
@@ -326,6 +327,7 @@ return result;
             evidenceStrength: result.evidenceStrength ?? null,
             chatHistoryId: result.chatHistoryId ?? null,
             feedbackSubmitted: null,
+            trustedAnswer: result.trustedAnswer ?? false,
             suggestedFollowUps: result.suggestedFollowUps ?? [],
             sourceSuggestionOpen: false,
             sourceSuggestionText: "",
@@ -364,6 +366,7 @@ return result;
                 evidenceStrength: result.evidenceStrength ?? null,
                 chatHistoryId: result.chatHistoryId ?? null,
                 feedbackSubmitted: null,
+                trustedAnswer: result.trustedAnswer ?? false,
                 suggestedFollowUps: result.suggestedFollowUps ?? [],
                 sourceSuggestionOpen: false,
                 sourceSuggestionText: "",
@@ -445,6 +448,7 @@ return result;
                 evidenceStrength: result.evidenceStrength ?? null,
                 chatHistoryId: result.chatHistoryId ?? null,
                 feedbackSubmitted: null,
+                trustedAnswer: result.trustedAnswer ?? false,
                 suggestedFollowUps: result.suggestedFollowUps ?? [],
                 sourceSuggestionOpen: false,
                 sourceSuggestionText: "",
@@ -941,6 +945,12 @@ setMessage('');
                           <p className="text-xs font-bold uppercase tracking-wide text-muted">
                             Answer
                           </p>
+
+                          {turn.trustedAnswer && (
+                            <span className="rounded-full border border-indigo-300 bg-indigo-50 px-2 py-1 text-xs font-bold text-indigo-800">
+                              ✓ Trusted answer
+                            </span>
+                          )}
 
                           {turn.evidenceStrength && (
                             <span
