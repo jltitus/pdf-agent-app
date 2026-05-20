@@ -216,19 +216,69 @@ export async function POST(request: Request) {
         must_change_password: true,
       })
 
-    if (profileError) {
-      return NextResponse.json(
-        { error: profileError.message },
-        { status: 500 }
-      )
-    }
+  if (profileError) {
+  return NextResponse.json(
+    { error: profileError.message },
+    { status: 500 }
+  )
+}
 
-    await sendOnboardingEmail({
-      email: normalizedEmail,
-      fullName,
-      tempPassword,
-      siteUrl,
+const now = new Date().toISOString()
+
+const { data: existingAccessRequest } = await supabaseAdmin
+  .from('access_requests')
+  .select('id, invite_count')
+  .eq('email', normalizedEmail)
+  .maybeSingle()
+
+if (existingAccessRequest) {
+  const { error: updateRequestError } = await supabaseAdmin
+    .from('access_requests')
+    .update({
+      full_name: fullName,
+      reason: 'Direct admin invite',
+      status: 'approved',
+      approved_at: now,
+      approved_by: adminCheck.user.id,
+      last_invited_at: now,
+      invite_count: (existingAccessRequest.invite_count ?? 0) + 1,
     })
+    .eq('id', existingAccessRequest.id)
+
+  if (updateRequestError) {
+    return NextResponse.json(
+      { error: updateRequestError.message },
+      { status: 500 }
+    )
+  }
+} else {
+  const { error: insertRequestError } = await supabaseAdmin
+    .from('access_requests')
+    .insert({
+      email: normalizedEmail,
+      full_name: fullName,
+      reason: 'Direct admin invite',
+      status: 'approved',
+      approved_at: now,
+      approved_by: adminCheck.user.id,
+      last_invited_at: now,
+      invite_count: 1,
+    })
+
+  if (insertRequestError) {
+    return NextResponse.json(
+      { error: insertRequestError.message },
+      { status: 500 }
+    )
+  }
+}
+
+await sendOnboardingEmail({
+  email: normalizedEmail,
+  fullName,
+  tempPassword,
+  siteUrl,
+})
 
     return NextResponse.json({
       success: true,
@@ -247,4 +297,5 @@ export async function POST(request: Request) {
       { status: 500 }
     )
   }
+  
 }
