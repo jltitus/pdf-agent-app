@@ -807,3 +807,48 @@ Check:
 - Vercel execution logs
 
 If the lock has expired, processing can be retried safely.
+
+## Phase 12A Navigation & Homepage QA
+
+After navigation or homepage UX changes, verify:
+
+### Mobile Validation
+
+Test at:
+
+* 360px Android
+* 390px iPhone
+* 430px large iPhone
+* 768px tablet
+
+Verify:
+
+* Hamburger navigation opens/closes correctly
+* Navigation items remain readable and tappable
+* Header does not wrap awkwardly
+* No horizontal overflow occurs
+* Primary workflows remain obvious on first load
+* Chat and Publications remain easily discoverable
+
+### Desktop Validation
+
+Test at:
+
+* 1024px desktop
+* 1280px desktop
+
+Verify:
+
+* Navigation remains single-row
+* Header spacing remains balanced
+* No duplicate release/roadmap navigation appears
+* Homepage messaging clearly communicates the app’s preservation-reference purpose
+
+### Product Experience Validation
+
+Verify:
+
+* Interface feels retrieval-focused
+* Evidence/trust workflows remain prominent
+* Navigation complexity remains low
+* Mobile workflows remain fast during real-world usage scenarios

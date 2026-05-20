@@ -466,3 +466,27 @@ metadata: {
 - No infrastructure-heavy monitoring systems were introduced
 - No database schema changes required
 - Designed for lightweight single-admin operational management
+
+## Phase 12A — Homepage, Navigation, and Mobile UX Refinement
+
+### Improved
+
+* Simplified primary application navigation for faster retrieval-focused workflows.
+* Reduced visual clutter in shared header/navigation.
+* Removed prominent roadmap and release-banner emphasis from the primary navigation experience.
+* Preserved access to release notes through the existing `/whats-new` route.
+* Improved mobile navigation usability using a cleaner hamburger-menu workflow.
+* Improved responsive spacing, card rounding, and visual consistency across admin and user interfaces.
+* Improved homepage clarity and alignment with the app’s role as a trusted preservation reference system.
+
+### Mobile UX
+
+* Improved mobile header clarity and reduced vertical space usage.
+* Improved navigation discoverability on iPhone and Android widths.
+* Improved tap targets and responsive spacing consistency.
+
+### Product Direction
+
+* Continued evolution toward a retrieval-first preservation reference experience.
+* Reduced cognitive load during live usage scenarios such as workshops, kitchens, and field questions.
+* Prioritized evidence visibility, operational clarity, and fast access to trusted preservation guidance.

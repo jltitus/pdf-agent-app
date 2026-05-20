@@ -26,6 +26,7 @@ export default function LoginPage() {
 
   async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
+
     setLoading(true)
     setMessage('')
 
@@ -46,6 +47,22 @@ export default function LoginPage() {
       window.localStorage.removeItem('mfp_saved_email')
     }
 
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
+
+    if (!user) {
+      setMessage('Login failed.')
+      setLoading(false)
+      return
+    }
+
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('must_change_password')
+      .eq('id', user.id)
+      .single()
+
     await fetch('/api/track-user-activity', {
       method: 'POST',
       headers: {
@@ -55,6 +72,11 @@ export default function LoginPage() {
         activityType: 'login',
       }),
     })
+
+    if (profile?.must_change_password) {
+      router.push('/update-password')
+      return
+    }
 
     router.push('/dashboard')
   }
@@ -81,6 +103,7 @@ export default function LoginPage() {
                     <h1 className="text-3xl font-bold text-primary">
                       MFP Publication Reference system
                     </h1>
+
                     <p className="text-sm font-semibold tracking-wide text-secondary">
                       MASTER FOOD PRESERVERS
                     </p>
@@ -93,6 +116,7 @@ export default function LoginPage() {
                   <h2 className="font-bold text-primary">
                     Search trusted publications
                   </h2>
+
                   <p className="mt-1 text-sm leading-6 text-secondary">
                     Find answers, recipes, and safety guidance from active OSU
                     Extension Master Food Preserver publications.
@@ -103,6 +127,7 @@ export default function LoginPage() {
                   <h2 className="font-bold text-primary">
                     Review source evidence
                   </h2>
+
                   <p className="mt-1 text-sm leading-6 text-secondary">
                     Verify cited documents, pages, and excerpts before relying on
                     an answer.
@@ -113,6 +138,7 @@ export default function LoginPage() {
                   <h2 className="font-bold text-primary">
                     Support Oregon communities
                   </h2>
+
                   <p className="mt-1 text-sm leading-6 text-secondary">
                     Use current preservation guidance to support the people and
                     communities served by Master Food Preservers.
@@ -134,13 +160,16 @@ export default function LoginPage() {
                 alt="MFP Publication Reference system logo"
                 className="h-12 w-12 object-contain"
               />
+
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#d73f09]">
                   OSU Extension
                 </p>
+
                 <h1 className="text-2xl font-bold text-primary">
                   MFP Publication Reference system
                 </h1>
+
                 <p className="text-xs font-semibold tracking-wide text-secondary">
                   MASTER FOOD PRESERVERS
                 </p>
@@ -151,7 +180,11 @@ export default function LoginPage() {
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#d73f09]">
                 Secure access
               </p>
-              <h2 className="mt-2 text-3xl font-bold text-primary">Sign in</h2>
+
+              <h2 className="mt-2 text-3xl font-bold text-primary">
+                Sign in
+              </h2>
+
               <p className="mt-2 text-sm leading-6 text-secondary">
                 Access the OSU Master Food Preserver publication reference system.
               </p>
@@ -162,11 +195,12 @@ export default function LoginPage() {
                 <label className="mb-1 block text-sm font-semibold text-primary">
                   Email
                 </label>
+
                 <input
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-xl border border-[#d8d1c7] bg-white px-3 py-3 text-primary"
+                  className="w-full rounded-2xl border border-[#d8d1c7] bg-white px-3 py-3 text-primary"
                   autoComplete="email"
                   inputMode="email"
                   required
@@ -177,11 +211,12 @@ export default function LoginPage() {
                 <label className="mb-1 block text-sm font-semibold text-primary">
                   Password
                 </label>
+
                 <input
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-xl border border-[#d8d1c7] bg-white px-3 py-3 text-primary"
+                  className="w-full rounded-2xl border border-[#d8d1c7] bg-white px-3 py-3 text-primary"
                   autoComplete="current-password"
                   required
                 />
@@ -194,17 +229,18 @@ export default function LoginPage() {
                   onChange={(e) => setRememberEmail(e.target.checked)}
                   className="h-4 w-4"
                 />
+
                 Remember my email on this device
               </label>
 
-              <p className="text-xs leading-5 text-muted">
-                For security, this app does not store your password. Your browser
-                or device password manager can securely autofill it and may use
-                Face ID, Touch ID, or Android biometrics.
-              </p>
+              <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">
+                If you received a temporary password from an admin, sign in using
+                that password first. You will then be asked to create your own
+                permanent password.
+              </div>
 
               {message && (
-                <div className="rounded-xl border border-red-300 bg-red-50 p-3 text-sm font-medium text-red-800">
+                <div className="rounded-2xl border border-red-300 bg-red-50 p-3 text-sm font-medium text-red-800">
                   {message}
                 </div>
               )}
@@ -212,21 +248,27 @@ export default function LoginPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full rounded-xl bg-[#d73f09] py-3 font-semibold !text-white shadow-sm hover:bg-[#b23408] disabled:bg-[#9b3518] disabled:!text-white disabled:cursor-not-allowed"
+                className="w-full rounded-2xl bg-[#d73f09] py-3 font-semibold !text-white shadow-sm hover:bg-[#b23408] disabled:bg-[#9b3518] disabled:!text-white disabled:cursor-not-allowed"
               >
                 {loading ? 'Signing in...' : 'Sign in'}
               </button>
             </form>
 
             <div className="mt-5 text-center text-sm">
-              <Link href="/forgot-password" className="font-medium underline text-primary">
+              <Link
+                href="/forgot-password"
+                className="font-medium underline text-primary"
+              >
                 Forgot password?
               </Link>
             </div>
 
             <div className="mt-4 rounded-2xl border border-[#d8d1c7] bg-[#fcfaf7] p-4 text-center text-sm text-primary">
               Need access?{' '}
-              <Link href="/request-access" className="font-semibold underline text-primary">
+              <Link
+                href="/request-access"
+                className="font-semibold underline text-primary"
+              >
                 Request an account
               </Link>
             </div>

@@ -244,3 +244,23 @@ Includes:
 - processing lock protection
 - archive/replacement linkage
 - prevention of replacement during active processing
+
+### `app/components/HeaderBar.tsx`
+
+Shared responsive application navigation/header.
+
+Features:
+
+* desktop single-row navigation
+* mobile hamburger navigation
+* active route highlighting
+* responsive navigation spacing
+* auth-aware navigation
+* simplified retrieval-first UX hierarchy
+
+The header is optimized for:
+
+* mobile preservation-reference workflows
+* quick access to chat and publications
+* reduced cognitive load
+* operational usability during live reference scenarios

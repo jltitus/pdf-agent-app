@@ -730,3 +730,48 @@ This approach:
 - prevents duplicate processing runs
 - supports safe retries
 - improves admin troubleshooting visibility
+
+## Shared Navigation Architecture
+
+Shared navigation is handled by:
+
+* `app/components/HeaderBar.tsx`
+
+Navigation behavior is now optimized for:
+
+* retrieval speed
+* low cognitive load
+* mobile usability
+* operational clarity
+
+### Desktop Behavior
+
+Desktop layouts use:
+
+* inline single-row navigation
+* simplified navigation hierarchy
+* scalable responsive spacing
+
+### Mobile Behavior
+
+Mobile layouts use:
+
+* hamburger-menu navigation
+* compact header spacing
+* reduced vertical chrome
+* touch-friendly navigation targets
+
+### Product Direction
+
+The application interface prioritizes:
+
+* trusted preservation guidance retrieval
+* evidence visibility
+* citation usability
+* quick operational reference workflows
+
+The UX intentionally minimizes:
+
+* unnecessary navigation complexity
+* excessive release-management visibility
+* non-essential dashboard chrome

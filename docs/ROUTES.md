@@ -207,3 +207,18 @@ Additional replacement protections include:
 - invalid PDF validation
 - active processing lock detection
 - prevention of replacement during active processing
+
+### Navigation Notes
+
+The shared application navigation now prioritizes:
+
+* Chat
+* Publications
+* Profile/community workflows
+* Operational clarity
+
+The roadmap and release communication experience were intentionally deprioritized in the primary navigation hierarchy to reduce cognitive load and keep the interface focused on retrieval and preservation guidance workflows.
+
+Release notes remain accessible through:
+
+* `/whats-new`
