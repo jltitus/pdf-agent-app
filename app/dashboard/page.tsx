@@ -213,12 +213,20 @@ export default function DashboardPage() {
           <section className="rounded-3xl border border-[#d8d1c7] bg-white p-5 shadow-sm sm:p-6">
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-xl font-bold text-primary">Recent questions</h2>
-              <Link
-                href="/chat"
-                className="rounded-xl bg-[#d73f09] px-3 py-2 text-xs font-semibold text-white hover:bg-[#b23408]"
-              >
-                New question
-              </Link>
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/history"
+                  className="text-xs font-semibold text-[#d73f09] underline-offset-4 hover:underline"
+                >
+                  View all →
+                </Link>
+                <Link
+                  href="/chat"
+                  className="rounded-xl bg-[#d73f09] px-3 py-2 text-xs font-semibold text-white hover:bg-[#b23408]"
+                >
+                  New question
+                </Link>
+              </div>
             </div>
 
             {history.length === 0 ? (

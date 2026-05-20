@@ -1360,7 +1360,9 @@ setMessage('');
                     <h2 className="text-lg font-bold text-primary">
                       Recent questions
                     </h2>
-                    <p className="text-sm text-secondary">Latest 10</p>
+                    <Link href="/history" className="text-xs font-semibold text-[#d73f09] underline-offset-4 hover:underline">
+                      View all →
+                    </Link>
                   </div>
                 </div>
 
