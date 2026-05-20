@@ -259,19 +259,19 @@ export default function AdminPage() {
     message: string;
   } | null>(null);
   const inputClass =
-    "w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-primary";
+    "w-full rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm text-primary shadow-sm";
   const labelClass = "mb-1 block text-sm font-semibold text-primary";
   const secondaryButton =
-    "rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-gray-100 disabled:opacity-60";
+    "rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-primary shadow-sm hover:bg-[#f3f0ed] disabled:opacity-60";
   const smallSecondaryButton =
-    "rounded-lg border border-gray-300 bg-white px-3 py-1 text-xs font-semibold text-primary hover:bg-gray-100 disabled:opacity-60";
+    "rounded-lg border border-[#d8d1c7] bg-white px-3 py-1 text-xs font-semibold text-primary shadow-sm hover:bg-[#f3f0ed] disabled:opacity-60";
   const primaryButton =
-    "rounded-lg bg-black px-4 py-2 text-sm font-semibold !text-white shadow-sm disabled:bg-gray-700 disabled:!text-white disabled:cursor-not-allowed";
+    "rounded-xl bg-[#d73f09] px-4 py-2 text-sm font-semibold !text-white shadow-sm hover:bg-[#b23408] disabled:bg-[#e8a08a] disabled:!text-white disabled:cursor-not-allowed";
   const blueButton =
-    "rounded-lg bg-blue-600 px-3 py-2 text-sm font-semibold !text-white shadow-sm hover:bg-blue-700 disabled:bg-blue-300 disabled:!text-white disabled:cursor-not-allowed";
+    "rounded-xl bg-[#d73f09] px-3 py-2 text-sm font-semibold !text-white shadow-sm hover:bg-[#b23408] disabled:bg-[#e8a08a] disabled:!text-white disabled:cursor-not-allowed";
   const cardClass =
-    "rounded-2xl border border-gray-300 bg-white p-4 shadow-sm sm:p-6";
-  const subCardClass = "rounded-xl border border-gray-300 bg-gray-50 p-4";
+    "rounded-3xl border border-[#d8d1c7] bg-white p-4 shadow-sm sm:p-6";
+  const subCardClass = "rounded-2xl bg-[#fcfaf7] p-4";
   useEffect(() => {
     async function init() {
       const { data } = await supabase.auth.getSession();
@@ -1772,7 +1772,7 @@ export default function AdminPage() {
     return (
       <>
         <HeaderBar />
-        <main className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 p-8 text-primary">
+        <main className="min-h-screen bg-[#f7f4ef] p-8 text-primary">
           Loading...
         </main>
       </>
@@ -1782,7 +1782,7 @@ export default function AdminPage() {
     return (
       <>
         <HeaderBar />
-        <main className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 p-8 text-primary">
+        <main className="min-h-screen bg-[#f7f4ef] p-8 text-primary">
           <h1 className="text-2xl font-bold text-primary">Access denied</h1>
           <p className="mt-2 text-secondary">
             You must be an admin to manage this app.
@@ -1794,19 +1794,40 @@ export default function AdminPage() {
   return (
     <>
       <HeaderBar />
-      <main className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 text-primary">
+      <main className="min-h-screen bg-[#f7f4ef] text-primary">
         <div className="mx-auto max-w-6xl space-y-6 px-3 py-5 sm:space-y-8 sm:px-6 sm:py-8">
-          <div>
-            <h1 className="text-2xl font-bold text-primary sm:text-3xl">
-              Admin: Manage PDF Agent
-            </h1>
-            <p className="mt-1 text-secondary">
-              Upload, process, replace, archive, delete, approve or decline
-              access requests, and review tester feedback.
-            </p>
-          </div>
+          <section className="overflow-hidden rounded-3xl border border-[#d8d1c7] bg-white shadow-sm">
+            <div className="bg-[#d73f09] px-5 py-3 text-white">
+              <p className="text-xs font-bold uppercase tracking-[0.18em]">
+                Oregon State University Extension
+              </p>
+            </div>
+
+            <div className="space-y-3 p-5 sm:p-6">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="rounded-full bg-[#fff1eb] px-3 py-1 text-xs font-semibold text-[#b93808]">
+                  Operations Console
+                </span>
+
+                <span className="rounded-full bg-[#f3f0ed] px-3 py-1 text-xs font-semibold text-secondary">
+                  Master Food Preserver Knowledge System
+                </span>
+              </div>
+
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight text-primary sm:text-4xl">
+                  Administration
+                </h1>
+
+                <p className="mt-2 max-w-3xl text-sm leading-6 text-secondary">
+                  Manage publications, monitor processing health, review feedback,
+                  support trusted preservation guidance, and oversee operational readiness.
+                </p>
+              </div>
+            </div>
+          </section>
           {message && (
-            <div className="rounded-xl border border-gray-300 bg-white p-3 text-sm text-primary shadow-sm">
+            <div className="rounded-xl border border-[#d8d1c7] bg-white p-3 text-sm text-primary shadow-sm">
               {message}
             </div>
           )}
@@ -1819,7 +1840,7 @@ export default function AdminPage() {
                 The user has been approved and should receive an email
                 invitation to set their password.
               </p>
-              <div className="space-y-1 rounded-lg border border-gray-300 bg-gray-50 p-3 text-sm text-primary">
+              <div className="space-y-1 rounded-lg border border-[#d8d1c7] bg-[#fcfaf7] p-3 text-sm text-primary">
                 <p>
                   <strong>Email:</strong> {approvedUserInfo.email}
                 </p>
@@ -1829,7 +1850,7 @@ export default function AdminPage() {
               </div>
             </section>
           )}
-          <div className="sticky top-[155px] z-40 rounded-2xl border border-gray-300 bg-white/95 p-2 shadow-sm backdrop-blur sm:top-[145px] lg:top-[92px]">
+          <div className="sticky top-[155px] z-40 rounded-3xl border border-[#d8d1c7] bg-white/90 p-2 shadow-md backdrop-blur sm:top-[145px] lg:top-[92px]">
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:flex lg:flex-wrap">
               {[
                 { key: "overview", label: "Overview" },
@@ -1852,8 +1873,8 @@ export default function AdminPage() {
                   }}
                   className={`min-h-11 rounded-lg px-2 py-2 text-center text-xs font-semibold leading-tight sm:px-3 sm:text-sm lg:w-auto ${
                     activeTab === tab.key
-                      ? "bg-black !text-white"
-                      : "border border-gray-300 bg-white text-primary hover:bg-gray-100"
+                      ? "bg-[#d73f09] !text-white shadow-sm"
+                      : "border border-[#d8d1c7] bg-white text-primary hover:bg-[#f3f0ed]"
                   }`}
                 >
                   {tab.label}
@@ -1884,7 +1905,7 @@ export default function AdminPage() {
                 </div>
 
                 <div className="grid gap-3 md:grid-cols-3">
-                  <div className="rounded-xl border border-gray-300 bg-gray-50 p-3">
+                  <div className="rounded-xl border border-[#d8d1c7] bg-[#fcfaf7] p-3">
                     <p className="text-xs font-semibold uppercase tracking-wide text-muted">
                       Backup readiness
                     </p>
@@ -1903,7 +1924,7 @@ export default function AdminPage() {
                     </p>
                   </div>
 
-                  <div className="rounded-xl border border-gray-300 bg-gray-50 p-3">
+                  <div className="rounded-xl border border-[#d8d1c7] bg-[#fcfaf7] p-3">
                     <p className="text-xs font-semibold uppercase tracking-wide text-muted">
                       Processing watch items
                     </p>
@@ -1917,7 +1938,7 @@ export default function AdminPage() {
                     </p>
                   </div>
 
-                  <div className="rounded-xl border border-gray-300 bg-gray-50 p-3">
+                  <div className="rounded-xl border border-[#d8d1c7] bg-[#fcfaf7] p-3">
                     <p className="text-xs font-semibold uppercase tracking-wide text-muted">
                       Review watch items
                     </p>
@@ -1998,7 +2019,7 @@ export default function AdminPage() {
                   return (
                     <div
                       key={label}
-                      className={`rounded-xl border px-3 py-2 text-center shadow-sm ${type === "warning" && hasValue ? "border-yellow-300 bg-yellow-50" : type === "danger" && hasValue ? "border-red-300 bg-red-50" : type === "success" && hasValue ? "border-green-300 bg-green-50" : "border-gray-300 bg-white"}`}
+                      className={`rounded-xl border px-3 py-2 text-center shadow-sm ${type === "warning" && hasValue ? "border-yellow-300 bg-yellow-50" : type === "danger" && hasValue ? "border-red-300 bg-red-50" : type === "success" && hasValue ? "border-green-300 bg-green-50" : "border-[#d8d1c7] bg-white"}`}
                     >
                       <p className="text-[11px] font-medium leading-tight text-secondary">
                         {label}
@@ -2019,17 +2040,17 @@ export default function AdminPage() {
                       User Analytics
                     </h2>
                     <p className="text-sm text-secondary">
-                      See how testers are using the app.
+                      See how users are using the reference system.
                     </p>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="rounded-2xl border border-gray-300 p-4">
+                    <div className="rounded-2xl border border-[#d8d1c7] p-4">
                       <p className="text-sm text-secondary">Questions asked</p>
                       <p className="text-2xl font-bold text-primary">
                         {userAnalytics.totalQuestions}
                       </p>
                     </div>
-                    <div className="rounded-2xl border border-gray-300 p-4">
+                    <div className="rounded-2xl border border-[#d8d1c7] p-4">
                       <p className="text-sm text-secondary">Unique users</p>
                       <p className="text-2xl font-bold text-primary">
                         {userAnalytics.uniqueUsers}
@@ -2037,7 +2058,7 @@ export default function AdminPage() {
                     </div>
                   </div>
                   <div className="grid gap-4 md:grid-cols-2">
-                    <div className="rounded-2xl border border-gray-300 p-4">
+                    <div className="rounded-2xl border border-[#d8d1c7] p-4">
                       <h3 className="font-bold text-primary">Answer modes</h3>
                       <div className="mt-3 space-y-2">
                         {Object.entries(userAnalytics.modeCounts).map(
@@ -2053,7 +2074,7 @@ export default function AdminPage() {
                         )}
                       </div>
                     </div>
-                    <div className="rounded-2xl border border-gray-300 p-4">
+                    <div className="rounded-2xl border border-[#d8d1c7] p-4">
                       <h3 className="font-bold text-primary">Categories</h3>
                       <div className="mt-3 space-y-2">
                         {Object.entries(userAnalytics.categoryCounts).map(
@@ -2081,7 +2102,7 @@ export default function AdminPage() {
                     </p>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
-                    <div className="rounded-lg border border-gray-300 p-4">
+                    <div className="rounded-lg border border-[#d8d1c7] p-4">
                       <p className="text-xs font-medium text-muted">
                         Not processed
                       </p>
@@ -2089,7 +2110,7 @@ export default function AdminPage() {
                         {documentHealth.notProcessed}
                       </p>
                     </div>
-                    <div className="rounded-lg border border-gray-300 p-4">
+                    <div className="rounded-lg border border-[#d8d1c7] p-4">
                       <p className="text-xs font-medium text-muted">
                         Zero pages
                       </p>
@@ -2108,7 +2129,7 @@ export default function AdminPage() {
                         key={key}
                         type="button"
                         onClick={() => setDocumentHealthView(key as any)}
-                        className={`rounded-lg border px-3 py-2 text-sm font-semibold ${documentHealthView === key ? "bg-black !text-white" : "border-gray-300 bg-white text-primary hover:bg-gray-100"}`}
+                        className={`rounded-lg border px-3 py-2 text-sm font-semibold ${documentHealthView === key ? "bg-[#d73f09] !text-white shadow-sm" : "border-[#d8d1c7] bg-white text-primary hover:bg-[#f3f0ed]"}`}
                       >
                         {label}
                       </button>
@@ -2116,7 +2137,7 @@ export default function AdminPage() {
                   </div>
                   <div className="max-h-[420px] space-y-2 overflow-y-auto pr-1">
                     {documentHealthDocs.length === 0 ? (
-                      <p className="rounded-lg border border-gray-300 p-3 text-sm text-muted">
+                      <p className="rounded-lg border border-[#d8d1c7] p-3 text-sm text-muted">
                         No documents found for this view.
                       </p>
                     ) : (
@@ -2125,7 +2146,7 @@ export default function AdminPage() {
                         return (
                           <div
                             key={doc.id}
-                            className="rounded-lg border border-gray-300 p-3"
+                            className="rounded-lg border border-[#d8d1c7] p-3"
                           >
                             <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                               <div>
@@ -2227,7 +2248,7 @@ export default function AdminPage() {
                   Pending access requests
                 </h3>
                 {pendingRequests.length === 0 ? (
-                  <p className="mt-2 rounded-xl border border-gray-300 bg-white p-4 text-sm text-secondary">
+                  <p className="mt-2 rounded-xl border border-[#d8d1c7] bg-white p-4 text-sm text-secondary">
                     No pending access requests.
                   </p>
                 ) : (
@@ -2236,7 +2257,7 @@ export default function AdminPage() {
                       {pendingRequests.map((request) => (
                         <article
                           key={request.id}
-                          className="rounded-2xl border border-gray-300 bg-white p-4 shadow-sm"
+                          className="rounded-2xl border border-[#d8d1c7] bg-white p-4 shadow-sm"
                         >
                           <div className="flex flex-col gap-3">
                             <div>
@@ -2255,7 +2276,7 @@ export default function AdminPage() {
                               </p>
                             </div>
                             <dl className="grid gap-2 text-sm">
-                              <div className="rounded-xl bg-gray-50 p-3">
+                              <div className="rounded-xl bg-[#fcfaf7] p-3">
                                 <dt className="text-xs font-semibold uppercase tracking-wide text-muted">
                                   Reason
                                 </dt>
@@ -2263,7 +2284,7 @@ export default function AdminPage() {
                                   {request.reason || "—"}
                                 </dd>
                               </div>
-                              <div className="rounded-xl bg-gray-50 p-3">
+                              <div className="rounded-xl bg-[#fcfaf7] p-3">
                                 <dt className="text-xs font-semibold uppercase tracking-wide text-muted">
                                   Submitted
                                 </dt>
@@ -2274,7 +2295,7 @@ export default function AdminPage() {
                                 </dd>
                               </div>
                             </dl>
-                            <div className="grid grid-cols-2 gap-2 border-t border-gray-200 pt-3">
+                            <div className="grid grid-cols-2 gap-2 border-t border-[#e8e1d8] pt-3">
                               <button
                                 type="button"
                                 onClick={() => approveAccessRequest(request.id)}
@@ -2282,7 +2303,7 @@ export default function AdminPage() {
                                   approvingId === request.id ||
                                   decliningId === request.id
                                 }
-                                className="min-h-11 rounded-lg bg-black px-3 py-2 text-sm font-semibold !text-white shadow-sm disabled:bg-gray-700"
+                                className="min-h-11 rounded-lg bg-[#d73f09] px-3 py-2 text-sm font-semibold !text-white shadow-sm disabled:bg-[#e8a08a]"
                               >
                                 {approvingId === request.id
                                   ? "Approving..."
@@ -2295,7 +2316,7 @@ export default function AdminPage() {
                                   approvingId === request.id ||
                                   decliningId === request.id
                                 }
-                                className="min-h-11 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-gray-100 disabled:opacity-60"
+                                className="min-h-11 rounded-lg border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-[#f3f0ed] disabled:opacity-60"
                               >
                                 {decliningId === request.id
                                   ? "Declining..."
@@ -2306,9 +2327,9 @@ export default function AdminPage() {
                         </article>
                       ))}
                     </div>
-                    <div className="mt-3 hidden overflow-x-auto rounded-lg border border-gray-300 lg:block">
+                    <div className="mt-3 hidden overflow-x-auto rounded-lg border border-[#d8d1c7] lg:block">
                       <table className="w-full text-sm text-primary">
-                        <thead className="bg-gray-50">
+                        <thead className="bg-[#fcfaf7]">
                           <tr>
                             <th className="p-3 text-left">Name</th>
                             <th className="p-3 text-left">Email</th>
@@ -2321,7 +2342,7 @@ export default function AdminPage() {
                           {pendingRequests.map((request) => (
                             <tr
                               key={request.id}
-                              className="border-t border-gray-300 align-top"
+                              className="border-t border-[#d8d1c7] align-top"
                             >
                               <td className="p-3 font-medium">
                                 {request.full_name}
@@ -2416,7 +2437,7 @@ export default function AdminPage() {
                   ].map(([label, value]) => (
                     <div
                       key={String(label)}
-                      className="rounded-xl border border-gray-300 bg-white p-3"
+                      className="rounded-xl border border-[#d8d1c7] bg-white p-3"
                     >
                       <p className="text-xs text-secondary">{label}</p>
                       <p className="text-2xl font-bold text-primary">{value}</p>
@@ -2428,7 +2449,7 @@ export default function AdminPage() {
                     No users or invites yet.
                   </p>
                 ) : filteredInviteDirectory.length === 0 ? (
-                  <p className="mt-3 rounded-lg border border-gray-300 p-3 text-sm text-secondary">
+                  <p className="mt-3 rounded-lg border border-[#d8d1c7] p-3 text-sm text-secondary">
                     No users or invites match your search/filter.
                   </p>
                 ) : (
@@ -2437,7 +2458,7 @@ export default function AdminPage() {
                       {filteredInviteDirectory.map((request) => (
                         <article
                           key={request.id}
-                          className="rounded-2xl border border-gray-300 bg-white p-4 shadow-sm"
+                          className="rounded-2xl border border-[#d8d1c7] bg-white p-4 shadow-sm"
                         >
                           <div className="space-y-3">
                             <div>
@@ -2461,7 +2482,7 @@ export default function AdminPage() {
                               </p>
                             </div>
                             {request.reason && (
-                              <div className="rounded-xl bg-gray-50 p-3 text-sm text-secondary">
+                              <div className="rounded-xl bg-[#fcfaf7] p-3 text-sm text-secondary">
                                 <p className="text-xs font-semibold uppercase tracking-wide text-muted">
                                   Reason
                                 </p>
@@ -2470,7 +2491,7 @@ export default function AdminPage() {
                                 </p>
                               </div>
                             )}
-                            <div className="rounded-xl bg-gray-50 p-3 text-sm">
+                            <div className="rounded-xl bg-[#fcfaf7] p-3 text-sm">
                               <p className="text-xs font-semibold uppercase tracking-wide text-muted">
                                 Last activity
                               </p>
@@ -2510,12 +2531,12 @@ export default function AdminPage() {
                               </p>
                             </div>
                             {request.status === "approved" && (
-                              <div className="grid gap-2 border-t border-gray-200 pt-3 sm:grid-cols-3">
+                              <div className="grid gap-2 border-t border-[#e8e1d8] pt-3 sm:grid-cols-3">
                                 <button
                                   type="button"
                                   onClick={() => resendInvite(request)}
                                   disabled={resendingInviteId === request.id}
-                                  className="min-h-11 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-gray-100 disabled:opacity-60"
+                                  className="min-h-11 rounded-lg border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-[#f3f0ed] disabled:opacity-60"
                                 >
                                   {resendingInviteId === request.id
                                     ? "Resending..."
@@ -2530,7 +2551,7 @@ export default function AdminPage() {
                                     disabled={
                                       updatingUserEmail === request.email
                                     }
-                                    className="min-h-11 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-green-700 hover:bg-green-50 disabled:opacity-60"
+                                    className="min-h-11 rounded-lg border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-green-700 hover:bg-green-50 disabled:opacity-60"
                                   >
                                     {updatingUserEmail === request.email
                                       ? "Updating..."
@@ -2545,7 +2566,7 @@ export default function AdminPage() {
                                     disabled={
                                       updatingUserEmail === request.email
                                     }
-                                    className="min-h-11 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
+                                    className="min-h-11 rounded-lg border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
                                   >
                                     {updatingUserEmail === request.email
                                       ? "Updating..."
@@ -2568,9 +2589,9 @@ export default function AdminPage() {
                         </article>
                       ))}
                     </div>
-                    <div className="mt-3 hidden max-h-[420px] overflow-y-auto rounded-lg border border-gray-300 lg:block">
+                    <div className="mt-3 hidden max-h-[420px] overflow-y-auto rounded-lg border border-[#d8d1c7] lg:block">
                       <table className="w-full text-sm text-primary">
-                        <thead className="sticky top-0 bg-gray-50">
+                        <thead className="sticky top-0 bg-[#fcfaf7]">
                           <tr>
                             <th className="p-3 text-left">Name</th>
                             <th className="p-3 text-left">Email</th>
@@ -2585,7 +2606,7 @@ export default function AdminPage() {
                           {filteredInviteDirectory.map((request) => (
                             <tr
                               key={request.id}
-                              className="border-t border-gray-300 align-top"
+                              className="border-t border-[#d8d1c7] align-top"
                             >
                               <td className="p-3">
                                 <p className="font-semibold text-primary">
@@ -2675,7 +2696,7 @@ export default function AdminPage() {
                                           disabled={
                                             updatingUserEmail === request.email
                                           }
-                                          className="rounded-lg border border-gray-300 px-3 py-1 text-xs font-semibold text-green-700 hover:bg-green-50 disabled:opacity-60"
+                                          className="rounded-lg border border-[#d8d1c7] px-3 py-1 text-xs font-semibold text-green-700 hover:bg-green-50 disabled:opacity-60"
                                         >
                                           {updatingUserEmail === request.email
                                             ? "Updating..."
@@ -2690,7 +2711,7 @@ export default function AdminPage() {
                                           disabled={
                                             updatingUserEmail === request.email
                                           }
-                                          className="rounded-lg border border-gray-300 px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
+                                          className="rounded-lg border border-[#d8d1c7] px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
                                         >
                                           {updatingUserEmail === request.email
                                             ? "Updating..."
@@ -2782,7 +2803,7 @@ export default function AdminPage() {
                       value={documentNotes}
                       onChange={(e) => setDocumentNotes(e.target.value)}
                       placeholder="Optional notes for admins, such as source, update context, or review notes."
-                      className="min-h-[84px] w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-primary"
+                      className="min-h-[84px] w-full rounded-lg border border-[#d8d1c7] bg-white px-3 py-2 text-sm text-primary"
                     />
                   </div>
                   <div>
@@ -2791,7 +2812,7 @@ export default function AdminPage() {
                       type="file"
                       accept="application/pdf"
                       onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                      className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-primary"
+                      className="w-full rounded-lg border border-[#d8d1c7] bg-white px-3 py-2 text-sm text-primary"
                       required
                     />
                   </div>
@@ -2853,7 +2874,7 @@ export default function AdminPage() {
                   )}
                 </div>
                 {filteredDocumentsForAdmin.length === 0 ? (
-                  <p className="rounded-lg border border-gray-300 p-3 text-sm text-secondary">
+                  <p className="rounded-lg border border-[#d8d1c7] p-3 text-sm text-secondary">
                     No documents match your search/filter.
                   </p>
                 ) : (
@@ -2865,7 +2886,7 @@ export default function AdminPage() {
                       return (
                         <div
                           key={doc.id}
-                          className="rounded-xl border border-gray-300 bg-white p-4"
+                          className="rounded-xl border border-[#d8d1c7] bg-white p-4"
                         >
                           <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                             <div className="min-w-0 flex-1">
@@ -2962,7 +2983,7 @@ export default function AdminPage() {
                                 disabled={
                                   deletingId === doc.id || isReplacingThis
                                 }
-                                className="rounded-lg border border-gray-300 bg-white px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
+                                className="rounded-lg border border-[#d8d1c7] bg-white px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
                               >
                                 {deletingId === doc.id
                                   ? "Deleting..."
@@ -3080,7 +3101,7 @@ export default function AdminPage() {
                                         documentNotes: e.target.value,
                                       }))
                                     }
-                                    className="min-h-[80px] w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-primary"
+                                    className="min-h-[80px] w-full rounded-lg border border-[#d8d1c7] bg-white px-3 py-2 text-sm text-primary"
                                   />
                                 </div>
                               </div>
@@ -3220,7 +3241,7 @@ export default function AdminPage() {
                                         documentNotes: e.target.value,
                                       }))
                                     }
-                                    className="min-h-[80px] w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-primary"
+                                    className="min-h-[80px] w-full rounded-lg border border-[#d8d1c7] bg-white px-3 py-2 text-sm text-primary"
                                   />
                                 </div>
                                 <div className="md:col-span-2">
@@ -3236,7 +3257,7 @@ export default function AdminPage() {
                                         file: e.target.files?.[0] ?? null,
                                       }))
                                     }
-                                    className="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-primary"
+                                    className="w-full rounded-lg border border-[#d8d1c7] bg-white px-3 py-2 text-sm text-primary"
                                   />
                                 </div>
                               </div>
@@ -3363,13 +3384,13 @@ export default function AdminPage() {
                         {topProblemQuestions.map((item, index) => (
                           <div
                             key={`${item.question}-${index}`}
-                            className="rounded-lg border border-gray-300 bg-white p-3"
+                            className="rounded-lg border border-[#d8d1c7] bg-white p-3"
                           >
                             <div className="flex items-start justify-between gap-3">
                               <p className="line-clamp-2 text-sm font-semibold text-primary">
                                 {item.question}
                               </p>
-                              <span className="shrink-0 rounded-full border border-gray-300 px-2 py-1 text-xs text-secondary">
+                              <span className="shrink-0 rounded-full border border-[#d8d1c7] px-2 py-1 text-xs text-secondary">
                                 {item.count}x
                               </span>
                             </div>
@@ -3386,7 +3407,7 @@ export default function AdminPage() {
                       Most common issue types
                     </h3>
                     <p className="text-xs text-secondary">
-                      Issue report categories submitted by testers.
+                      Issue report categories submitted by users.
                     </p>
                     {issueTypeCounts.length === 0 ? (
                       <p className="mt-3 text-sm text-secondary">
@@ -3397,10 +3418,10 @@ export default function AdminPage() {
                         {issueTypeCounts.map(([issueType, count]) => (
                           <div
                             key={issueType}
-                            className="flex items-center justify-between rounded-lg border border-gray-300 bg-white p-3 text-sm text-primary"
+                            className="flex items-center justify-between rounded-lg border border-[#d8d1c7] bg-white p-3 text-sm text-primary"
                           >
                             <span>{issueType}</span>
-                            <span className="rounded-full border border-gray-300 px-2 py-1 text-xs text-secondary">
+                            <span className="rounded-full border border-[#d8d1c7] px-2 py-1 text-xs text-secondary">
                               {count}
                             </span>
                           </div>
@@ -3419,12 +3440,12 @@ export default function AdminPage() {
                         Filtered list for quick review and export.
                       </p>
                     </div>
-                    <span className="w-fit rounded-full border border-gray-300 bg-white px-2 py-1 text-xs font-semibold text-secondary">
+                    <span className="w-fit rounded-full border border-[#d8d1c7] bg-white px-2 py-1 text-xs font-semibold text-secondary">
                       {filteredFeedback.length} showing
                     </span>
                   </div>
                   {filteredFeedback.length === 0 ? (
-                    <p className="mt-3 rounded-xl border border-gray-300 bg-white p-3 text-sm text-secondary">
+                    <p className="mt-3 rounded-xl border border-[#d8d1c7] bg-white p-3 text-sm text-secondary">
                       No feedback matches the current search/filter.
                     </p>
                   ) : (
@@ -3432,7 +3453,7 @@ export default function AdminPage() {
                       {filteredFeedback.map((item) => (
                         <article
                           key={item.id}
-                          className="rounded-2xl border border-gray-300 bg-white p-4 shadow-sm"
+                          className="rounded-2xl border border-[#d8d1c7] bg-white p-4 shadow-sm"
                         >
                           <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                             <div className="min-w-0 flex-1">
@@ -3440,7 +3461,7 @@ export default function AdminPage() {
                                 {item.question || "No question saved"}
                               </p>
                               {item.answer && (
-                                <div className="mt-3 rounded-xl bg-gray-50 p-3">
+                                <div className="mt-3 rounded-xl bg-[#fcfaf7] p-3">
                                   <p className="text-xs font-semibold uppercase tracking-wide text-muted">
                                     Answer excerpt
                                   </p>
@@ -3470,7 +3491,7 @@ export default function AdminPage() {
                       Issue Reports
                     </h2>
                     <p className="text-sm text-secondary">
-                      Review tester-reported problems, questions, source
+                      Review user-reported problems, questions, source
                       concerns, and enhancement candidates.
                     </p>
                   </div>
@@ -3478,7 +3499,7 @@ export default function AdminPage() {
                     <a href="/admin/issues" className={smallSecondaryButton}>
                       Open detailed review
                     </a>
-                    <span className="w-fit rounded-full border border-gray-300 bg-gray-50 px-3 py-1 text-xs font-semibold text-secondary">
+                    <span className="w-fit rounded-full border border-[#d8d1c7] bg-[#fcfaf7] px-3 py-1 text-xs font-semibold text-secondary">
                       {openIssues.length} new
                     </span>
                   </div>
@@ -3512,7 +3533,7 @@ export default function AdminPage() {
                     No issue reports submitted yet.
                   </p>
                 ) : filteredIssueReports.length === 0 ? (
-                  <p className="rounded-xl border border-gray-300 bg-white p-3 text-sm text-secondary">
+                  <p className="rounded-xl border border-[#d8d1c7] bg-white p-3 text-sm text-secondary">
                     No issue reports match the current search/filter.
                   </p>
                 ) : (
@@ -3520,7 +3541,7 @@ export default function AdminPage() {
                     {filteredIssueReports.map((item) => (
                       <article
                         key={item.id}
-                        className="rounded-2xl border border-gray-300 bg-white p-4 shadow-sm"
+                        className="rounded-2xl border border-[#d8d1c7] bg-white p-4 shadow-sm"
                       >
                         <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                           <div className="min-w-0 flex-1">
@@ -3539,7 +3560,7 @@ export default function AdminPage() {
                               {new Date(item.created_at).toLocaleString()}
                             </p>
                             {item.related_question && (
-                              <div className="mt-3 rounded-xl bg-gray-50 p-3">
+                              <div className="mt-3 rounded-xl bg-[#fcfaf7] p-3">
                                 <p className="text-xs font-semibold uppercase tracking-wide text-muted">
                                   Related question
                                 </p>
@@ -3548,7 +3569,7 @@ export default function AdminPage() {
                                 </p>
                               </div>
                             )}
-                            <div className="mt-3 rounded-xl bg-gray-50 p-3">
+                            <div className="mt-3 rounded-xl bg-[#fcfaf7] p-3">
                               <p className="text-xs font-semibold uppercase tracking-wide text-muted">
                                 Description
                               </p>
@@ -3565,7 +3586,7 @@ export default function AdminPage() {
                                   updateIssueStatus(item, "reviewed")
                                 }
                                 disabled={updatingIssueId === item.id}
-                                className="min-h-11 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-gray-100 disabled:opacity-60"
+                                className="min-h-11 rounded-lg border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-[#f3f0ed] disabled:opacity-60"
                               >
                                 Mark reviewed
                               </button>
@@ -3592,7 +3613,7 @@ export default function AdminPage() {
                                   updateIssueStatus(item, "resolved")
                                 }
                                 disabled={updatingIssueId === item.id}
-                                className="min-h-11 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-gray-100 disabled:opacity-60"
+                                className="min-h-11 rounded-lg border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-[#f3f0ed] disabled:opacity-60"
                               >
                                 Mark resolved
                               </button>
@@ -3603,7 +3624,7 @@ export default function AdminPage() {
                                   type="button"
                                   onClick={() => updateIssueStatus(item, "new")}
                                   disabled={updatingIssueId === item.id}
-                                  className="min-h-11 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-gray-100 disabled:opacity-60"
+                                  className="min-h-11 rounded-lg border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-[#f3f0ed] disabled:opacity-60"
                                 >
                                   Reopen
                                 </button>
@@ -3639,7 +3660,7 @@ export default function AdminPage() {
                         {contentGaps.map((gap, index) => (
                           <div
                             key={index}
-                            className="rounded-lg border border-gray-300 p-3"
+                            className="rounded-lg border border-[#d8d1c7] p-3"
                           >
                             <div className="flex justify-between gap-3">
                               <p className="text-sm font-semibold text-primary">
@@ -3673,7 +3694,7 @@ export default function AdminPage() {
                         {noAnswerItems.slice(0, 8).map((item) => (
                           <div
                             key={item.id}
-                            className="rounded-lg border border-gray-300 p-3"
+                            className="rounded-lg border border-[#d8d1c7] p-3"
                           >
                             <p className="text-sm font-semibold text-primary">
                               {item.question}
@@ -3766,7 +3787,7 @@ export default function AdminPage() {
                 ].map(([label, value]) => (
                   <div
                     key={String(label)}
-                    className="rounded-xl border border-gray-300 bg-white p-3"
+                    className="rounded-xl border border-[#d8d1c7] bg-white p-3"
                   >
                     <p className="text-xs text-secondary">{label}</p>
                     <p className="text-2xl font-bold text-primary">{value}</p>
@@ -3774,12 +3795,12 @@ export default function AdminPage() {
                 ))}
               </div>
               {auditLogs.length === 0 ? (
-                <p className="rounded-xl border border-gray-300 bg-white p-4 text-sm text-secondary">
+                <p className="rounded-xl border border-[#d8d1c7] bg-white p-4 text-sm text-secondary">
                   No audit logs found yet. Admin actions logged after Phase 11B
                   should appear here.
                 </p>
               ) : filteredAuditLogs.length === 0 ? (
-                <p className="rounded-xl border border-gray-300 bg-white p-4 text-sm text-secondary">
+                <p className="rounded-xl border border-[#d8d1c7] bg-white p-4 text-sm text-secondary">
                   No audit logs match the current search/filter.
                 </p>
               ) : (
@@ -3788,7 +3809,7 @@ export default function AdminPage() {
                     {filteredAuditLogs.map((log) => (
                       <article
                         key={log.id}
-                        className="rounded-2xl border border-gray-300 bg-white p-4 shadow-sm"
+                        className="rounded-2xl border border-[#d8d1c7] bg-white p-4 shadow-sm"
                       >
                         <div className="space-y-3">
                           <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
@@ -3807,7 +3828,7 @@ export default function AdminPage() {
                             </span>
                           </div>
                           <div className="grid gap-2 text-sm">
-                            <div className="rounded-xl bg-gray-50 p-3">
+                            <div className="rounded-xl bg-[#fcfaf7] p-3">
                               <p className="text-xs font-semibold uppercase tracking-wide text-muted">
                                 Actor
                               </p>
@@ -3818,7 +3839,7 @@ export default function AdminPage() {
                                 {log.actor_role || "No role saved"}
                               </p>
                             </div>
-                            <div className="rounded-xl bg-gray-50 p-3">
+                            <div className="rounded-xl bg-[#fcfaf7] p-3">
                               <p className="text-xs font-semibold uppercase tracking-wide text-muted">
                                 Target
                               </p>
@@ -3829,7 +3850,7 @@ export default function AdminPage() {
                                 {log.target_id || "—"}
                               </p>
                             </div>
-                            <div className="min-w-0 rounded-xl bg-gray-50 p-3">
+                            <div className="min-w-0 rounded-xl bg-[#fcfaf7] p-3">
                               <p className="text-xs font-semibold uppercase tracking-wide text-muted">
                                 Metadata
                               </p>
@@ -3842,9 +3863,9 @@ export default function AdminPage() {
                       </article>
                     ))}
                   </div>
-                  <div className="hidden max-h-[620px] overflow-y-auto rounded-lg border border-gray-300 lg:block">
+                  <div className="hidden max-h-[620px] overflow-y-auto rounded-lg border border-[#d8d1c7] lg:block">
                     <table className="w-full text-sm text-primary">
-                      <thead className="sticky top-0 bg-gray-50">
+                      <thead className="sticky top-0 bg-[#fcfaf7]">
                         <tr>
                           <th className="p-3 text-left">Date</th>
                           <th className="p-3 text-left">Actor</th>
@@ -3858,7 +3879,7 @@ export default function AdminPage() {
                         {filteredAuditLogs.map((log) => (
                           <tr
                             key={log.id}
-                            className="border-t border-gray-300 align-top"
+                            className="border-t border-[#d8d1c7] align-top"
                           >
                             <td className="p-3 text-xs text-muted">
                               {new Date(log.created_at).toLocaleString()}
@@ -3921,7 +3942,7 @@ export default function AdminPage() {
                   {trustedAnswers.map((item) => (
                     <div
                       key={item.id}
-                      className="space-y-3 rounded-lg border border-gray-300 p-4"
+                      className="space-y-3 rounded-lg border border-[#d8d1c7] p-4"
                     >
                       {editingTrustedId === item.id ? (
                         <>
@@ -3944,7 +3965,7 @@ export default function AdminPage() {
                               onChange={(e) =>
                                 setTrustedEditAnswer(e.target.value)
                               }
-                              className="min-h-[160px] w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-primary"
+                              className="min-h-[160px] w-full rounded-lg border border-[#d8d1c7] bg-white px-3 py-2 text-sm text-primary"
                             />
                           </div>
                           <div className="flex flex-wrap gap-2">
@@ -3988,7 +4009,7 @@ export default function AdminPage() {
                               {item.is_active ? "active" : "inactive"}
                             </span>
                           </div>
-                          <div className="flex flex-wrap gap-2 border-t border-gray-300 pt-3">
+                          <div className="flex flex-wrap gap-2 border-t border-[#d8d1c7] pt-3">
                             <button
                               type="button"
                               onClick={() => startEditTrustedAnswer(item)}
@@ -4006,7 +4027,7 @@ export default function AdminPage() {
                             <button
                               type="button"
                               onClick={() => deleteTrustedAnswer(item)}
-                              className="rounded-lg border border-gray-300 bg-white px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-50"
+                              className="rounded-lg border border-[#d8d1c7] bg-white px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-50"
                             >
                               Delete
                             </button>
