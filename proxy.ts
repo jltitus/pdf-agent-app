@@ -10,6 +10,7 @@ const protectedRoutes = [
   '/admin',
   '/view-pdf',
   '/history',
+  '/print',
 ]
 
 const authRoutes = [

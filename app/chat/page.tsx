@@ -1229,6 +1229,17 @@ setMessage('');
     >
       {turn.trustedSaved ? '✅ Trusted' : '⭐ Trusted'}
     </button>
+
+    {turn.chatHistoryId && (
+      <a
+        href={`/print?id=${turn.chatHistoryId}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-gray-50"
+      >
+        🖨️ Print
+      </a>
+    )}
   </div>
 
   {turn.sourceSuggestionOpen && !turn.feedbackSubmitted && (
