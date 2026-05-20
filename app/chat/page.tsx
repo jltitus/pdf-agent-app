@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "../../lib/supabase/client";
 
@@ -105,6 +105,7 @@ export default function ChatPage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [searchState, setSearchState] = useState<SearchState>("idle");
+  const lastTurnRef = useRef<HTMLDivElement>(null);
 
   const [category, setCategory] = useState("all");
   const [categories, setCategories] = useState<string[]>([]);
@@ -179,6 +180,14 @@ export default function ChatPage() {
 
     loadData();
   }, [supabase]);
+
+  useEffect(() => {
+    if (!loading && conversationTurns.length > 0) {
+      setTimeout(() => {
+        lastTurnRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 100)
+    }
+  }, [loading])
 
   useEffect(() => {
     if (!loading) {
@@ -942,6 +951,7 @@ setMessage('');
                   conversationTurns.map((turn, index) => (
                     <article
                       key={`${turn.question}-${index}`}
+                      ref={index === conversationTurns.length - 1 ? lastTurnRef : null}
                       className="rounded-2xl border border-[#e5ded5] bg-white p-4 shadow-sm"
                     >
                       <div className="rounded-2xl bg-[#f7f0dd] p-3">
@@ -1194,7 +1204,7 @@ setMessage('');
     </Link>
   </div>
 
-  <div className="mt-2 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
+  <div className="mt-2 grid grid-cols-3 gap-2 sm:flex sm:flex-wrap">
     <button
       type="button"
       onClick={() => regenerateTurn(index)}
@@ -1440,8 +1450,21 @@ setMessage('');
         </div>
 
         <form
-  onSubmit={askQuestion}
-className="fixed inset-x-0 bottom-0 z-50 w-full max-w-full overflow-hidden border-t border-gray-200 bg-white/95 p-2 backdrop-blur text-primary shadow-lg md:hidden">
+          onSubmit={askQuestion}
+          className="fixed inset-x-0 bottom-0 z-50 w-full max-w-full overflow-hidden border-t border-gray-200 bg-white/95 p-2 backdrop-blur text-primary shadow-lg md:hidden"
+        >
+          {loading && (
+            <div className="mb-1.5 text-center text-xs font-semibold text-[#d73f09]">
+              {searchState === 'searching'
+                ? 'Searching publications…'
+                : searchState === 'reviewing'
+                  ? 'Reviewing sources…'
+                  : searchState === 'generating'
+                    ? 'Generating answer…'
+                    : ''}
+            </div>
+          )}
+
           {message && (
             <div className="mb-2 rounded-xl border border-red-300 bg-red-50 p-2 text-xs font-medium text-red-800">
               {message}
@@ -1466,7 +1489,7 @@ className="fixed inset-x-0 bottom-0 z-50 w-full max-w-full overflow-hidden borde
               className="min-h-[52px] shrink-0 rounded-xl bg-[#d73f09] px-4 py-2 text-sm font-semibold text-white shadow disabled:opacity-60"
               disabled={loading}
             >
-              {loading ? "..." : "Send"}
+              {loading ? "…" : "Send"}
             </button>
           </div>
         </form>
