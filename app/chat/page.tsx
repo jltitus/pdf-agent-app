@@ -152,6 +152,7 @@ export default function ChatPage() {
       setCategories(uniqueCategories);
 
       const urlParams = new URLSearchParams(window.location.search)
+
       const urlDocumentId = urlParams.get('documentId')
       if (urlDocumentId) {
         const targetDoc = activeDocs.find((d) => d.id === urlDocumentId)
@@ -160,6 +161,11 @@ export default function ChatPage() {
           setDocumentId(urlDocumentId)
           setFiltersOpen(true)
         }
+      }
+
+      const urlQuestion = urlParams.get('question')
+      if (urlQuestion) {
+        setQuestion(urlQuestion)
       }
 
       const { data: hist } = await supabase
