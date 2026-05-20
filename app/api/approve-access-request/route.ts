@@ -1,6 +1,66 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
+import { generateTempPassword } from '@/lib/auth/generateTempPassword'
+
+function createSupabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+}
+
+async function sendTemporaryPasswordEmail({
+  email,
+  fullName,
+  tempPassword,
+  siteUrl,
+}: {
+  email: string
+  fullName?: string | null
+  tempPassword: string
+  siteUrl: string
+}) {
+  if (!process.env.RESEND_API_KEY) return
+
+  const resend = new Resend(process.env.RESEND_API_KEY)
+
+  await resend.emails.send({
+    from: 'MFP Publication Reference system <mfp@titus225.com>',
+    to: email,
+    bcc: process.env.ADMIN_NOTIFICATION_EMAIL || undefined,
+    subject: 'Your MFP Publication Reference system login information',
+    html: `
+      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111827;">
+        <h2>Your access has been approved</h2>
+
+        <p>Hello ${fullName || ''},</p>
+
+        <p>
+          Your account for the <strong>MFP Publication Reference system</strong> is ready.
+        </p>
+
+        <h3>Temporary Login Information</h3>
+
+        <p><strong>Email:</strong><br />${email}</p>
+        <p><strong>Temporary Password:</strong><br />${tempPassword}</p>
+
+        <p>
+          <a href="${siteUrl}/login"
+             style="display:inline-block;background:#111827;color:#ffffff;padding:12px 18px;border-radius:8px;text-decoration:none;">
+            Log In
+          </a>
+        </p>
+
+        <p>
+          After logging in, you will immediately be asked to create your own permanent password.
+        </p>
+
+        <p>If you have trouble logging in, contact the app administrator.</p>
+      </div>
+    `,
+  })
+}
 
 export async function POST(request: Request) {
   try {
@@ -17,10 +77,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing auth token' }, { status: 401 })
     }
 
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
+    const supabaseAdmin = createSupabaseAdmin()
 
     const {
       data: { user: adminUser },
@@ -52,7 +109,6 @@ export async function POST(request: Request) {
     }
 
     const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
-    const resendKey = process.env.RESEND_API_KEY
 
     if (!siteUrl) {
       return NextResponse.json(
@@ -61,14 +117,8 @@ export async function POST(request: Request) {
       )
     }
 
-    if (!resendKey) {
-      return NextResponse.json(
-        { error: 'Missing RESEND_API_KEY environment variable' },
-        { status: 500 }
-      )
-    }
-
     const normalizedEmail = String(accessRequest.email).trim().toLowerCase()
+    const tempPassword = generateTempPassword()
 
     const { data: usersList, error: usersListError } =
       await supabaseAdmin.auth.admin.listUsers({
@@ -84,40 +134,39 @@ export async function POST(request: Request) {
       (user) => user.email?.toLowerCase() === normalizedEmail
     )
 
-const { data: linkData, error: linkError } = existingUser
-  ? await supabaseAdmin.auth.admin.generateLink({
-      type: 'recovery',
-      email: normalizedEmail,
-      options: {
-        redirectTo: `${siteUrl}/update-password`,
-      },
-    })
-  : await supabaseAdmin.auth.admin.generateLink({
-      type: 'invite',
-      email: normalizedEmail,
-      options: {
-        redirectTo: `${siteUrl}/update-password`,
-        data: {
-          full_name: accessRequest.full_name,
-        },
-      },
-    })
+    let approvedUserId = ''
 
-    if (linkError || !linkData?.properties?.action_link) {
-      return NextResponse.json(
-        { error: linkError?.message ?? 'Could not generate setup link' },
-        { status: 500 }
-      )
-    }
+    if (existingUser) {
+      approvedUserId = existingUser.id
 
-    const approvedUserId =
-      existingUser?.id ?? linkData.user?.id
+      const { error: updateUserError } =
+        await supabaseAdmin.auth.admin.updateUserById(existingUser.id, {
+          password: tempPassword,
+          email_confirm: true,
+        })
 
-    if (!approvedUserId) {
-      return NextResponse.json(
-        { error: 'Could not determine approved user ID' },
-        { status: 500 }
-      )
+      if (updateUserError) {
+        return NextResponse.json({ error: updateUserError.message }, { status: 500 })
+      }
+    } else {
+      const { data: createdUser, error: createUserError } =
+        await supabaseAdmin.auth.admin.createUser({
+          email: normalizedEmail,
+          password: tempPassword,
+          email_confirm: true,
+          user_metadata: {
+            full_name: accessRequest.full_name,
+          },
+        })
+
+      if (createUserError || !createdUser.user) {
+        return NextResponse.json(
+          { error: createUserError?.message ?? 'Could not create approved user' },
+          { status: 500 }
+        )
+      }
+
+      approvedUserId = createdUser.user.id
     }
 
     const { error: profileError } = await supabaseAdmin
@@ -127,6 +176,7 @@ const { data: linkData, error: linkError } = existingUser
         full_name: accessRequest.full_name,
         role: 'member',
         is_active: true,
+        must_change_password: true,
       })
 
     if (profileError) {
@@ -150,70 +200,18 @@ const { data: linkData, error: linkError } = existingUser
       return NextResponse.json({ error: updateError.message }, { status: 500 })
     }
 
-    const resend = new Resend(resendKey)
-
-    await resend.emails.send({
-      from: 'MFP Publication Reference system <mfp@titus225.com>',
-      to: normalizedEmail,
-      bcc: process.env.ADMIN_NOTIFICATION_EMAIL || undefined,
-      subject: 'Your MFP Publication Reference system access has been approved',
-      html: `
-        <div style="font-family: Arial, sans-serif; line-height: 1.5; color: #111827;">
-          <h2>Your access has been approved</h2>
-
-          <p>Hello ${accessRequest.full_name || ''},</p>
-
-          <p>
-            Your access to the <strong>MFP Publication Reference system</strong> has been approved.
-          </p>
-
-          <p>
-            Please use the button below to set your password and finish setting up your account.
-          </p>
-
-          <p>
-            <a href="${linkData.properties.action_link}"
-               style="display:inline-block;background:#111827;color:#ffffff;padding:12px 18px;border-radius:8px;text-decoration:none;">
-              Set your password
-            </a>
-          </p>
-
-          <p>
-            After your password is set, you can log in here:
-            <br />
-            <a href="${siteUrl}/login">${siteUrl}/login</a>
-          </p>
-
-          <h3>What you can do in the app</h3>
-          <ul>
-            <li>Ask questions across active MFP publications</li>
-            <li>Review source references and page citations</li>
-            <li>Open publication PDFs directly</li>
-            <li>Report issues or missing source information</li>
-          </ul>
-
-          <p>
-            If the button does not work, copy and paste this link into your browser:
-          </p>
-
-          <p style="word-break: break-all;">
-            ${linkData.properties.action_link}
-          </p>
-
-          <p>
-            Thank you,<br />
-            MFP Publication Reference system
-          </p>
-        </div>
-      `,
+    await sendTemporaryPasswordEmail({
+      email: normalizedEmail,
+      fullName: accessRequest.full_name,
+      tempPassword,
+      siteUrl,
     })
 
     return NextResponse.json({
       success: true,
       email: normalizedEmail,
-      invited: !existingUser,
-      message:
-        'Access approved. Setup email sent with password instructions.',
+      tempPassword,
+      message: 'Access approved. Temporary password created and emailed.',
     })
   } catch (error: any) {
     console.error('APPROVE ACCESS REQUEST ERROR:', error)
