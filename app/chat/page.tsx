@@ -993,7 +993,11 @@ setMessage('');
       return (
         <div
           key={`${source.filename}-${sourceIndex}`}
-          className="overflow-hidden rounded-2xl border border-[#e5ded5] bg-white shadow-sm"
+          className={`overflow-hidden rounded-2xl border bg-white shadow-sm ${
+            sourceIndex === 0
+              ? "border-green-300 border-l-4"
+              : "border-[#e5ded5]"
+          }`}
         >
           <div className="p-4">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
