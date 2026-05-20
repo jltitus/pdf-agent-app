@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { createClient } from "../../lib/supabase/client";
-import HeaderBar from "../components/HeaderBar";
 
 type Source = {
   title: string;
@@ -611,7 +610,7 @@ setMessage('');
 
   return (
     <>
-      <HeaderBar />
+   
 
       <main className="min-h-screen bg-[#f7f4ef] pb-32 text-primary md:pb-0">
         <div className="mx-auto flex max-w-6xl flex-col gap-5 px-3 py-5 sm:px-6 md:px-8">

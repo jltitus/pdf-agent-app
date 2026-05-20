@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import HeaderBar from '../components/HeaderBar'
 import { createClient } from '../../lib/supabase/client'
 
 type PublicProfile = {
@@ -76,7 +75,7 @@ export default function CommunityPage() {
 
   return (
     <>
-      <HeaderBar />
+   
 
       <main className="min-h-screen bg-[#f7f4ef] px-3 py-5 text-primary sm:px-6 sm:py-8">
         <div className="mx-auto max-w-7xl space-y-6">

@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { createClient } from '../../lib/supabase/client'
-import HeaderBar from '../components/HeaderBar'
 
 type Profile = {
   full_name: string | null
@@ -84,7 +83,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <>
-        <HeaderBar />
+
         <main className="min-h-screen bg-[#f7f4ef] p-6 text-primary">
           <div className="mx-auto max-w-6xl rounded-2xl border border-[#d8d1c7] bg-white p-5 shadow-sm">
             Loading MFP Publication Agent...
@@ -96,7 +95,7 @@ export default function DashboardPage() {
 
   return (
     <>
-      <HeaderBar />
+
 
       <main className="min-h-screen bg-[#f7f4ef] text-primary">
         <div className="mx-auto max-w-7xl space-y-6 px-3 py-5 sm:px-6 sm:py-8">

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '../../lib/supabase/client'
+import Link from 'next/link'
 
 type UserInfo = {
   email?: string | null
@@ -131,10 +132,10 @@ export default function HeaderBar() {
 
           <nav aria-label="Main navigation" className="hidden flex-1 items-center justify-end gap-1 lg:flex">
             {navItems.map((item) => (
-              <a key={item.href} href={item.href} className={desktopNavClass(item.href)}>
-                <span className="mr-1" aria-hidden="true">{item.icon}</span>
-                {item.label}
-              </a>
+              <Link key={item.href} href={item.href} prefetch={false} className={desktopNavClass(item.href)}>
+  <span className="mr-1" aria-hidden="true">{item.icon}</span>
+  {item.label}
+</Link>
             ))}
 
             <div className="mx-1 h-6 w-px bg-[#d8d1c7]" />
@@ -163,15 +164,16 @@ export default function HeaderBar() {
             className="mt-3 grid grid-cols-2 gap-2 border-t border-[#d8d1c7] pt-3 sm:grid-cols-3 lg:hidden"
           >
             {[...navItems, adminItem].map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                onClick={() => setMenuOpen(false)}
-                className={mobileNavClass(item.href)}
-              >
+              <Link
+  key={item.href}
+  href={item.href}
+  prefetch={false}
+  onClick={() => setMenuOpen(false)}
+  className={mobileNavClass(item.href)}
+>
                 <span className="mr-1" aria-hidden="true">{item.icon}</span>
                 {item.label}
-              </a>
+              </Link>
             ))}
 
             {userInfo && (
@@ -186,26 +188,30 @@ export default function HeaderBar() {
           </nav>
         )}
 
-        {userInfo && (
-          <div className="mt-3 flex flex-col gap-2 border-t border-[#d8d1c7] pt-2 text-xs text-primary sm:flex-row sm:items-center sm:justify-between sm:text-sm">
-            <div className="flex min-w-0 items-center gap-2">
-              <span className="truncate font-medium text-primary">{userInfo.name}</span>
+<div className="mt-3 min-h-[34px] border-t border-[#d8d1c7] pt-2">
+  {userInfo ? (
+    <div className="flex flex-col gap-2 text-xs text-primary sm:flex-row sm:items-center sm:justify-between sm:text-sm">
+      <div className="flex min-w-0 items-center gap-2">
+        <span className="truncate font-medium text-primary">
+          {userInfo.name}
+        </span>
 
-              {isAdmin && (
-                <span className="shrink-0 rounded-full border border-[#d8d1c7] bg-white px-2 py-0.5 text-xs font-semibold text-secondary">
-                  admin
-                </span>
-              )}
-            </div>
-
-            <a
-              href="/whats-new"
-              className="w-fit text-xs font-semibold text-[#d73f09] underline hover:text-[#b23408]"
-            >
-              v{appVersion} • What’s New
-            </a>
-          </div>
+        {isAdmin && (
+          <span className="shrink-0 rounded-full border border-[#d8d1c7] bg-white px-2 py-0.5 text-xs font-semibold text-secondary">
+            admin
+          </span>
         )}
+      </div>
+
+      <Link href="/whats-new" prefetch={false}  className="w-fit text-xs font-semibold text-[#d73f09] underline hover:text-[#b23408]"
+      >
+        v{appVersion} • What’s New
+      </Link>
+    </div>
+  ) : (
+    <div className="h-[20px]" aria-hidden="true" />
+  )}
+</div>
       </div>
     </header>
   )

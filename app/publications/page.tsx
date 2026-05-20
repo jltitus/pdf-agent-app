@@ -1,4 +1,4 @@
-import HeaderBar from '../components/HeaderBar'
+
 import { createClient } from '../../lib/supabase/server'
 import PublicationsTable from './PublicationsTable'
 
@@ -27,7 +27,7 @@ export default async function PublicationsPage() {
 
   return (
     <>
-      <HeaderBar />
+      
 
       <main className="min-h-screen bg-[#f7f4ef] text-primary">
         <div className="mx-auto max-w-7xl space-y-6 px-3 py-5 sm:px-6 sm:py-8">

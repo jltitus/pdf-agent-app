@@ -2,7 +2,6 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import HeaderBar from '../components/HeaderBar'
 import { createClient } from '../../lib/supabase/client'
 
 export default function ReportIssuePage() {
@@ -74,7 +73,7 @@ export default function ReportIssuePage() {
 
   return (
     <>
-      <HeaderBar />
+   
 
       <main className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 text-primary">
         <div className="mx-auto max-w-3xl px-6 py-8">

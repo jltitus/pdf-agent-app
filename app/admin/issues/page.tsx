@@ -1,6 +1,5 @@
 'use client'
 import { useEffect, useMemo, useState } from 'react'
-import HeaderBar from '../../components/HeaderBar'
 import { createClient } from '../../../lib/supabase/client'
 type IssueStatus = 'new' | 'open' | 'reviewed' | 'resolved' |
 'enhancement_candidate'
@@ -216,7 +215,7 @@ return matchesStatus && matchesSearch
 if (loading) {
 return (
 <>
-<HeaderBar />
+
 <main className="min-h-screen bg-[#f7f4ef]
 p-6 text-primary">
 Loading issue review...
@@ -227,7 +226,7 @@ Loading issue review...
 if (!isAdmin) {
 return (
 <>
-<HeaderBar />
+
 <main className="min-h-screen bg-[#f7f4ef]
 p-6 text-primary">
 <h1 className="text-2xl font-bold">Access denied</h1>
@@ -239,7 +238,7 @@ issues.</p>
 }
 return (
 <>
-<HeaderBar />
+
 <main className="min-h-screen bg-[#f7f4ef]
 text-primary">
 <div className="mx-auto max-w-7xl space-y-5 px-3 py-5 sm:px-6 sm:py-8">

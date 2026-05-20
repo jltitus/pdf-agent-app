@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import { createClient } from "../../lib/supabase/client";
-import HeaderBar from "../components/HeaderBar";
 type DocumentRow = {
   id: string;
   title: string;
@@ -1771,7 +1770,7 @@ export default function AdminPage() {
   if (loading) {
     return (
       <>
-        <HeaderBar />
+    
         <main className="min-h-screen bg-[#f7f4ef] p-8 text-primary">
           Loading...
         </main>
@@ -1781,7 +1780,7 @@ export default function AdminPage() {
   if (!isAdmin) {
     return (
       <>
-        <HeaderBar />
+    
         <main className="min-h-screen bg-[#f7f4ef] p-8 text-primary">
           <h1 className="text-2xl font-bold text-primary">Access denied</h1>
           <p className="mt-2 text-secondary">
@@ -1793,7 +1792,7 @@ export default function AdminPage() {
   }
   return (
     <>
-      <HeaderBar />
+  
       <main className="min-h-screen bg-[#f7f4ef] text-primary">
         <div className="mx-auto max-w-6xl space-y-6 px-3 py-5 sm:space-y-8 sm:px-6 sm:py-8">
           <section className="overflow-hidden rounded-3xl border border-[#d8d1c7] bg-white shadow-sm">

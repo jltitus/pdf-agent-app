@@ -1,10 +1,9 @@
 import Link from 'next/link'
-import HeaderBar from '../components/HeaderBar'
 
 export default function HelpPage() {
   return (
     <>
-      <HeaderBar />
+  
 
       <main className="min-h-screen bg-[#f7f4ef] text-primary">
         <div className="mx-auto max-w-6xl space-y-6 px-3 py-5 sm:px-6 sm:py-8">

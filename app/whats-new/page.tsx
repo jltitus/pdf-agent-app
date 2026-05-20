@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import HeaderBar from '../components/HeaderBar'
 
 type Release = {
   id: string
@@ -48,7 +47,6 @@ export default function WhatsNewPage() {
 
   return (
     <>
-      <HeaderBar />
 
       <main className="min-h-screen bg-gradient-to-br from-blue-50 to-green-50 text-primary">
         <div className="mx-auto max-w-5xl space-y-6 px-3 py-5 sm:px-6 sm:py-8">

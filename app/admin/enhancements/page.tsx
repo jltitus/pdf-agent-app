@@ -1,6 +1,5 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import HeaderBar from "../../components/HeaderBar";
 import { createClient } from "../../../lib/supabase/client";
 type EnhancementStatus =
 | "new"
@@ -328,7 +327,7 @@ return matchesStatus && matchesPriority && matchesSearch;
 if (loading) {
 return (
 <>
-<HeaderBar />
+
 <main className="min-h-screen bg-[#f7f4ef]
 p-6 text-primary">
 Loading enhancements...
@@ -339,7 +338,7 @@ Loading enhancements...
 if (!isAdmin) {
 return (
 <>
-<HeaderBar />
+
 <main className="min-h-screen bg-[#f7f4ef]
 p-6 text-primary">
 <h1 className="text-2xl font-bold">Access denied</h1>
@@ -352,7 +351,7 @@ You must be an admin to review enhancements.
 }
 return (
 <>
-<HeaderBar />
+
 <main className="min-h-screen bg-[#f7f4ef]
 text-primary">
 <div className="mx-auto max-w-7xl space-y-5 px-3 py-5 sm:px-6 sm:py-8">
