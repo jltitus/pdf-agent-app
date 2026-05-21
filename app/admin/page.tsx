@@ -2229,7 +2229,7 @@ export default function AdminPage() {
                       key={label}
                       className={`rounded-xl border px-3 py-2 text-center shadow-sm ${type === "warning" && hasValue ? "border-yellow-300 bg-yellow-50" : type === "danger" && hasValue ? "border-red-300 bg-red-50" : type === "success" && hasValue ? "border-green-300 bg-green-50" : "border-[#d8d1c7] bg-white"}`}
                     >
-                      <p className="text-[11px] font-medium leading-tight text-secondary">
+                      <p className="text-xs font-medium leading-tight text-secondary">
                         {label}
                       </p>
                       <p
@@ -3027,7 +3027,7 @@ export default function AdminPage() {
                                     ).toLocaleString()
                                   : "No activity"}
                                 {request.last_question && (
-                                  <p className="mt-1 line-clamp-2 text-[11px] text-secondary">
+                                  <p className="mt-1 line-clamp-2 text-xs text-secondary">
                                     {request.last_question}
                                   </p>
                                 )}
@@ -4523,7 +4523,7 @@ export default function AdminPage() {
                               <p className="break-words text-xs font-semibold text-primary">
                                 {log.actor_email || "Unknown actor"}
                               </p>
-                              <p className="mt-1 text-[11px] text-muted">
+                              <p className="mt-1 text-xs text-muted">
                                 {log.actor_role || "No role"}
                               </p>
                             </td>
@@ -4532,7 +4532,7 @@ export default function AdminPage() {
                             </td>
                             <td className="p-3 text-xs text-muted">
                               <p>{log.target_type || "—"}</p>
-                              <p className="mt-1 break-all text-[11px]">
+                              <p className="mt-1 break-all text-xs">
                                 {log.target_id || "—"}
                               </p>
                             </td>

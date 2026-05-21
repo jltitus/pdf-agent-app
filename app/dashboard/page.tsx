@@ -278,7 +278,7 @@ export default function DashboardPage() {
                     </p>
                     <div className="mt-1 flex flex-wrap items-center gap-2">
                       {pub.category && (
-                        <span className="rounded-full bg-[#f3f0ed] px-2 py-0.5 text-[11px] font-semibold text-secondary">
+                        <span className="rounded-full bg-[#f3f0ed] px-2 py-0.5 text-xs font-semibold text-secondary">
                           {pub.category}
                         </span>
                       )}

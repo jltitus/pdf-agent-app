@@ -123,7 +123,7 @@ export default function HeaderBar() {
                 <h1 className="truncate text-base font-bold leading-tight text-primary sm:text-xl">
                   MFP Publication Reference system
                 </h1>
-                <p className="truncate text-[10px] font-semibold tracking-wide text-secondary sm:text-xs">
+                <p className="truncate text-xs font-semibold tracking-wide text-secondary">
                   MASTER FOOD PRESERVERS
                 </p>
               </div>
