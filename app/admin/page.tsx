@@ -105,6 +105,7 @@ type UserAnalytics = {
   uniqueUsers: number;
   modeCounts: Record<string, number>;
   categoryCounts: Record<string, number>;
+  heatmap: number[][];
   recentActivity: {
     id: string;
     user_id: string;
@@ -211,6 +212,7 @@ export default function AdminPage() {
     uniqueUsers: 0,
     modeCounts: {},
     categoryCounts: {},
+    heatmap: [],
     recentActivity: [],
   });
   const [docEngagementStats, setDocEngagementStats] = useState<DocEngagementStat[]>([]);
@@ -536,6 +538,7 @@ export default function AdminPage() {
       uniqueUsers: result.uniqueUsers ?? 0,
       modeCounts: result.modeCounts ?? {},
       categoryCounts: result.categoryCounts ?? {},
+      heatmap: result.heatmap ?? [],
       recentActivity: result.recentActivity ?? [],
     });
   }
@@ -2290,6 +2293,57 @@ export default function AdminPage() {
                   </div>
                 </section>
               </section>
+              {userAnalytics.heatmap.length === 7 && (
+                <section className={`${cardClass} space-y-4`}>
+                  <div>
+                    <h2 className="text-2xl font-bold text-primary">Activity Heatmap</h2>
+                    <p className="text-sm text-secondary">Questions asked by day and hour (your local time).</p>
+                  </div>
+                  {(() => {
+                    const days = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+                    const max = Math.max(1, ...userAnalytics.heatmap.flat());
+                    return (
+                      <div className="overflow-x-auto">
+                        <div className="min-w-[520px]">
+                          {/* Hour labels */}
+                          <div className="mb-1 flex pl-10">
+                            {Array.from({ length: 24 }, (_, h) => (
+                              <div key={h} className="flex-1 text-center text-[9px] text-muted">
+                                {h % 6 === 0 ? `${h === 0 ? '12a' : h < 12 ? `${h}a` : h === 12 ? '12p' : `${h - 12}p`}` : ''}
+                              </div>
+                            ))}
+                          </div>
+                          {/* Grid rows */}
+                          {userAnalytics.heatmap.map((hours, day) => (
+                            <div key={day} className="mb-0.5 flex items-center gap-1">
+                              <span className="w-9 shrink-0 text-right text-xs font-semibold text-secondary">{days[day]}</span>
+                              {hours.map((count, hour) => {
+                                const intensity = count === 0 ? 0 : Math.ceil((count / max) * 4);
+                                const bg = ['bg-[#f3f0ed]', 'bg-orange-100', 'bg-orange-200', 'bg-orange-400', 'bg-[#d73f09]'][intensity];
+                                return (
+                                  <div
+                                    key={hour}
+                                    title={`${days[day]} ${hour}:00 — ${count} question${count !== 1 ? 's' : ''}`}
+                                    className={`h-5 flex-1 rounded-sm ${bg}`}
+                                  />
+                                );
+                              })}
+                            </div>
+                          ))}
+                          {/* Legend */}
+                          <div className="mt-3 flex items-center gap-2">
+                            <span className="text-xs text-muted">Less</span>
+                            {['bg-[#f3f0ed]', 'bg-orange-100', 'bg-orange-200', 'bg-orange-400', 'bg-[#d73f09]'].map((bg, i) => (
+                              <div key={i} className={`h-4 w-4 rounded-sm ${bg}`} />
+                            ))}
+                            <span className="text-xs text-muted">More</span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+                </section>
+              )}
               <section className={`${cardClass} space-y-4`}>
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div>

@@ -46,7 +46,7 @@ export async function GET(request: Request) {
         evidence_strength
       `)
       .order('created_at', { ascending: false })
-      .limit(200)
+      .limit(1000)
 
     if (error) {
       console.error('ADMIN ANALYTICS SUPABASE ERROR:', error)
@@ -98,12 +98,20 @@ export async function GET(request: Request) {
       }
     })
 
+    // Heatmap: 7 days x 24 hours grid (local time)
+    const heatmap: number[][] = Array.from({ length: 7 }, () => Array(24).fill(0))
+    rows.forEach((row) => {
+      const d = new Date(row.created_at)
+      heatmap[d.getDay()][d.getHours()] += 1
+    })
+
     return NextResponse.json({
       totalQuestions: rows.length,
       uniqueUsers: uniqueUserIds.size,
       modeCounts,
       categoryCounts,
       confidenceCounts,
+      heatmap,
       trustedAnswerUsage: 0,
       recentActivity: rows.slice(0, 10).map((row) => ({
         ...row,
