@@ -215,6 +215,7 @@ export default function AdminPage() {
   });
   const [docEngagementStats, setDocEngagementStats] = useState<DocEngagementStat[]>([]);
   const [engagementExpandedId, setEngagementExpandedId] = useState<string | null>(null);
+  const [engagementRange, setEngagementRange] = useState<'7' | '30' | 'all'>('all');
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
   const [version, setVersion] = useState("");
@@ -535,10 +536,10 @@ export default function AdminPage() {
       recentActivity: result.recentActivity ?? [],
     });
   }
-  async function loadDocumentEngagement() {
+  async function loadDocumentEngagement(range: '7' | '30' | 'all' = 'all') {
     const token = await getToken();
     if (!token) return;
-    const response = await fetch("/api/document-analytics", {
+    const response = await fetch(`/api/document-analytics?range=${range}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     const result = await response.json().catch(() => ({}));
@@ -2252,13 +2253,30 @@ export default function AdminPage() {
                 </section>
               </section>
               <section className={`${cardClass} space-y-4`}>
-                <div>
-                  <h2 className="text-2xl font-bold text-primary">
-                    Document Engagement
-                  </h2>
-                  <p className="text-sm text-secondary">
-                    How often each publication is viewed and questioned.
-                  </p>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold text-primary">
+                      Document Engagement
+                    </h2>
+                    <p className="text-sm text-secondary">
+                      How often each publication is viewed and questioned.
+                    </p>
+                  </div>
+                  <div className="flex gap-1">
+                    {(['7', '30', 'all'] as const).map((r) => (
+                      <button
+                        key={r}
+                        type="button"
+                        onClick={() => {
+                          setEngagementRange(r);
+                          loadDocumentEngagement(r);
+                        }}
+                        className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${engagementRange === r ? 'bg-[#d73f09] !text-white' : 'border border-[#d8d1c7] bg-white text-primary hover:bg-[#f3f0ed]'}`}
+                      >
+                        {r === '7' ? 'Last 7 days' : r === '30' ? 'Last 30 days' : 'All time'}
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 {docEngagementStats.length === 0 ? (
                   <p className="text-sm text-secondary">No engagement data yet.</p>

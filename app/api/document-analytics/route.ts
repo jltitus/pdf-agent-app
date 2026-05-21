@@ -34,6 +34,14 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 
+    const range = req.nextUrl.searchParams.get('range') ?? 'all'
+    const cutoff =
+      range === '7'
+        ? new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+        : range === '30'
+          ? new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString()
+          : null
+
     // Fetch all documents
     const { data: documents } = await supabaseAdmin
       .from('documents')
@@ -44,22 +52,24 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ stats: [] })
     }
 
-    // Fetch view counts grouped by document
-    const { data: viewRows } = await supabaseAdmin
-      .from('document_views')
-      .select('document_id')
+    // Fetch view counts filtered by date range
+    let viewQuery = supabaseAdmin.from('document_views').select('document_id')
+    if (cutoff) viewQuery = viewQuery.gte('viewed_at', cutoff)
+    const { data: viewRows } = await viewQuery
 
     const viewCounts: Record<string, number> = {}
     for (const row of viewRows ?? []) {
       viewCounts[row.document_id] = (viewCounts[row.document_id] ?? 0) + 1
     }
 
-    // Fetch recent chat history with sources to count questions per document
-    const { data: chatRows } = await supabaseAdmin
+    // Fetch chat history filtered by date range
+    let chatQuery = supabaseAdmin
       .from('chat_history')
       .select('question, sources, created_at')
       .order('created_at', { ascending: false })
       .limit(1000)
+    if (cutoff) chatQuery = chatQuery.gte('created_at', cutoff)
+    const { data: chatRows } = await chatQuery
 
     // Map filename -> document id
     const filenameToId: Record<string, string> = {}
@@ -93,7 +103,6 @@ export async function GET(req: NextRequest) {
       recentQuestions: (questionsByDoc[doc.id] ?? []).slice(0, 5).map((q) => q.question),
     }))
 
-    // Sort by most-viewed first
     stats.sort((a, b) => b.viewCount - a.viewCount)
 
     return NextResponse.json({ stats })
