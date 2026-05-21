@@ -210,21 +210,21 @@ export default function HistoryPage() {
             <button
               type="button"
               onClick={() => { setTab('all'); setCategoryFilter('all'); setModeFilter('all') }}
-              className={`px-5 py-2.5 text-sm font-semibold transition ${tab === 'all' ? 'bg-[#d73f09] text-white' : 'bg-white text-primary hover:bg-[#f3f0ed]'}`}
+              className={`min-h-11 px-5 py-2.5 text-sm font-semibold transition ${tab === 'all' ? 'bg-[#d73f09] text-white' : 'bg-white text-primary hover:bg-[#f3f0ed]'}`}
             >
               All questions {!loading && `(${history.length})`}
             </button>
             <button
               type="button"
               onClick={() => { setTab('saved'); setCategoryFilter('all'); setModeFilter('all') }}
-              className={`border-l border-[#d8d1c7] px-5 py-2.5 text-sm font-semibold transition ${tab === 'saved' ? 'bg-[#d73f09] text-white' : 'bg-white text-primary hover:bg-[#f3f0ed]'}`}
+              className={`min-h-11 border-l border-[#d8d1c7] px-5 py-2.5 text-sm font-semibold transition ${tab === 'saved' ? 'bg-[#d73f09] text-white' : 'bg-white text-primary hover:bg-[#f3f0ed]'}`}
             >
               Saved {!loading && `(${savedChats.length})`}
             </button>
           </div>
 
           {/* Filters */}
-          <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_180px_160px_auto_auto]">
+          <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-[1fr_180px_160px_auto_auto]">
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}

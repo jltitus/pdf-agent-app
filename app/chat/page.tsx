@@ -638,7 +638,7 @@ setMessage('');
     <>
    
 
-      <main className="min-h-screen bg-[#f7f4ef] pb-32 text-primary md:pb-0">
+      <main className="min-h-screen bg-[#f7f4ef] pb-20 text-primary md:pb-0">
         <div className="mx-auto flex max-w-6xl flex-col gap-5 px-3 py-5 sm:px-6 md:px-8">
           <section className="rounded-2xl border border-[#d8d1c7] bg-white p-4 text-primary shadow-sm sm:p-5">
             <div className="mb-4">
@@ -842,7 +842,7 @@ setMessage('');
             </div>
           </section>
 
-          <div className="grid gap-5 lg:grid-cols-[1fr_320px]">
+          <div className="grid gap-5 md:grid-cols-[1fr_280px] lg:grid-cols-[1fr_320px]">
             <section className="flex min-h-[650px] flex-col overflow-hidden rounded-2xl border border-[#d8d1c7] bg-white text-primary shadow-sm">
               <div className="border-b border-[#d8d1c7] p-4 sm:p-5">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -1162,7 +1162,7 @@ setMessage('');
           type="button"
           onClick={() => submitFeedback(index, 'helpful')}
           title="Helpful"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#d8d1c7] bg-white text-lg hover:border-green-300 hover:bg-green-50"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[#d8d1c7] bg-white text-lg hover:border-green-300 hover:bg-green-50"
         >
           👍
         </button>
@@ -1170,7 +1170,7 @@ setMessage('');
           type="button"
           onClick={() => submitFeedback(index, 'not_helpful')}
           title="Not helpful"
-          className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#d8d1c7] bg-white text-lg hover:border-yellow-300 hover:bg-yellow-50"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-[#d8d1c7] bg-white text-lg hover:border-yellow-300 hover:bg-yellow-50"
         >
           👎
         </button>
@@ -1191,7 +1191,7 @@ setMessage('');
       type="button"
       onClick={() => toggleSourceSuggestion(index)}
       disabled={!!turn.feedbackSubmitted}
-      className={`min-h-9 rounded-xl border px-3 py-1.5 text-sm font-semibold transition ${
+      className={`min-h-11 rounded-xl border px-3 py-1.5 text-sm font-semibold transition ${
         turn.sourceSuggestionOpen
           ? 'border-[#d8d1c7] bg-[#f3f0ed] text-primary'
           : 'border-[#d8d1c7] bg-white text-primary hover:bg-gray-50'
@@ -1202,13 +1202,13 @@ setMessage('');
 
     <Link
       href={`/report-issue?question=${encodeURIComponent(turn.question)}`}
-      className="inline-flex min-h-9 items-center justify-center rounded-xl border border-[#d8d1c7] bg-white px-3 py-1.5 text-sm font-semibold text-primary hover:bg-gray-50"
+      className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[#d8d1c7] bg-white px-3 py-1.5 text-sm font-semibold text-primary hover:bg-gray-50"
     >
       🚩 Report
     </Link>
   </div>
 
-  <div className="mt-2 grid grid-cols-3 gap-2 sm:flex sm:flex-wrap">
+  <div className="mt-2 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
     <button
       type="button"
       onClick={() => regenerateTurn(index)}
@@ -1277,14 +1277,14 @@ setMessage('');
         <button
           type="button"
           onClick={() => submitFeedback(index, 'source_issue', turn.sourceSuggestionText)}
-          className="inline-flex min-h-10 items-center justify-center rounded-xl bg-[#d73f09] px-4 py-2 text-sm font-semibold text-white hover:bg-[#b23408]"
+          className="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#d73f09] px-4 py-2 text-sm font-semibold text-white hover:bg-[#b23408]"
         >
           Send suggestion
         </button>
         <button
           type="button"
           onClick={() => toggleSourceSuggestion(index)}
-          className="inline-flex min-h-10 items-center justify-center rounded-xl border border-[#d8d1c7] bg-white px-4 py-2 text-sm font-semibold text-primary hover:bg-[#f3f0ed]"
+          className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[#d8d1c7] bg-white px-4 py-2 text-sm font-semibold text-primary hover:bg-[#f3f0ed]"
         >
           Cancel
         </button>

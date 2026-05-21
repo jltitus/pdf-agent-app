@@ -265,7 +265,7 @@ export default function CommunityPage() {
                       {profile.show_phone && profile.phone && (
                         <a
                           href={`tel:${profile.phone}`}
-                          className="rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-xs font-semibold text-primary hover:bg-[#f3f0ed]"
+                          className="inline-flex min-h-11 items-center rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-xs font-semibold text-primary hover:bg-[#f3f0ed]"
                         >
                           📞 {profile.phone}
                         </a>
@@ -274,7 +274,7 @@ export default function CommunityPage() {
                       {profile.show_email && profile.email && (
                         <a
                           href={`mailto:${profile.email}`}
-                          className="rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-xs font-semibold text-primary hover:bg-[#f3f0ed]"
+                          className="inline-flex min-h-11 items-center rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-xs font-semibold text-primary hover:bg-[#f3f0ed]"
                         >
                           ✉️ {profile.email}
                         </a>

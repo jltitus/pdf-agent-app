@@ -298,14 +298,14 @@ export default function AdminPage() {
     message: string;
   } | null>(null);
   const inputClass =
-    "w-full rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm text-primary shadow-sm";
+    "w-full min-h-11 rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm text-primary shadow-sm";
   const labelClass = "mb-1 block text-sm font-semibold text-primary";
   const secondaryButton =
-    "rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-primary shadow-sm hover:bg-[#f3f0ed] disabled:opacity-60";
+    "inline-flex min-h-11 items-center justify-center rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-primary shadow-sm hover:bg-[#f3f0ed] disabled:opacity-60";
   const smallSecondaryButton =
-    "rounded-xl border border-[#d8d1c7] bg-white px-3 py-1 text-xs font-semibold text-primary shadow-sm hover:bg-[#f3f0ed] disabled:opacity-60";
+    "inline-flex min-h-9 items-center justify-center rounded-xl border border-[#d8d1c7] bg-white px-3 py-1 text-xs font-semibold text-primary shadow-sm hover:bg-[#f3f0ed] disabled:opacity-60";
   const primaryButton =
-    "rounded-xl bg-[#d73f09] px-4 py-2 text-sm font-semibold !text-white shadow-sm hover:bg-[#b23408] disabled:bg-[#e8a08a] disabled:!text-white disabled:cursor-not-allowed";
+    "inline-flex min-h-11 items-center justify-center rounded-xl bg-[#d73f09] px-4 py-2 text-sm font-semibold !text-white shadow-sm hover:bg-[#b23408] disabled:bg-[#e8a08a] disabled:!text-white disabled:cursor-not-allowed";
   const blueButton =
     "rounded-xl bg-[#d73f09] px-3 py-2 text-sm font-semibold !text-white shadow-sm hover:bg-[#b23408] disabled:bg-[#e8a08a] disabled:!text-white disabled:cursor-not-allowed";
   const cardClass =

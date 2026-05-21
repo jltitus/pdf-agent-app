@@ -100,7 +100,7 @@ export default function HeaderBar() {
             <button
               type="button"
               onClick={() => setMenuOpen((value) => !value)}
-              className="shrink-0 rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-2xl font-bold leading-none text-primary shadow-sm lg:hidden"
+              className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-2xl font-bold leading-none text-primary shadow-sm lg:hidden"
               aria-expanded={menuOpen}
               aria-controls="mobile-main-menu"
               aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
