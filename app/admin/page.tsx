@@ -161,8 +161,9 @@ export default function AdminPage() {
     | "pending_review"
   >("all");
   const [documentHealthView, setDocumentHealthView] = useState<
-    "recent" | "not_processed" | "zero_pages"
-  >("recent");
+    "recent" | "not_processed" | "zero_pages" | null
+  >(null);
+  const [engagementExpanded, setEngagementExpanded] = useState(false);
   const [documentHealth, setDocumentHealth] = useState({
     total: 0,
     active: 0,
@@ -2231,13 +2232,14 @@ export default function AdminPage() {
                       <button
                         key={key}
                         type="button"
-                        onClick={() => setDocumentHealthView(key as any)}
+                        onClick={() => setDocumentHealthView(documentHealthView === key ? null : key as any)}
                         className={`rounded-xl border px-3 py-2 text-sm font-semibold ${documentHealthView === key ? "bg-[#d73f09] !text-white shadow-sm" : "border-[#d8d1c7] bg-white text-primary hover:bg-[#f3f0ed]"}`}
                       >
                         {label}
                       </button>
                     ))}
                   </div>
+                  {documentHealthView !== null && (
                   <div className="max-h-[420px] space-y-2 overflow-y-auto pr-1">
                     {documentHealthDocs.length === 0 ? (
                       <p className="rounded-xl border border-[#d8d1c7] p-3 text-sm text-muted">
@@ -2292,6 +2294,7 @@ export default function AdminPage() {
                       })
                     )}
                   </div>
+                  )}
                 </section>
               </section>
               {userAnalytics.heatmap.length === 7 && (
@@ -2346,15 +2349,27 @@ export default function AdminPage() {
                 </section>
               )}
               <section className={`${cardClass} space-y-4`}>
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                <button
+                  type="button"
+                  onClick={() => setEngagementExpanded((v) => !v)}
+                  className="flex w-full items-center justify-between text-left"
+                >
                   <div>
                     <h2 className="text-2xl font-bold text-primary">
                       Document Engagement
                     </h2>
                     <p className="text-sm text-secondary">
-                      How often each publication is viewed and questioned.
+                      {engagementExpanded
+                        ? 'How often each publication is viewed and questioned.'
+                        : `${docEngagementStats.length} publications · ${docEngagementStats.reduce((s, d) => s + d.viewCount, 0)} views · ${docEngagementStats.reduce((s, d) => s + d.questionCount, 0)} questions`}
                     </p>
                   </div>
+                  <span className="ml-3 shrink-0 text-lg text-secondary">{engagementExpanded ? '▲' : '▼'}</span>
+                </button>
+                {engagementExpanded && (
+                <>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                  <div />
                   <div className="flex flex-col gap-2 sm:items-end">
                     <div className="flex gap-1">
                       {(['7', '30', 'all'] as const).map((r) => (
@@ -2440,6 +2455,8 @@ export default function AdminPage() {
                       </tbody>
                     </table>
                   </div>
+                )}
+                </>
                 )}
               </section>
             </>
