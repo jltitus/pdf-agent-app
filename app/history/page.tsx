@@ -148,6 +148,32 @@ export default function HistoryPage() {
     return Array.from(new Set(source.map((h) => h.category).filter(Boolean) as string[])).sort()
   }, [history, savedChats, tab])
 
+  function exportCSV() {
+    const rows = filtered as (HistoryItem | SavedChat)[]
+    const headers = ['Date', 'Question', 'Answer', 'Category', 'Mode', 'Evidence']
+    const escape = (v: string) => `"${(v ?? '').replace(/"/g, '""')}"`
+    const lines = [
+      headers.join(','),
+      ...rows.map((item) =>
+        [
+          escape(formatDate(item.created_at)),
+          escape(item.question),
+          escape(item.answer),
+          escape(item.category ?? ''),
+          escape(answerModeLabel(item.answer_mode)),
+          escape('evidence_strength' in item ? (item.evidence_strength?.label ?? '') : ''),
+        ].join(',')
+      ),
+    ]
+    const blob = new Blob([lines.join('\n')], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `mfp-${tab}-${new Date().toISOString().slice(0, 10)}.csv`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
   const filtered = useMemo(() => {
     const source: (HistoryItem | SavedChat)[] = tab === 'all' ? history : savedChats
     const q = search.trim().toLowerCase()
@@ -198,7 +224,7 @@ export default function HistoryPage() {
           </div>
 
           {/* Filters */}
-          <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_180px_160px_auto]">
+          <div className="mt-4 grid gap-3 sm:grid-cols-[1fr_180px_160px_auto_auto]">
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -230,6 +256,14 @@ export default function HistoryPage() {
               className="rounded-xl border border-[#d8d1c7] bg-white px-4 py-2.5 text-sm font-semibold text-primary hover:bg-[#f3f0ed]"
             >
               Clear
+            </button>
+            <button
+              type="button"
+              onClick={exportCSV}
+              disabled={filtered.length === 0}
+              className="rounded-xl border border-[#d8d1c7] bg-white px-4 py-2.5 text-sm font-semibold text-primary hover:bg-[#f3f0ed] disabled:opacity-50"
+            >
+              Export CSV
             </button>
           </div>
 
