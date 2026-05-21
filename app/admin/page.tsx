@@ -216,6 +216,8 @@ export default function AdminPage() {
   const [docEngagementStats, setDocEngagementStats] = useState<DocEngagementStat[]>([]);
   const [engagementExpandedId, setEngagementExpandedId] = useState<string | null>(null);
   const [engagementRange, setEngagementRange] = useState<'7' | '30' | 'all'>('all');
+  const [selectedDocIds, setSelectedDocIds] = useState<Set<string>>(new Set());
+  const [bulkActioning, setBulkActioning] = useState(false);
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
   const [version, setVersion] = useState("");
@@ -864,6 +866,32 @@ export default function AdminPage() {
     setMessage(isActive ? "Document unarchived." : "Document archived.");
     setUpdatingId(null);
     await loadDocuments();
+  }
+  async function bulkSetStatus(ids: string[], isActive: boolean) {
+    setBulkActioning(true);
+    setMessage(`${isActive ? 'Unarchiving' : 'Archiving'} ${ids.length} document(s)...`);
+    const token = await getToken();
+    if (!token) { setBulkActioning(false); return; }
+    for (const documentId of ids) {
+      await fetch("/api/update-document-status", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ documentId, isActive }),
+      });
+    }
+    setSelectedDocIds(new Set());
+    setBulkActioning(false);
+    setMessage(`${ids.length} document(s) ${isActive ? 'unarchived' : 'archived'}.`);
+    await loadDocuments();
+  }
+  async function bulkReprocess(ids: string[]) {
+    setBulkActioning(true);
+    setMessage(`Reprocessing ${ids.length} document(s)...`);
+    for (const documentId of ids) {
+      await processDocument(documentId);
+    }
+    setSelectedDocIds(new Set());
+    setBulkActioning(false);
   }
   async function deleteDocument(documentId: string, documentTitle: string) {
     const confirmed = window.confirm(
@@ -3068,6 +3096,44 @@ export default function AdminPage() {
                     </button>
                   )}
                 </div>
+                {selectedDocIds.size > 0 && (
+                  <div className="flex flex-wrap items-center gap-2 rounded-xl border border-[#d8d1c7] bg-[#faf8f6] px-4 py-3">
+                    <span className="text-sm font-semibold text-primary">
+                      {selectedDocIds.size} selected
+                    </span>
+                    <button
+                      type="button"
+                      disabled={bulkActioning}
+                      onClick={() => bulkSetStatus([...selectedDocIds], false)}
+                      className={smallSecondaryButton}
+                    >
+                      Archive all
+                    </button>
+                    <button
+                      type="button"
+                      disabled={bulkActioning}
+                      onClick={() => bulkSetStatus([...selectedDocIds], true)}
+                      className={smallSecondaryButton}
+                    >
+                      Unarchive all
+                    </button>
+                    <button
+                      type="button"
+                      disabled={bulkActioning}
+                      onClick={() => bulkReprocess([...selectedDocIds])}
+                      className={smallSecondaryButton}
+                    >
+                      Reprocess all
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedDocIds(new Set())}
+                      className="ml-auto text-xs text-secondary hover:text-primary"
+                    >
+                      Clear selection
+                    </button>
+                  </div>
+                )}
                 {filteredDocumentsForAdmin.length === 0 ? (
                   <p className="rounded-xl border border-[#d8d1c7] p-3 text-sm text-secondary">
                     No documents match your search/filter.
@@ -3081,11 +3147,21 @@ export default function AdminPage() {
                       return (
                         <div
                           key={doc.id}
-                          className="rounded-xl border border-[#d8d1c7] bg-white p-4"
+                          className={`rounded-xl border bg-white p-4 ${selectedDocIds.has(doc.id) ? 'border-[#d73f09]' : 'border-[#d8d1c7]'}`}
                         >
                           <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
                             <div className="min-w-0 flex-1">
                               <div className="flex flex-wrap items-center gap-2">
+                                <input
+                                  type="checkbox"
+                                  checked={selectedDocIds.has(doc.id)}
+                                  onChange={(e) => {
+                                    const next = new Set(selectedDocIds);
+                                    e.target.checked ? next.add(doc.id) : next.delete(doc.id);
+                                    setSelectedDocIds(next);
+                                  }}
+                                  className="h-4 w-4 accent-[#d73f09]"
+                                />
                                 <p className="font-semibold text-primary">
                                   {doc.title || doc.filename}
                                 </p>
