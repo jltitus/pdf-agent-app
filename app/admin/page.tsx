@@ -516,6 +516,7 @@ export default function AdminPage() {
         uniqueUsers: 0,
         modeCounts: {},
         categoryCounts: {},
+        heatmap: [],
         recentActivity: [],
       });
       return;
