@@ -28,6 +28,9 @@ export default function CommunityPage() {
   const [loading, setLoading] = useState(true)
   const [profiles, setProfiles] = useState<PublicProfile[]>([])
   const [search, setSearch] = useState('')
+  const [myUserId, setMyUserId] = useState<string | null>(null)
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set())
+  const [savingId, setSavingId] = useState<string | null>(null)
 
   useEffect(() => {
     async function loadProfiles() {
@@ -38,21 +41,57 @@ export default function CommunityPage() {
         return
       }
 
-      const { data } = await supabase
-        .from('profiles')
-        .select(
-          'id, full_name, city, county, state, mfp_affiliation, specialties, website_url, social_url, profile_url, avatar_url, bio, phone, show_phone, show_email, email'
-        )
-        .eq('is_profile_public', true)
-        .eq('is_active', true)
-        .order('full_name', { ascending: true })
+      setMyUserId(sessionData.session.user.id)
+      const token = sessionData.session.access_token
 
-      setProfiles((data ?? []) as PublicProfile[])
+      const [profilesRes, contactsRes] = await Promise.all([
+        supabase
+          .from('profiles')
+          .select(
+            'id, full_name, city, county, state, mfp_affiliation, specialties, website_url, social_url, profile_url, avatar_url, bio, phone, show_phone, show_email, email'
+          )
+          .eq('is_profile_public', true)
+          .eq('is_active', true)
+          .order('full_name', { ascending: true }),
+        fetch('/api/contacts', { headers: { Authorization: `Bearer ${token}` } }),
+      ])
+
+      setProfiles((profilesRes.data ?? []) as PublicProfile[])
+
+      if (contactsRes.ok) {
+        const { contactIds } = await contactsRes.json()
+        setSavedIds(new Set(contactIds ?? []))
+      }
+
       setLoading(false)
     }
 
     loadProfiles()
   }, [supabase])
+
+  async function toggleContact(profileId: string) {
+    const { data: sessionData } = await supabase.auth.getSession()
+    const token = sessionData.session?.access_token
+    if (!token) return
+
+    setSavingId(profileId)
+    const isSaved = savedIds.has(profileId)
+
+    const res = await fetch('/api/contacts', {
+      method: isSaved ? 'DELETE' : 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ savedUserId: profileId }),
+    })
+
+    if (res.ok) {
+      setSavedIds((prev) => {
+        const next = new Set(prev)
+        isSaved ? next.delete(profileId) : next.add(profileId)
+        return next
+      })
+    }
+    setSavingId(null)
+  }
 
   const filteredProfiles = useMemo(() => {
     const value = search.trim().toLowerCase()
@@ -215,7 +254,7 @@ export default function CommunityPage() {
                         )}
                       </div>
 
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <h2 className="break-words text-xl font-bold text-primary">
                           {profile.full_name || 'Community member'}
                         </h2>
@@ -232,6 +271,23 @@ export default function CommunityPage() {
                           </p>
                         )}
                       </div>
+
+                      {profile.id !== myUserId && (
+                        <button
+                          type="button"
+                          title={savedIds.has(profile.id) ? 'Remove from contacts' : 'Save to contacts'}
+                          disabled={savingId === profile.id}
+                          onClick={() => toggleContact(profile.id)}
+                          className={`shrink-0 inline-flex h-10 w-10 items-center justify-center rounded-xl border transition ${
+                            savedIds.has(profile.id)
+                              ? 'border-[#d73f09] bg-[#fff3ef] text-[#d73f09]'
+                              : 'border-[#d8d1c7] bg-white text-secondary hover:border-[#d73f09] hover:text-[#d73f09]'
+                          } disabled:opacity-50`}
+                        >
+                          <span aria-hidden="true">{savedIds.has(profile.id) ? '★' : '☆'}</span>
+                          <span className="sr-only">{savedIds.has(profile.id) ? 'Remove from contacts' : 'Save to contacts'}</span>
+                        </button>
+                      )}
                     </div>
                   </div>
 

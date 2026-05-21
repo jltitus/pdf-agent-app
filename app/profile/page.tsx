@@ -3,6 +3,21 @@
 import { useEffect, useState } from 'react'
 import { createClient } from '../../lib/supabase/client'
 
+type Contact = {
+  id: string
+  full_name: string | null
+  city: string | null
+  county: string | null
+  state: string | null
+  mfp_affiliation: string | null
+  specialties: string[] | null
+  avatar_url: string | null
+  phone: string | null
+  show_phone: boolean | null
+  show_email: boolean | null
+  email: string | null
+}
+
 type Profile = {
   id: string
   full_name: string | null
@@ -57,6 +72,7 @@ export default function ProfilePage() {
   const [email, setEmail] = useState('')
   const [favorites, setFavorites] = useState<FavoritePublication[]>([])
   const [savedChats, setSavedChats] = useState<SavedChat[]>([])
+  const [contacts, setContacts] = useState<Contact[]>([])
 
   useEffect(() => {
     async function loadProfile() {
@@ -87,6 +103,15 @@ export default function ProfilePage() {
       if (savedChatsResponse.ok) {
         const savedChatsData = await savedChatsResponse.json()
         setSavedChats(savedChatsData.chats ?? [])
+      }
+
+      const token = sessionData.session.access_token
+      const contactsResponse = await fetch('/api/contacts?full=true', {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      if (contactsResponse.ok) {
+        const contactsData = await contactsResponse.json()
+        setContacts(contactsData.contacts ?? [])
       }
 
       setLoading(false)
@@ -245,6 +270,81 @@ export default function ProfilePage() {
                         </article>
                       )
                     })}
+                  </div>
+                )}
+              </section>
+
+              <section className="rounded-2xl border border-[#d8d1c7] bg-white p-5 shadow-sm">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h2 className="text-xl font-bold">My Contacts</h2>
+                    <p className="mt-1 text-sm text-secondary">
+                      Preservers you saved from the community directory.
+                    </p>
+                  </div>
+                  <a
+                    href="/community"
+                    className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-[#d8d1c7] bg-white px-4 py-2 text-sm font-semibold text-primary shadow-sm hover:bg-[#f3f0ed] sm:w-auto"
+                  >
+                    Browse community
+                  </a>
+                </div>
+
+                {contacts.length === 0 ? (
+                  <div className="mt-4 rounded-xl border border-[#d8d1c7] bg-[#fcfaf7] p-4 text-sm text-secondary">
+                    No saved contacts yet — browse the community directory and tap ★ to save someone.
+                  </div>
+                ) : (
+                  <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {contacts.map((contact) => (
+                      <div key={contact.id} className="rounded-xl border border-[#d8d1c7] bg-[#fcfaf7] p-4">
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-full border border-[#d8d1c7] bg-[#f3f0ed] text-sm font-bold text-secondary">
+                            {contact.avatar_url ? (
+                              <img src={contact.avatar_url} alt="" className="h-full w-full object-cover" />
+                            ) : (
+                              contact.full_name?.charAt(0)?.toUpperCase() || '?'
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="truncate font-semibold text-primary">{contact.full_name || 'Community member'}</p>
+                            <p className="truncate text-xs text-secondary">
+                              {[contact.city, contact.county, contact.state].filter(Boolean).join(', ') || 'Location not shared'}
+                            </p>
+                          </div>
+                        </div>
+
+                        {contact.mfp_affiliation && (
+                          <p className="mt-2 inline-flex rounded-full bg-[#e7f0e7] px-2 py-0.5 text-xs font-semibold text-[#36543b]">
+                            {contact.mfp_affiliation}
+                          </p>
+                        )}
+
+                        {(contact.specialties ?? []).length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-1">
+                            {contact.specialties!.slice(0, 3).map((s) => (
+                              <span key={s} className="rounded-full border border-[#d8d1c7] bg-white px-2 py-0.5 text-xs text-secondary">{s}</span>
+                            ))}
+                            {contact.specialties!.length > 3 && (
+                              <span className="rounded-full border border-[#d8d1c7] bg-white px-2 py-0.5 text-xs text-secondary">+{contact.specialties!.length - 3}</span>
+                            )}
+                          </div>
+                        )}
+
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {contact.show_phone && contact.phone && (
+                            <a href={`tel:${contact.phone}`} className="inline-flex min-h-9 items-center rounded-lg border border-[#d8d1c7] bg-white px-2 py-1 text-xs font-semibold text-primary hover:bg-[#f3f0ed]">
+                              📞 Call
+                            </a>
+                          )}
+                          {contact.show_email && contact.email && (
+                            <a href={`mailto:${contact.email}`} className="inline-flex min-h-9 items-center rounded-lg border border-[#d8d1c7] bg-white px-2 py-1 text-xs font-semibold text-primary hover:bg-[#f3f0ed]">
+                              ✉️ Email
+                            </a>
+                          )}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 )}
               </section>
