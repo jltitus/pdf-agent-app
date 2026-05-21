@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { createClient } from "../../lib/supabase/client";
 type DocumentRow = {
   id: string;
@@ -114,6 +114,15 @@ type UserAnalytics = {
     created_at: string;
   }[];
 };
+type DocEngagementStat = {
+  id: string;
+  title: string;
+  filename: string;
+  category: string | null;
+  viewCount: number;
+  questionCount: number;
+  recentQuestions: string[];
+};
 type ReplaceFormState = {
   documentId: string | null;
   title: string;
@@ -204,6 +213,8 @@ export default function AdminPage() {
     categoryCounts: {},
     recentActivity: [],
   });
+  const [docEngagementStats, setDocEngagementStats] = useState<DocEngagementStat[]>([]);
+  const [engagementExpandedId, setEngagementExpandedId] = useState<string | null>(null);
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
   const [version, setVersion] = useState("");
@@ -316,6 +327,7 @@ export default function AdminPage() {
     await loadFeedback();
     await loadNoAnswerItems();
     await loadUserAnalytics();
+    await loadDocumentEngagement();
     await loadTrustedAnswers();
     await loadIssueReports();
     await loadAuditLogs();
@@ -522,6 +534,15 @@ export default function AdminPage() {
       categoryCounts: result.categoryCounts ?? {},
       recentActivity: result.recentActivity ?? [],
     });
+  }
+  async function loadDocumentEngagement() {
+    const token = await getToken();
+    if (!token) return;
+    const response = await fetch("/api/document-analytics", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const result = await response.json().catch(() => ({}));
+    if (response.ok) setDocEngagementStats(result.stats ?? []);
   }
   function formatDate(value?: string | null) {
     if (!value) return "—";
@@ -2214,6 +2235,73 @@ export default function AdminPage() {
                     )}
                   </div>
                 </section>
+              </section>
+              <section className={`${cardClass} space-y-4`}>
+                <div>
+                  <h2 className="text-2xl font-bold text-primary">
+                    Document Engagement
+                  </h2>
+                  <p className="text-sm text-secondary">
+                    How often each publication is viewed and questioned.
+                  </p>
+                </div>
+                {docEngagementStats.length === 0 ? (
+                  <p className="text-sm text-secondary">No engagement data yet.</p>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-[#d8d1c7] text-left text-xs font-semibold text-secondary">
+                          <th className="pb-2 pr-4">Publication</th>
+                          <th className="pb-2 pr-4 text-right">Views</th>
+                          <th className="pb-2 pr-4 text-right">Questions</th>
+                          <th className="pb-2">Recent questions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {docEngagementStats.map((stat) => (
+                          <React.Fragment key={stat.id}>
+                            <tr
+                              className="border-b border-[#f0ede9] cursor-pointer hover:bg-[#faf8f6]"
+                              onClick={() =>
+                                setEngagementExpandedId(
+                                  engagementExpandedId === stat.id ? null : stat.id,
+                                )
+                              }
+                            >
+                              <td className="py-2 pr-4 font-medium text-primary max-w-[200px] truncate">
+                                {stat.title || stat.filename}
+                              </td>
+                              <td className="py-2 pr-4 text-right font-semibold text-primary">
+                                {stat.viewCount}
+                              </td>
+                              <td className="py-2 pr-4 text-right font-semibold text-primary">
+                                {stat.questionCount}
+                              </td>
+                              <td className="py-2 text-secondary">
+                                {stat.recentQuestions[0]
+                                  ? <span className="truncate block max-w-[260px]">{stat.recentQuestions[0]}</span>
+                                  : <span className="italic">—</span>}
+                              </td>
+                            </tr>
+                            {engagementExpandedId === stat.id && stat.recentQuestions.length > 1 && (
+                              <tr className="border-b border-[#f0ede9] bg-[#faf8f6]">
+                                <td colSpan={4} className="pb-3 pt-1 pl-4">
+                                  <p className="mb-1 text-xs font-semibold text-secondary">Recent questions</p>
+                                  <ul className="space-y-1">
+                                    {stat.recentQuestions.map((q, i) => (
+                                      <li key={i} className="text-sm text-primary">• {q}</li>
+                                    ))}
+                                  </ul>
+                                </td>
+                              </tr>
+                            )}
+                          </React.Fragment>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
               </section>
             </>
           )}
