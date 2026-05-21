@@ -58,6 +58,7 @@ type FeedbackItem = {
 };
 type NoAnswerItem = {
   id: string;
+  user_id?: string | null;
   question: string;
   answer: string;
   category?: string | null;
@@ -224,6 +225,9 @@ export default function AdminPage() {
     heatmap: [],
     recentActivity: [],
   });
+  const [resolvingId, setResolvingId] = useState<string | null>(null);
+  const [resolveAnswers, setResolveAnswers] = useState<Record<string, string>>({});
+  const [resolveLoading, setResolveLoading] = useState<string | null>(null);
   const [similarQuestions, setSimilarQuestions] = useState<SimilarQuestion[]>([]);
   const [similarQuestionsLoading, setSimilarQuestionsLoading] = useState(false);
   const [similarQuestionsLoaded, setSimilarQuestionsLoaded] = useState(false);
@@ -444,7 +448,7 @@ export default function AdminPage() {
     const { data } = await supabase
       .from("chat_history")
       .select(
-        "id, question, answer, category, answer_mode, evidence_strength, created_at",
+        "id, user_id, question, answer, category, answer_mode, evidence_strength, created_at",
       )
       .order("created_at", { ascending: false })
       .limit(100);
@@ -1276,6 +1280,42 @@ export default function AdminPage() {
     } catch (error: any) {
       setMessage(error.message ?? "Failed to save trusted answer.");
     }
+  }
+  async function resolveNoAnswer(item: NoAnswerItem, action: 'trust' | 'email' | 'both') {
+    const answer = resolveAnswers[item.id]?.trim();
+    if (!answer) { setMessage("Please write an answer first."); return; }
+    setResolveLoading(item.id);
+    const token = await getToken();
+    if (!token) { setResolveLoading(null); return; }
+    try {
+      if (action === 'trust' || action === 'both') {
+        const res = await fetch("/api/trusted-answers", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ question: item.question, answer, category: item.category, answerMode: item.answer_mode, sources: [] }),
+        });
+        if (!res.ok) { setMessage("Failed to save trusted answer."); setResolveLoading(null); return; }
+        await loadTrustedAnswers();
+      }
+      if ((action === 'email' || action === 'both') && item.user_id) {
+        const res = await fetch("/api/admin/send-answer-to-user", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ userId: item.user_id, question: item.question, answer }),
+        });
+        if (!res.ok) { setMessage("Failed to send email to user."); setResolveLoading(null); return; }
+      }
+      setMessage(
+        action === 'trust' ? "Saved as trusted answer." :
+        action === 'email' ? "Answer sent to user." :
+        "Saved as trusted answer and sent to user."
+      );
+      setResolvingId(null);
+      setResolveAnswers((prev) => { const next = { ...prev }; delete next[item.id]; return next; });
+    } catch {
+      setMessage("An error occurred. Please try again.");
+    }
+    setResolveLoading(null);
   }
   function startEditTrustedAnswer(item: TrustedAnswer) {
     setEditingTrustedId(item.id);
@@ -4083,36 +4123,80 @@ export default function AdminPage() {
                   </div>
                   <div>
                     <h3 className="font-semibold text-primary">
-                      Latest not found
+                      Unanswered questions
                     </h3>
+                    <p className="mt-1 text-sm text-secondary">
+                      Questions where the AI returned no answer. Write a response, save it as a trusted answer, and optionally email the user who asked.
+                    </p>
                     {noAnswerItems.length === 0 ? (
                       <p className="mt-2 text-sm text-secondary">
-                        No not-found questions yet.
+                        No unanswered questions yet.
                       </p>
                     ) : (
-                      <div className="mt-3 space-y-2">
-                        {noAnswerItems.slice(0, 8).map((item) => (
+                      <div className="mt-3 space-y-3">
+                        {noAnswerItems.slice(0, 20).map((item) => (
                           <div
                             key={item.id}
-                            className="rounded-xl border border-[#d8d1c7] p-3"
+                            className="rounded-xl border border-[#d8d1c7] p-3 space-y-2"
                           >
-                            <p className="text-sm font-semibold text-primary">
-                              {item.question}
+                            <div className="flex items-start justify-between gap-2">
+                              <p className="text-sm font-semibold text-primary">{item.question}</p>
+                              <button
+                                type="button"
+                                onClick={() => setResolvingId(resolvingId === item.id ? null : item.id)}
+                                className="shrink-0 rounded-lg border border-[#d8d1c7] bg-white px-3 py-1 text-xs font-semibold text-primary hover:bg-[#f3f0ed]"
+                              >
+                                {resolvingId === item.id ? 'Cancel' : 'Resolve'}
+                              </button>
+                            </div>
+                            <p className="text-xs text-muted">
+                              {item.answer_mode || "general"}
+                              {item.category ? ` • ${item.category}` : ""}
+                              {" • "}{new Date(item.created_at).toLocaleString()}
+                              {!item.user_id && " • anonymous"}
                             </p>
-                            <p className="mt-1 text-xs text-muted">
-                              Mode: {item.answer_mode || "general"}
-                              {item.category
-                                ? ` • Category: ${item.category}`
-                                : ""}{" "}
-                              • {new Date(item.created_at).toLocaleString()}
-                            </p>
-                            <button
-                              type="button"
-                              onClick={() => saveTrustedAnswer(item)}
-                              className={`mt-2 ${smallSecondaryButton}`}
-                            >
-                              Save as trusted
-                            </button>
+                            {resolvingId === item.id && (
+                              <div className="space-y-2 border-t border-[#f0ede9] pt-2">
+                                <label className="text-xs font-semibold text-secondary">Your answer</label>
+                                <textarea
+                                  rows={4}
+                                  value={resolveAnswers[item.id] ?? ""}
+                                  onChange={(e) => setResolveAnswers((prev) => ({ ...prev, [item.id]: e.target.value }))}
+                                  placeholder="Write the answer to this question..."
+                                  className="w-full rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm text-primary"
+                                />
+                                <div className="flex flex-wrap gap-2">
+                                  <button
+                                    type="button"
+                                    disabled={resolveLoading === item.id}
+                                    onClick={() => resolveNoAnswer(item, 'trust')}
+                                    className={smallSecondaryButton}
+                                  >
+                                    Save as trusted answer
+                                  </button>
+                                  {item.user_id && (
+                                    <button
+                                      type="button"
+                                      disabled={resolveLoading === item.id}
+                                      onClick={() => resolveNoAnswer(item, 'email')}
+                                      className={smallSecondaryButton}
+                                    >
+                                      Email user
+                                    </button>
+                                  )}
+                                  {item.user_id && (
+                                    <button
+                                      type="button"
+                                      disabled={resolveLoading === item.id}
+                                      onClick={() => resolveNoAnswer(item, 'both')}
+                                      className="rounded-xl border border-[#d73f09] bg-[#d73f09] px-3 py-1 text-xs font-semibold text-white hover:opacity-90 disabled:opacity-50"
+                                    >
+                                      {resolveLoading === item.id ? 'Saving…' : 'Save & send to user'}
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            )}
                           </div>
                         ))}
                       </div>
