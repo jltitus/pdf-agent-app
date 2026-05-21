@@ -1154,51 +1154,55 @@ setMessage('');
 
 
 <div className="mt-4 border-t border-gray-200 pt-4">
-  <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap">
-    <button
-      type="button"
-      onClick={() => submitFeedback(index, 'helpful')}
-      disabled={turn.feedbackSubmitted === 'helpful'}
-      className={`min-h-11 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
-        turn.feedbackSubmitted === 'helpful'
-          ? 'border-green-300 bg-green-100 text-green-800'
-          : 'border-[#d8d1c7] bg-white text-primary hover:bg-gray-50'
-      }`}
-    >
-      {turn.feedbackSubmitted === 'helpful' ? '✅ Saved' : '👍 Helpful'}
-    </button>
+  <div className="flex flex-wrap items-center gap-2">
+    {/* Thumbs up/down */}
+    {!turn.feedbackSubmitted ? (
+      <>
+        <button
+          type="button"
+          onClick={() => submitFeedback(index, 'helpful')}
+          title="Helpful"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#d8d1c7] bg-white text-lg hover:border-green-300 hover:bg-green-50"
+        >
+          👍
+        </button>
+        <button
+          type="button"
+          onClick={() => submitFeedback(index, 'not_helpful')}
+          title="Not helpful"
+          className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-[#d8d1c7] bg-white text-lg hover:border-yellow-300 hover:bg-yellow-50"
+        >
+          👎
+        </button>
+      </>
+    ) : (
+      <span className={`inline-flex items-center gap-1 rounded-xl border px-3 py-1.5 text-xs font-semibold ${
+        turn.feedbackSubmitted === 'helpful' ? 'border-green-300 bg-green-50 text-green-800' :
+        turn.feedbackSubmitted === 'source_issue' ? 'border-blue-300 bg-blue-50 text-blue-800' :
+        'border-yellow-300 bg-yellow-50 text-yellow-800'
+      }`}>
+        ✅ {turn.feedbackSubmitted === 'helpful' ? 'Marked helpful' : turn.feedbackSubmitted === 'not_helpful' ? 'Marked not helpful' : 'Source noted'}
+      </span>
+    )}
 
-    <button
-      type="button"
-      onClick={() => submitFeedback(index, 'not_helpful')}
-      disabled={turn.feedbackSubmitted === 'not_helpful'}
-      className={`min-h-11 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
-        turn.feedbackSubmitted === 'not_helpful'
-          ? 'border-yellow-300 bg-yellow-100 text-yellow-900'
-          : 'border-[#d8d1c7] bg-white text-primary hover:bg-gray-50'
-      }`}
-    >
-      {turn.feedbackSubmitted === 'not_helpful' ? '✅ Saved' : '👎 Not helpful'}
-    </button>
+    <div className="h-5 w-px bg-[#d8d1c7]" />
 
     <button
       type="button"
       onClick={() => toggleSourceSuggestion(index)}
-      disabled={turn.feedbackSubmitted === 'source_issue'}
-      className={`min-h-11 rounded-xl border px-3 py-2 text-sm font-semibold transition ${
-        turn.feedbackSubmitted === 'source_issue'
-          ? 'border-blue-300 bg-blue-100 text-blue-800'
-          : turn.sourceSuggestionOpen
-            ? 'border-[#d8d1c7] bg-[#f3f0ed] text-primary'
-            : 'border-[#d8d1c7] bg-white text-primary hover:bg-gray-50'
-      }`}
+      disabled={!!turn.feedbackSubmitted}
+      className={`min-h-9 rounded-xl border px-3 py-1.5 text-sm font-semibold transition ${
+        turn.sourceSuggestionOpen
+          ? 'border-[#d8d1c7] bg-[#f3f0ed] text-primary'
+          : 'border-[#d8d1c7] bg-white text-primary hover:bg-gray-50'
+      } disabled:opacity-40`}
     >
-      {turn.feedbackSubmitted === 'source_issue' ? '✅ Saved' : '🔎 Source'}
+      🔎 Source
     </button>
 
     <Link
       href={`/report-issue?question=${encodeURIComponent(turn.question)}`}
-      className="inline-flex min-h-11 items-center justify-center rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-gray-50"
+      className="inline-flex min-h-9 items-center justify-center rounded-xl border border-[#d8d1c7] bg-white px-3 py-1.5 text-sm font-semibold text-primary hover:bg-gray-50"
     >
       🚩 Report
     </Link>
@@ -1289,12 +1293,9 @@ setMessage('');
   )}
 </div>
 
-                     {(turn.feedbackSubmitted || turn.trustedSaved || turn.savedChat) && (
+                     {(turn.trustedSaved || turn.savedChat) && (
   <div className="mt-3 rounded-xl border border-green-200 bg-[#e7f0e7] px-3 py-2 text-xs font-semibold text-green-800">
-    {turn.feedbackSubmitted && (
-      <p>✅ Feedback saved: {turn.feedbackSubmitted.replaceAll('_', ' ')}</p>
-    )}
-{turn.savedChat && <p>✅ Answer saved to your profile.</p>}
+    {turn.savedChat && <p>✅ Answer saved to your profile.</p>}
     {turn.trustedSaved && <p>✅ Trusted answer saved.</p>}
   </div>
 )}
