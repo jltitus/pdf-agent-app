@@ -210,6 +210,8 @@ export default function AdminPage() {
   const [publicationDate, setPublicationDate] = useState("");
   const [documentNotes, setDocumentNotes] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'processing'>('idle');
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
@@ -291,6 +293,19 @@ export default function AdminPage() {
     }
     init();
   }, [supabase]);
+  useEffect(() => {
+    const inProgress = documents.some(
+      (d) =>
+        d.processing_status === "pending" ||
+        d.processing_status === "validating" ||
+        d.processing_status === "processing",
+    );
+    if (!inProgress) return;
+    const interval = setInterval(() => {
+      loadDocuments();
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [documents]);
   async function getToken() {
     const { data } = await supabase.auth.getSession();
     return data.session?.access_token;
@@ -517,7 +532,6 @@ export default function AdminPage() {
   }
   async function handleUpload(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    setMessage("Uploading...");
     setApprovedUserInfo(null);
     if (!file) {
       setMessage("Please choose a PDF file.");
@@ -527,11 +541,14 @@ export default function AdminPage() {
       setMessage("Only PDF files are allowed.");
       return;
     }
+    setUploadStatus('uploading');
+    setMessage("");
     const {
       data: { user },
     } = await supabase.auth.getUser();
     if (!user) {
       setMessage("You must be signed in.");
+      setUploadStatus('idle');
       return;
     }
     const safeFileName = file.name.replaceAll(" ", "-");
@@ -541,21 +558,27 @@ export default function AdminPage() {
       .upload(storagePath, file);
     if (uploadError) {
       setMessage(`Upload failed: ${uploadError.message}`);
+      setUploadStatus('idle');
       return;
     }
-    const { error: insertError } = await supabase.from("documents").insert({
-      title,
-      filename: file.name,
-      category,
-      version,
-      publication_date: publicationDate || null,
-      document_notes: documentNotes || null,
-      is_active: true,
-      storage_path: storagePath,
-      uploaded_by: user.id,
-    });
-    if (insertError) {
-      setMessage(`Document record failed: ${insertError.message}`);
+    const { data: insertedDoc, error: insertError } = await supabase
+      .from("documents")
+      .insert({
+        title,
+        filename: file.name,
+        category,
+        version,
+        publication_date: publicationDate || null,
+        document_notes: documentNotes || null,
+        is_active: true,
+        storage_path: storagePath,
+        uploaded_by: user.id,
+      })
+      .select("id")
+      .single();
+    if (insertError || !insertedDoc) {
+      setMessage(`Document record failed: ${insertError?.message ?? "Unknown error"}`);
+      setUploadStatus('idle');
       return;
     }
     setTitle("");
@@ -564,12 +587,14 @@ export default function AdminPage() {
     setPublicationDate("");
     setDocumentNotes("");
     setFile(null);
-    setMessage("PDF uploaded successfully. Use Process to make it searchable.");
+    setUploadStatus('processing');
     await loadDocuments();
+    await processDocument(insertedDoc.id);
+    setUploadStatus('idle');
   }
   async function processDocument(documentId: string) {
     setProcessingId(documentId);
-    setMessage("Processing document for AI search...");
+    setMessage("Processing started — scroll down to the Uploaded documents section to see live status.");
     setApprovedUserInfo(null);
     try {
       const token = await getToken();
@@ -1826,7 +1851,7 @@ export default function AdminPage() {
             </div>
           </section>
           {message && (
-            <div className="rounded-xl border border-[#d8d1c7] bg-white p-3 text-sm text-primary shadow-sm">
+            <div className={`rounded-xl border p-3 text-sm shadow-sm ${message.toLowerCase().includes("processing") ? "border-orange-200 bg-orange-50 text-orange-900" : "border-[#d8d1c7] bg-white text-primary"}`}>
               {message}
             </div>
           )}
@@ -2149,9 +2174,22 @@ export default function AdminPage() {
                           >
                             <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                               <div>
-                                <p className="text-sm font-semibold text-primary">
-                                  {doc.title || doc.filename}
-                                </p>
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <p className="text-sm font-semibold text-primary">
+                                    {doc.title || doc.filename}
+                                  </p>
+                                  {(processingId === doc.id ||
+                                    doc.processing_status === "pending" ||
+                                    doc.processing_status === "validating" ||
+                                    doc.processing_status === "processing") &&
+                                    !isProcessed && (
+                                      <span className="animate-pulse rounded-full bg-orange-100 px-2 py-1 text-xs font-semibold text-orange-700">
+                                        {processingId === doc.id
+                                          ? "Processing…"
+                                          : `${doc.processing_status}…`}
+                                      </span>
+                                    )}
+                                </div>
                                 {renderDocumentMeta(doc)}
                               </div>
                               {!isProcessed && (
@@ -2805,20 +2843,57 @@ export default function AdminPage() {
                       className="min-h-[84px] w-full rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm text-primary"
                     />
                   </div>
-                  <div>
+                  <div className="md:col-span-2">
                     <label className={labelClass}>PDF file</label>
-                    <input
-                      type="file"
-                      accept="application/pdf"
-                      onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                      className="w-full rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm text-primary"
-                      required
-                    />
+                    <div
+                      onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
+                      onDragLeave={() => setIsDragging(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setIsDragging(false);
+                        const dropped = e.dataTransfer.files?.[0];
+                        if (dropped?.type === 'application/pdf') setFile(dropped);
+                      }}
+                      onClick={() => document.getElementById('pdf-file-input')?.click()}
+                      className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-8 text-center transition-colors ${isDragging ? 'border-[#d73f09] bg-[#fff5f2]' : 'border-[#d8d1c7] bg-[#fcfaf7] hover:bg-[#f3f0ed]'}`}
+                    >
+                      <svg className="h-8 w-8 text-[#d73f09]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+                      {file ? (
+                        <p className="text-sm font-semibold text-primary">{file.name}</p>
+                      ) : (
+                        <>
+                          <p className="text-sm font-semibold text-primary">Drop PDF here or click to browse</p>
+                          <p className="text-xs text-secondary">PDF files only</p>
+                        </>
+                      )}
+                      <input
+                        id="pdf-file-input"
+                        type="file"
+                        accept="application/pdf"
+                        className="hidden"
+                        onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                      />
+                    </div>
                   </div>
-                  <div className="flex items-end">
-                    <button type="submit" className={primaryButton}>
-                      Upload PDF
+                  <div className="flex flex-col gap-2 md:col-span-2">
+                    <button
+                      type="submit"
+                      disabled={uploadStatus !== 'idle'}
+                      className={primaryButton}
+                    >
+                      {uploadStatus === 'uploading'
+                        ? 'Uploading…'
+                        : uploadStatus === 'processing'
+                          ? 'Processing…'
+                          : 'Upload & Process'}
                     </button>
+                    {uploadStatus !== 'idle' && (
+                      <p className="animate-pulse text-sm font-medium text-orange-700">
+                        {uploadStatus === 'uploading'
+                          ? 'Uploading PDF to storage…'
+                          : 'Processing complete — building search index. Scroll down to see live status in Uploaded documents.'}
+                      </p>
+                    )}
                   </div>
                 </form>
               </section>
@@ -2899,6 +2974,17 @@ export default function AdminPage() {
                                   {doc.is_active ? "Active" : "Archived"}
                                 </span>
                                 {renderStatusPill(doc)}
+                                {(processingId === doc.id ||
+                                  doc.processing_status === "pending" ||
+                                  doc.processing_status === "validating" ||
+                                  doc.processing_status === "processing") &&
+                                  !isProcessed && (
+                                    <span className="animate-pulse rounded-full bg-orange-100 px-2 py-1 text-xs font-semibold text-orange-700">
+                                      {processingId === doc.id
+                                        ? "Processing…"
+                                        : `${doc.processing_status}…`}
+                                    </span>
+                                  )}
                                 {doc.replaced_by_document_id && (
                                   <span className="rounded-full bg-yellow-100 px-2 py-1 text-xs font-semibold text-yellow-800">
                                     Replaced
