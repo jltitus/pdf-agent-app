@@ -172,7 +172,7 @@ export default function ProfilePage() {
 
       <a
         href="/profile/edit"
-        className="min-h-11 rounded-xl bg-[#d73f09] px-4 py-2 text-center text-sm font-semibold !text-white shadow-sm hover:bg-[#b23408]"
+        className="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#d73f09] px-4 py-2 text-sm font-semibold !text-white shadow-sm hover:bg-[#b23408]"
       >
         Edit profile
       </a>

@@ -16,6 +16,10 @@ type PublicProfile = {
   profile_url: string | null
   avatar_url: string | null
   bio: string | null
+  phone: string | null
+  show_phone: boolean | null
+  show_email: boolean | null
+  email: string | null
 }
 
 export default function CommunityPage() {
@@ -37,7 +41,7 @@ export default function CommunityPage() {
       const { data } = await supabase
         .from('profiles')
         .select(
-          'id, full_name, city, county, state, mfp_affiliation, specialties, website_url, social_url, profile_url, avatar_url, bio'
+          'id, full_name, city, county, state, mfp_affiliation, specialties, website_url, social_url, profile_url, avatar_url, bio, phone, show_phone, show_email, email'
         )
         .eq('is_profile_public', true)
         .eq('is_active', true)
@@ -258,6 +262,24 @@ export default function CommunityPage() {
                     )}
 
                     <div className="flex flex-wrap gap-2 border-t border-[#ece5dc] pt-4">
+                      {profile.show_phone && profile.phone && (
+                        <a
+                          href={`tel:${profile.phone}`}
+                          className="rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-xs font-semibold text-primary hover:bg-[#f3f0ed]"
+                        >
+                          📞 {profile.phone}
+                        </a>
+                      )}
+
+                      {profile.show_email && profile.email && (
+                        <a
+                          href={`mailto:${profile.email}`}
+                          className="rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-xs font-semibold text-primary hover:bg-[#f3f0ed]"
+                        >
+                          ✉️ {profile.email}
+                        </a>
+                      )}
+
                       {profile.website_url && (
                         <a
                           href={profile.website_url}
