@@ -661,6 +661,15 @@ export default function AdminPage() {
           pagesProcessed: result.pages_processed,
         }),
       }).catch(() => {});
+      fetch("/api/send-push-notification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: "New publication added",
+          body: doc?.title ?? doc?.filename ?? "A new publication is now available.",
+          url: "/publications",
+        }),
+      }).catch(() => {});
     } catch (error: any) {
       setMessage(
         `Processing failed: ${error.message ?? "Network or server error."}`,

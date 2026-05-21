@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { createClient } from '../../lib/supabase/client'
+import dynamic from 'next/dynamic'
+const PushSubscribeButton = dynamic(() => import('../components/PushSubscribeButton'), { ssr: false })
 
 type Profile = {
   full_name: string | null
@@ -175,6 +177,7 @@ export default function DashboardPage() {
                   >
                     Connect with MFPs
                   </Link>
+                  <PushSubscribeButton />
                   {profile?.role === 'admin' && (
                     <Link
                       href="/admin"

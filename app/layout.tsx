@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Geist, Geist_Mono } from 'next/font/google'
 import './globals.css'
 import AppShell from './components/AppShell'
+import ServiceWorkerRegistrar from './components/ServiceWorkerRegistrar'
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -43,6 +44,7 @@ export default function RootLayout({
         <meta name="mobile-web-app-capable" content="yes" />
       </head>
       <body className="min-h-full bg-white">
+        <ServiceWorkerRegistrar />
         <AppShell>{children}</AppShell>
       </body>
     </html>
