@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
 import { generateTempPassword } from '@/lib/auth/generateTempPassword'
+import { emailTemplate } from '@/lib/email/template'
 
 function createSupabaseAdmin() {
   return createClient(
@@ -30,35 +31,23 @@ async function sendTemporaryPasswordEmail({
     to: email,
     bcc: process.env.ADMIN_NOTIFICATION_EMAIL || undefined,
     subject: 'Your MFP Publication Reference system login information',
-    html: `
-      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #111827;">
-        <h2>Your access has been approved</h2>
-
-        <p>Hello ${fullName || ''},</p>
-
-        <p>
-          Your account for the <strong>MFP Publication Reference system</strong> is ready.
-        </p>
-
-        <h3>Temporary Login Information</h3>
-
-        <p><strong>Email:</strong><br />${email}</p>
-        <p><strong>Temporary Password:</strong><br />${tempPassword}</p>
-
-        <p>
-          <a href="${siteUrl}/login"
-             style="display:inline-block;background:#111827;color:#ffffff;padding:12px 18px;border-radius:8px;text-decoration:none;">
-            Log In
-          </a>
-        </p>
-
-        <p>
-          After logging in, you will immediately be asked to create your own permanent password.
-        </p>
-
-        <p>If you have trouble logging in, contact the app administrator.</p>
-      </div>
-    `,
+    html: emailTemplate(`
+      <h2 style="margin:0 0 16px;font-size:22px;color:#1a1a1a;">Your access has been approved</h2>
+      <p>Hello ${fullName || 'there'},</p>
+      <p>Your account is ready. Use the temporary login information below to sign in for the first time.</p>
+      <table style="margin:20px 0;background:#f7f4ef;border-radius:10px;padding:16px 20px;width:100%;">
+        <tr><td style="font-size:13px;color:#666;padding-bottom:4px;">Email</td></tr>
+        <tr><td style="font-weight:600;color:#1a1a1a;padding-bottom:12px;">${email}</td></tr>
+        <tr><td style="font-size:13px;color:#666;padding-bottom:4px;">Temporary Password</td></tr>
+        <tr><td style="font-weight:600;color:#1a1a1a;font-size:18px;letter-spacing:0.05em;">${tempPassword}</td></tr>
+      </table>
+      <p>
+        <a href="${siteUrl}/login" style="display:inline-block;background:#d73f09;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;">
+          Log In Now
+        </a>
+      </p>
+      <p style="color:#666;font-size:14px;">After logging in you will be asked to create your own permanent password. If you have trouble, contact the app administrator.</p>
+    `),
   })
 }
 

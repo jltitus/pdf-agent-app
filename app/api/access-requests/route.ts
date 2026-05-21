@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { Resend } from 'resend'
+import { emailTemplate } from '@/lib/email/template'
 
 function createSupabaseAdmin() {
   return createClient(
@@ -183,17 +184,15 @@ export async function POST(request: Request) {
         from: 'MFP Reference system <mfp@titus225.com>',
         to: process.env.ADMIN_NOTIFICATION_EMAIL,
         subject: 'New Access Request',
-        html: `
-          <h2>New Access Request</h2>
-          <p><strong>Name:</strong> ${fullName}</p>
-          <p><strong>Email:</strong> ${normalizedEmail}</p>
-          <p><strong>Reason:</strong> ${reason || 'Not provided'}</p>
-          ${
-            siteUrl
-              ? `<p><a href="${siteUrl}/admin">Review in Admin</a></p>`
-              : ''
-          }
-        `,
+        html: emailTemplate(`
+          <h2 style="margin:0 0 16px;font-size:22px;color:#1a1a1a;">New Access Request</h2>
+          <table style="width:100%;border-collapse:collapse;">
+            <tr><td style="padding:8px 0;border-bottom:1px solid #e5e1db;font-size:13px;color:#666;width:80px;">Name</td><td style="padding:8px 0;border-bottom:1px solid #e5e1db;font-weight:600;">${fullName}</td></tr>
+            <tr><td style="padding:8px 0;border-bottom:1px solid #e5e1db;font-size:13px;color:#666;">Email</td><td style="padding:8px 0;border-bottom:1px solid #e5e1db;">${normalizedEmail}</td></tr>
+            <tr><td style="padding:8px 0;font-size:13px;color:#666;">Reason</td><td style="padding:8px 0;">${reason || 'Not provided'}</td></tr>
+          </table>
+          ${siteUrl ? `<p style="margin-top:20px;"><a href="${siteUrl}/admin" style="display:inline-block;background:#d73f09;color:#ffffff;padding:10px 20px;border-radius:8px;text-decoration:none;font-weight:600;">Review in Admin</a></p>` : ''}
+        `),
       })
 
       if (emailError) {
