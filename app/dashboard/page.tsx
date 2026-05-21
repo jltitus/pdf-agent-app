@@ -136,7 +136,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="p-5 sm:p-8 lg:p-10">
-            <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+            <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
               <div className="max-w-2xl">
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#d73f09]">
                   Professional preservation reference system
@@ -212,7 +212,7 @@ export default function DashboardPage() {
         </section>
 
         {/* Recent questions + Recently added publications */}
-        <div className="grid gap-5 lg:grid-cols-2">
+        <div className="grid gap-5 md:grid-cols-2">
           <section className="rounded-3xl border border-[#d8d1c7] bg-white p-5 shadow-sm sm:p-6">
             <div className="flex items-center justify-between gap-3">
               <h2 className="text-xl font-bold text-primary">Recent questions</h2>
@@ -309,7 +309,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Sample questions + Professional network */}
-        <div className="grid gap-5 lg:grid-cols-2">
+        <div className="grid gap-5 md:grid-cols-2">
           <section className="rounded-3xl border border-[#d8d1c7] bg-white p-5 shadow-sm sm:p-6">
             <h2 className="text-xl font-bold text-primary">Common questions</h2>
             <p className="mt-1 text-sm text-secondary">Tap any question to ask it in chat.</p>

@@ -1031,38 +1031,38 @@ setMessage('');
                   </p>
 
                   {sourceIndex === 0 && (
-                    <span className="w-fit rounded-full border border-green-300 bg-[#e7f0e7] px-2 py-1 text-[11px] font-bold text-green-800">
+                    <span className="w-fit rounded-full border border-green-300 bg-[#e7f0e7] px-2 py-1 text-xs font-bold text-green-800">
                       Primary source
                     </span>
                   )}
 
                   {source.relevanceScore &&
                     source.relevanceScore >= 45 && (
-                      <span className="w-fit rounded-full border border-[#d8d1c7] bg-[#f7f0dd] px-2 py-1 text-[11px] font-bold text-blue-800">
+                      <span className="w-fit rounded-full border border-[#d8d1c7] bg-[#f7f0dd] px-2 py-1 text-xs font-bold text-blue-800">
                         High relevance
                       </span>
                     )}
                 </div>
 
-                <p className="mt-1 break-words text-[11px] text-muted">
+                <p className="mt-1 break-words text-xs text-muted">
                   {source.filename}
                 </p>
 
                 <div className="mt-2 flex flex-wrap gap-2">
                   {source.category && (
-                    <span className="rounded-full bg-gray-100 px-2 py-1 text-[11px] font-semibold text-secondary">
+                    <span className="rounded-full bg-gray-100 px-2 py-1 text-xs font-semibold text-secondary">
                       {source.category}
                     </span>
                   )}
 
                   {source.version && (
-                    <span className="rounded-full bg-gray-100 px-2 py-1 text-[11px] font-semibold text-secondary">
+                    <span className="rounded-full bg-gray-100 px-2 py-1 text-xs font-semibold text-secondary">
                       Version {source.version}
                     </span>
                   )}
 
                   {source.pages && source.pages.length > 0 && (
-                    <span className="rounded-full bg-gray-100 px-2 py-1 text-[11px] font-semibold text-secondary">
+                    <span className="rounded-full bg-gray-100 px-2 py-1 text-xs font-semibold text-secondary">
                       Pages: {source.pages.join(", ")}
                     </span>
                   )}
@@ -1073,7 +1073,7 @@ setMessage('');
             {source.relevanceReasons &&
               source.relevanceReasons.length > 0 && (
                 <div className="mt-3 rounded-xl border border-[#d8d1c7] bg-[#f7f0dd] p-3">
-                  <p className="text-[11px] font-bold uppercase tracking-wide text-[#8a2a06]">
+                  <p className="text-xs font-bold uppercase tracking-wide text-[#8a2a06]">
                     Why this source matched
                   </p>
 

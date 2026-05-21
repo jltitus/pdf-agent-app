@@ -48,7 +48,7 @@ export default async function PublicationsPage() {
               </p>
             </div>
 
-            <div className="grid gap-6 p-5 sm:p-8 lg:grid-cols-[1.15fr_0.85fr] lg:p-10">
+            <div className="grid gap-6 p-5 sm:p-8 md:grid-cols-[1.15fr_0.85fr] lg:p-10">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#d73f09]">
                   Preservation reference library

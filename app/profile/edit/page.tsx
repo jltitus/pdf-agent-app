@@ -207,7 +207,7 @@ export default function EditProfilePage() {
             </p>
           </div>
 
-          <div className="grid gap-6 p-5 sm:p-6 lg:grid-cols-[1.15fr_0.85fr]">
+          <div className="grid gap-6 p-5 sm:p-6 md:grid-cols-[1.15fr_0.85fr]">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#d73f09]">
                 MFP professional profile

@@ -90,7 +90,7 @@ export default function CommunityPage() {
               </p>
             </div>
 
-            <div className="grid gap-6 p-5 sm:p-8 lg:grid-cols-[1.15fr_0.85fr] lg:p-10">
+            <div className="grid gap-6 p-5 sm:p-8 md:grid-cols-[1.15fr_0.85fr] lg:p-10">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#d73f09]">
                   Professional preservation directory
@@ -144,7 +144,7 @@ export default function CommunityPage() {
           </section>
 
           <section className="rounded-3xl border border-[#d8d1c7] bg-white p-5 shadow-sm sm:p-6">
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#d73f09]">
                   Search directory
@@ -159,7 +159,7 @@ export default function CommunityPage() {
                 </p>
               </div>
 
-              <div className="w-full lg:max-w-md">
+              <div className="w-full sm:max-w-sm lg:max-w-md">
                 <input
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
