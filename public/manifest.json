@@ -1,0 +1,24 @@
+{
+  "name": "MFP Publication Reference System",
+  "short_name": "MFP Reference",
+  "description": "Master Food Preservers Publication Reference — ask questions, find answers.",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#f7f4ef",
+  "theme_color": "#d73f09",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/jar-logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
