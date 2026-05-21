@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import webpush from 'web-push'
+import * as webpush from 'web-push'
 
 // Temporary route — visit once to get VAPID keys, then delete this file.
 export async function GET() {
