@@ -647,6 +647,16 @@ export default function AdminPage() {
       );
       setProcessingId(null);
       await loadDocuments();
+      const doc = documents.find((d) => d.id === documentId);
+      fetch("/api/send-processing-notification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: doc?.title,
+          filename: doc?.filename,
+          pagesProcessed: result.pages_processed,
+        }),
+      }).catch(() => {});
     } catch (error: any) {
       setMessage(
         `Processing failed: ${error.message ?? "Network or server error."}`,
