@@ -51,6 +51,7 @@ type AccessRequest = {
 };
 type FeedbackItem = {
   id: string;
+  user_id?: string | null;
   feedback_type: string;
   question: string | null;
   answer: string | null;
@@ -225,6 +226,10 @@ export default function AdminPage() {
     heatmap: [],
     recentActivity: [],
   });
+  const [reviewingFeedbackId, setReviewingFeedbackId] = useState<string | null>(null);
+  const [reviewFeedbackAnswers, setReviewFeedbackAnswers] = useState<Record<string, string>>({});
+  const [reviewFeedbackLoading, setReviewFeedbackLoading] = useState<string | null>(null);
+  const [declinedFeedbackIds, setDeclinedFeedbackIds] = useState<Set<string>>(new Set());
   const [resolvingId, setResolvingId] = useState<string | null>(null);
   const [resolveAnswers, setResolveAnswers] = useState<Record<string, string>>({});
   const [resolveLoading, setResolveLoading] = useState<string | null>(null);
@@ -423,7 +428,7 @@ export default function AdminPage() {
   async function loadFeedback() {
     const { data: feedbackData, error } = await supabase
       .from("chat_feedback")
-      .select("id, feedback_type, question, answer, created_at")
+      .select("id, user_id, feedback_type, question, answer, created_at")
       .order("created_at", { ascending: false })
       .limit(50);
     if (error || !feedbackData) {
@@ -1280,6 +1285,42 @@ export default function AdminPage() {
     } catch (error: any) {
       setMessage(error.message ?? "Failed to save trusted answer.");
     }
+  }
+  async function resolveSourceSuggestion(item: FeedbackItem, action: 'trust' | 'email' | 'both') {
+    const answer = reviewFeedbackAnswers[item.id]?.trim();
+    if (!answer) { setMessage("Please write a verified answer first."); return; }
+    setReviewFeedbackLoading(item.id);
+    const token = await getToken();
+    if (!token) { setReviewFeedbackLoading(null); return; }
+    try {
+      if (action === 'trust' || action === 'both') {
+        const res = await fetch("/api/trusted-answers", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ question: item.question, answer, category: null, answerMode: 'general', sources: [] }),
+        });
+        if (!res.ok) { setMessage("Failed to save trusted answer."); setReviewFeedbackLoading(null); return; }
+        await loadTrustedAnswers();
+      }
+      if ((action === 'email' || action === 'both') && item.user_id) {
+        const res = await fetch("/api/admin/send-answer-to-user", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify({ userId: item.user_id, question: item.question, answer }),
+        });
+        if (!res.ok) { setMessage("Failed to send email to user."); setReviewFeedbackLoading(null); return; }
+      }
+      setMessage(
+        action === 'trust' ? "Saved as trusted answer." :
+        action === 'email' ? "Answer sent to user." :
+        "Saved as trusted answer and sent to user."
+      );
+      setDeclinedFeedbackIds((prev) => new Set([...prev, item.id]));
+      setReviewingFeedbackId(null);
+    } catch {
+      setMessage("An error occurred. Please try again.");
+    }
+    setReviewFeedbackLoading(null);
   }
   async function resolveNoAnswer(item: NoAnswerItem, action: 'trust' | 'email' | 'both') {
     const answer = resolveAnswers[item.id]?.trim();
@@ -3924,6 +3965,116 @@ export default function AdminPage() {
                   )}
                 </section>
               </section>
+              {(() => {
+                const suggestions = feedback.filter(
+                  (f) => (f.feedback_type === 'source_issue' || f.feedback_type === 'missing_source') && !declinedFeedbackIds.has(f.id)
+                );
+                if (suggestions.length === 0) return null;
+                return (
+                  <section className={`${cardClass} space-y-4`}>
+                    <div>
+                      <h2 className="text-2xl font-bold text-primary">Source Suggestions</h2>
+                      <p className="text-sm text-secondary">
+                        Users suggested these sources when they felt an answer was incomplete. Review each one, write a verified answer, then approve or decline.
+                      </p>
+                    </div>
+                    <div className="space-y-3">
+                      {suggestions.map((item) => {
+                        const marker = 'User source suggestion:';
+                        const idx = (item.answer ?? '').indexOf(marker);
+                        const suggestion = idx !== -1 ? item.answer!.slice(idx + marker.length).trim() : '';
+                        const isReviewing = reviewingFeedbackId === item.id;
+                        const isLoading = reviewFeedbackLoading === item.id;
+                        return (
+                          <div key={item.id} className="rounded-xl border border-[#d8d1c7] p-3 space-y-2">
+                            <div className="flex items-start justify-between gap-2">
+                              <p className="text-sm font-semibold text-primary">{item.question || '—'}</p>
+                              <div className="flex shrink-0 gap-1">
+                                <button
+                                  type="button"
+                                  onClick={() => setReviewingFeedbackId(isReviewing ? null : item.id)}
+                                  className="rounded-lg border border-[#d8d1c7] bg-white px-3 py-1 text-xs font-semibold text-primary hover:bg-[#f3f0ed]"
+                                >
+                                  {isReviewing ? 'Cancel' : 'Review'}
+                                </button>
+                                {!isReviewing && (
+                                  <button
+                                    type="button"
+                                    onClick={() => setDeclinedFeedbackIds((prev) => new Set([...prev, item.id]))}
+                                    className="rounded-lg border border-[#d8d1c7] bg-white px-3 py-1 text-xs font-semibold text-red-600 hover:bg-red-50"
+                                  >
+                                    Decline
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                            {suggestion && (
+                              <div className="rounded-lg bg-blue-50 border border-blue-100 px-3 py-2">
+                                <p className="text-xs font-semibold text-blue-700 mb-1">User&apos;s suggestion</p>
+                                <p className="text-sm text-blue-900">{suggestion}</p>
+                              </div>
+                            )}
+                            <p className="text-xs text-muted">{new Date(item.created_at).toLocaleString()}{!item.user_id ? ' • anonymous' : ''}</p>
+                            {isReviewing && (
+                              <div className="space-y-2 border-t border-[#f0ede9] pt-2">
+                                <label className="text-xs font-semibold text-secondary">Your verified answer</label>
+                                <textarea
+                                  rows={4}
+                                  value={reviewFeedbackAnswers[item.id] ?? ''}
+                                  onChange={(e) => setReviewFeedbackAnswers((prev) => ({ ...prev, [item.id]: e.target.value }))}
+                                  placeholder="Write the correct, verified answer based on the source suggestion..."
+                                  className="w-full rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm text-primary"
+                                />
+                                <div className="flex flex-wrap gap-2">
+                                  <button
+                                    type="button"
+                                    disabled={isLoading}
+                                    onClick={() => resolveSourceSuggestion(item, 'trust')}
+                                    className={smallSecondaryButton}
+                                  >
+                                    Save as trusted answer
+                                  </button>
+                                  {item.user_id && (
+                                    <button
+                                      type="button"
+                                      disabled={isLoading}
+                                      onClick={() => resolveSourceSuggestion(item, 'email')}
+                                      className={smallSecondaryButton}
+                                    >
+                                      Email user
+                                    </button>
+                                  )}
+                                  {item.user_id && (
+                                    <button
+                                      type="button"
+                                      disabled={isLoading}
+                                      onClick={() => resolveSourceSuggestion(item, 'both')}
+                                      className="rounded-xl border border-[#d73f09] bg-[#d73f09] px-3 py-1 text-xs font-semibold text-white hover:opacity-90 disabled:opacity-50"
+                                    >
+                                      {isLoading ? 'Saving…' : 'Save & send to user'}
+                                    </button>
+                                  )}
+                                  <button
+                                    type="button"
+                                    disabled={isLoading}
+                                    onClick={() => {
+                                      setDeclinedFeedbackIds((prev) => new Set([...prev, item.id]));
+                                      setReviewingFeedbackId(null);
+                                    }}
+                                    className="rounded-xl border border-[#d8d1c7] bg-white px-3 py-1 text-xs font-semibold text-red-600 hover:bg-red-50"
+                                  >
+                                    Decline
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </section>
+                );
+              })()}
               <section className={`${cardClass} space-y-4`}>
                 <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
                   <div>
