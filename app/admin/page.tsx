@@ -1905,6 +1905,7 @@ export default function AdminPage() {
                 { key: "enhancements", label: "Enhancements" },
                 { key: "audit", label: "Audit Logs" },
                 { key: "trusted", label: "Trusted" },
+                { key: "releases", label: "Releases" },
               ].map((tab) => (
                 <button
                   key={tab.key}
@@ -1912,6 +1913,10 @@ export default function AdminPage() {
                   onClick={() => {
                     if (tab.key === "enhancements") {
                       window.location.href = "/admin/enhancements";
+                      return;
+                    }
+                    if (tab.key === "releases") {
+                      window.location.href = "/admin/releases";
                       return;
                     }
                     setActiveTab(tab.key as any);
