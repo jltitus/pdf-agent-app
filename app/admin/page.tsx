@@ -216,6 +216,7 @@ export default function AdminPage() {
   const [docEngagementStats, setDocEngagementStats] = useState<DocEngagementStat[]>([]);
   const [engagementExpandedId, setEngagementExpandedId] = useState<string | null>(null);
   const [engagementRange, setEngagementRange] = useState<'7' | '30' | 'all'>('all');
+  const [engagementSearch, setEngagementSearch] = useState('');
   const [selectedDocIds, setSelectedDocIds] = useState<Set<string>>(new Set());
   const [bulkActioning, setBulkActioning] = useState(false);
   const [title, setTitle] = useState("");
@@ -2290,20 +2291,29 @@ export default function AdminPage() {
                       How often each publication is viewed and questioned.
                     </p>
                   </div>
-                  <div className="flex gap-1">
-                    {(['7', '30', 'all'] as const).map((r) => (
-                      <button
-                        key={r}
-                        type="button"
-                        onClick={() => {
-                          setEngagementRange(r);
-                          loadDocumentEngagement(r);
-                        }}
-                        className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${engagementRange === r ? 'bg-[#d73f09] !text-white' : 'border border-[#d8d1c7] bg-white text-primary hover:bg-[#f3f0ed]'}`}
-                      >
-                        {r === '7' ? 'Last 7 days' : r === '30' ? 'Last 30 days' : 'All time'}
-                      </button>
-                    ))}
+                  <div className="flex flex-col gap-2 sm:items-end">
+                    <div className="flex gap-1">
+                      {(['7', '30', 'all'] as const).map((r) => (
+                        <button
+                          key={r}
+                          type="button"
+                          onClick={() => {
+                            setEngagementRange(r);
+                            loadDocumentEngagement(r);
+                          }}
+                          className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${engagementRange === r ? 'bg-[#d73f09] !text-white' : 'border border-[#d8d1c7] bg-white text-primary hover:bg-[#f3f0ed]'}`}
+                        >
+                          {r === '7' ? 'Last 7 days' : r === '30' ? 'Last 30 days' : 'All time'}
+                        </button>
+                      ))}
+                    </div>
+                    <input
+                      type="text"
+                      value={engagementSearch}
+                      onChange={(e) => setEngagementSearch(e.target.value)}
+                      placeholder="Search publications..."
+                      className="w-full rounded-xl border border-[#d8d1c7] bg-white px-3 py-1.5 text-sm text-primary shadow-sm sm:w-56"
+                    />
                   </div>
                 </div>
                 {docEngagementStats.length === 0 ? (
@@ -2320,7 +2330,11 @@ export default function AdminPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {docEngagementStats.map((stat) => (
+                        {docEngagementStats.filter((s) => {
+                          const q = engagementSearch.trim().toLowerCase();
+                          if (!q) return true;
+                          return (s.title ?? '').toLowerCase().includes(q) || s.filename.toLowerCase().includes(q);
+                        }).map((stat) => (
                           <React.Fragment key={stat.id}>
                             <tr
                               className="border-b border-[#f0ede9] cursor-pointer hover:bg-[#faf8f6]"
