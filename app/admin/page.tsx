@@ -124,6 +124,14 @@ type DocEngagementStat = {
   questionCount: number;
   recentQuestions: string[];
 };
+type SimilarQuestion = {
+  chatId: string;
+  chatQuestion: string;
+  createdAt: string;
+  matchedTrustedId: string;
+  matchedQuestion: string;
+  similarity: number;
+};
 type ReplaceFormState = {
   documentId: string | null;
   title: string;
@@ -216,6 +224,9 @@ export default function AdminPage() {
     heatmap: [],
     recentActivity: [],
   });
+  const [similarQuestions, setSimilarQuestions] = useState<SimilarQuestion[]>([]);
+  const [similarQuestionsLoading, setSimilarQuestionsLoading] = useState(false);
+  const [similarQuestionsLoaded, setSimilarQuestionsLoaded] = useState(false);
   const [docEngagementStats, setDocEngagementStats] = useState<DocEngagementStat[]>([]);
   const [engagementExpandedId, setEngagementExpandedId] = useState<string | null>(null);
   const [engagementRange, setEngagementRange] = useState<'7' | '30' | 'all'>('all');
@@ -552,6 +563,18 @@ export default function AdminPage() {
     });
     const result = await response.json().catch(() => ({}));
     if (response.ok) setDocEngagementStats(result.stats ?? []);
+  }
+  async function loadSimilarQuestions() {
+    setSimilarQuestionsLoading(true);
+    const token = await getToken();
+    if (!token) { setSimilarQuestionsLoading(false); return; }
+    const response = await fetch('/api/admin/similar-questions', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const result = await response.json().catch(() => ({}));
+    if (response.ok) setSimilarQuestions(result.matches ?? []);
+    setSimilarQuestionsLoading(false);
+    setSimilarQuestionsLoaded(true);
   }
   function formatDate(value?: string | null) {
     if (!value) return "—";
@@ -4415,6 +4438,42 @@ export default function AdminPage() {
                   ))}
                 </div>
               )}
+              <div className="border-t border-[#d8d1c7] pt-4">
+                <div className="mb-3 flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold text-primary">Similar user questions</h3>
+                    <p className="text-sm text-secondary">Chat history questions that closely match an existing trusted answer.</p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={loadSimilarQuestions}
+                    disabled={similarQuestionsLoading}
+                    className="rounded-xl border border-[#d8d1c7] bg-white px-3 py-1.5 text-xs font-semibold text-primary hover:bg-[#f3f0ed] disabled:opacity-50"
+                  >
+                    {similarQuestionsLoading ? 'Scanning…' : similarQuestionsLoaded ? 'Re-scan' : 'Scan now'}
+                  </button>
+                </div>
+                {similarQuestionsLoaded && (
+                  similarQuestions.length === 0 ? (
+                    <p className="text-sm text-secondary">No close matches found — your trusted answers cover the ground well.</p>
+                  ) : (
+                    <div className="space-y-2">
+                      {similarQuestions.map((item) => (
+                        <div key={item.chatId} className="rounded-xl border border-[#d8d1c7] p-3 space-y-1">
+                          <div className="flex items-start justify-between gap-2">
+                            <p className="text-sm font-medium text-primary">{item.chatQuestion}</p>
+                            <span className="shrink-0 rounded-full bg-orange-100 px-2 py-0.5 text-xs font-semibold text-orange-700">{item.similarity}% match</span>
+                          </div>
+                          <p className="text-xs text-muted">
+                            Matches trusted: <span className="italic">{item.matchedQuestion}</span>
+                          </p>
+                          <p className="text-xs text-muted">{new Date(item.createdAt).toLocaleString()}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )
+                )}
+              </div>
             </section>
           )}
         </div>
