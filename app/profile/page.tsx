@@ -197,7 +197,7 @@ export default function ProfilePage() {
 
       <a
         href="/profile/edit"
-        className="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#d73f09] px-4 py-2 text-sm font-semibold !text-white shadow-sm hover:bg-[#b23408]"
+        className="inline-flex min-h-11 items-center justify-center rounded-xl bg-[#d73f09] px-4 py-2 text-sm font-semibold !text-white shadow-sm hover:bg-[#f3f0ed]"
       >
         Edit profile
       </a>
@@ -227,7 +227,7 @@ export default function ProfilePage() {
 
                   <a
                     href="/publications"
-                    className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-[#d8d1c7] bg-white px-4 py-2 text-sm font-semibold text-primary shadow-sm hover:bg-[#b23408] sm:w-auto"
+                    className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-[#d8d1c7] bg-white px-4 py-2 text-sm font-semibold text-primary shadow-sm hover:bg-[#f3f0ed] sm:w-auto"
                   >
                     Browse publications
                   </a>
@@ -263,7 +263,7 @@ export default function ProfilePage() {
                             href={getPdfHref(doc.filename)}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-[#d73f09] px-4 py-2 text-sm font-semibold !text-white shadow-sm hover:bg-[#b23408] sm:w-auto"
+                            className="mt-4 inline-flex min-h-11 w-full items-center justify-center rounded-xl bg-[#d73f09] px-4 py-2 text-sm font-semibold !text-white shadow-sm hover:bg-[#f3f0ed] sm:w-auto"
                           >
                             Open PDF
                           </a>
@@ -360,7 +360,7 @@ export default function ProfilePage() {
 
                   <a
                     href="/chat"
-                    className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-[#d8d1c7] bg-white px-4 py-2 text-sm font-semibold text-primary shadow-sm hover:bg-[#b23408] sm:w-auto"
+                    className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-[#d8d1c7] bg-white px-4 py-2 text-sm font-semibold text-primary shadow-sm hover:bg-[#f3f0ed] sm:w-auto"
                   >
                     Go to chat
                   </a>

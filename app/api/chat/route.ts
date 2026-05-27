@@ -57,6 +57,7 @@ function getQuestionSimilarity(a: string, b: string) {
 
   return sharedWords.length / totalUniqueWords
 }
+
 function getPreservationTopics(text: string) {
   const normalized = normalizeQuestion(text)
 
@@ -181,6 +182,7 @@ function getTopicOverlapScore(question: string, source: RankedSource) {
     ),
   }
 }
+
 function getSourceRelevanceScore({
   question,
   source,
@@ -236,12 +238,14 @@ function getSourceRelevanceScore({
     score += 12
     reasons.push('matches selected category')
   }
-const topicOverlap = getTopicOverlapScore(question, source)
 
-if (topicOverlap.score > 0) {
-  score += topicOverlap.score
-  reasons.push(...topicOverlap.reasons)
-}
+  const topicOverlap = getTopicOverlapScore(question, source)
+
+  if (topicOverlap.score > 0) {
+    score += topicOverlap.score
+    reasons.push(...topicOverlap.reasons)
+  }
+
   return {
     score,
     reasons: reasons.length > 0 ? reasons : ['retrieved from active publication search'],
@@ -314,7 +318,7 @@ Processing or Storage Notes
 Safety Notes
 - Include any safety warnings, required processing methods, or caution statements.
 
-What’s Not Clear
+What's Not Clear
 - List missing details such as yield, jar size, processing time, altitude adjustment, storage time, or ingredients if not stated.
 
 Bottom Line
@@ -322,7 +326,7 @@ Bottom Line
 
 Rules:
 - Do not invent ingredients, processing times, temperatures, yields, substitutions, storage instructions, or safety guidance.
-- If no recipe exists, say: "I couldn’t find a supported recipe in the selected publications."
+- If no recipe exists, say: "I couldn't find a supported recipe in the selected publications."
 `
   }
 
@@ -393,7 +397,7 @@ Safety Notes
 - Include this section only when the topic involves food safety, canning, freezing, drying, pickling, smoking, storage, or recipes.
 - If there are no safety notes in the publications, say: "No specific safety notes were found in the selected publications."
 
-What’s Not Clear
+What's Not Clear
 - Include this section only when the publications do not fully answer the question.
 - Be specific about what is missing or unclear.
 
@@ -465,6 +469,7 @@ Return only 3 follow-up questions, one per line.
     ]
   }
 }
+
 function isLikelyFollowUpQuestion(question: string) {
   const normalized = question.trim().toLowerCase()
 
@@ -515,8 +520,7 @@ function buildConversationContext(
     return 'No prior conversation context.'
   }
 
-  const followUpQuestion =
-    isLikelyFollowUpQuestion(currentQuestion)
+  const followUpQuestion = isLikelyFollowUpQuestion(currentQuestion)
 
   return recentTurns
     .map((turn, index) => {
@@ -533,13 +537,14 @@ Answer summary: ${answerSummary}
     })
     .join('\n')
 }
+
 function modelIndicatesNotFound(answerText: string) {
   const lowerAnswer = answerText.toLowerCase()
 
   return (
     lowerAnswer.includes("i can't find") ||
-    lowerAnswer.includes("i couldn’t find") ||
     lowerAnswer.includes("i couldn't find") ||
+    lowerAnswer.includes("i couldn’t find") ||
     lowerAnswer.includes("i can’t find") ||
     lowerAnswer.includes('no supported') ||
     lowerAnswer.includes('not found') ||
@@ -551,12 +556,12 @@ function modelIndicatesNotFound(answerText: string) {
 }
 
 function buildFallbackAnswer() {
-  return `I couldn’t find a supported answer in the selected publications.
+  return `I couldn't find a supported answer in the selected publications.
 
 Try:
 - Rephrasing your question
-- Selecting “All categories”
-- Selecting “All publications”
+- Selecting "All categories"
+- Selecting "All publications"
 - Asking about a specific publication title
 - Checking whether the publication has been uploaded and processed
 
@@ -565,245 +570,255 @@ Because this app is source-grounded, it will only answer when it can find suppor
 
 export async function POST(request: Request) {
   const rateLimitResponse = checkRateLimit(request, rateLimitConfigs.chat)
+  if (rateLimitResponse) return rateLimitResponse
 
-if (rateLimitResponse) {
-  return rateLimitResponse
-}
+  // Validate and auth before opening the stream so errors return clean JSON
+  let question: string, category: string, documentId: string, answerMode: string, conversationTurns: any[]
   try {
-    const {
-      question,
-      category,
-      documentId = 'all',
-      answerMode = 'general',
-      conversationTurns = [],
-    } = await request.json()
+    const body = await request.json()
+    question = body.question
+    category = body.category
+    documentId = body.documentId ?? 'all'
+    answerMode = body.answerMode ?? 'general'
+    conversationTurns = body.conversationTurns ?? []
+  } catch {
+    return NextResponse.json({ error: 'Invalid request body' }, { status: 400 })
+  }
 
-    if (!question) {
-      return NextResponse.json({ error: 'Missing question' }, { status: 400 })
-    }
+  if (!question) {
+    return NextResponse.json({ error: 'Missing question' }, { status: 400 })
+  }
 
-    const authHeader = request.headers.get('authorization')
-    const token = authHeader?.replace('Bearer ', '')
+  const authHeader = request.headers.get('authorization')
+  const token = authHeader?.replace('Bearer ', '')
+  if (!token) {
+    return NextResponse.json({ error: 'Missing auth token' }, { status: 401 })
+  }
 
-    if (!token) {
-      return NextResponse.json({ error: 'Missing auth token' }, { status: 401 })
-    }
-
-    const supabaseAdmin = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
-    )
-
-    const {
-      data: { user },
-      error: userError,
-    } = await supabaseAdmin.auth.getUser(token)
-
-    if (userError || !user) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
-    }
-
-    const { data: profile } = await supabaseAdmin
-      .from('profiles')
-      .select('is_active')
-      .eq('id', user.id)
-      .single()
-
-    if (!profile?.is_active) {
-      return NextResponse.json({ error: 'Account inactive' }, { status: 403 })
-    }
-
-    let docsQuery = supabaseAdmin
-      .from('documents')
-      .select('id, title, filename, category, version, is_active')
-      .eq('is_active', true)
-
-    if (category && category !== 'all') {
-      docsQuery = docsQuery.eq('category', category)
-    }
-
-    if (documentId && documentId !== 'all') {
-      docsQuery = docsQuery.eq('id', documentId)
-    }
-
-    const { data: activeDocs, error: docsError } = await docsQuery
-
-    if (docsError) {
-      return NextResponse.json({ error: docsError.message }, { status: 500 })
-    }
-
-    const openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY!,
-    })
-
-    const { data: trustedAnswers } = await supabaseAdmin
-      .from('trusted_answers')
-      .select('id, question, answer, category, answer_mode, sources')
-      .eq('is_active', true)
-
-    const trustedCandidates = (trustedAnswers ?? [])
-      .map((trusted) => {
-        const categoryMatches =
-          !trusted.category ||
-          category === 'all' ||
-          trusted.category === category
-
-        const modeMatches =
-          !trusted.answer_mode ||
-          trusted.answer_mode === 'general' ||
-          trusted.answer_mode === answerMode
-
-        const questionTopics = getPreservationTopics(question)
-const trustedTopics = getPreservationTopics(trusted.question)
-
-const sharedTopicCount = questionTopics.filter((topic) =>
-  trustedTopics.includes(topic)
-).length
-
-const topicBoost =
-  questionTopics.length > 0 && sharedTopicCount > 0
-    ? sharedTopicCount * 0.08
-    : 0
-
-const similarity = Math.min(
-  1,
-  getQuestionSimilarity(question, trusted.question) + topicBoost
-)
-
-        return {
-          ...trusted,
-          similarity,
-          categoryMatches,
-          modeMatches,
-        }
-      })
-      .filter((trusted) => trusted.categoryMatches && trusted.modeMatches)
-      .sort((a, b) => b.similarity - a.similarity)
-
-    const trustedMatch = trustedCandidates[0]
-    const trustedMatchThreshold = 0.62
-
-    if (trustedMatch && trustedMatch.similarity >= trustedMatchThreshold) {
-      const evidenceStrength = {
-        label: 'Strong' as EvidenceStrengthLabel,
-        description:
-          'This is a trusted answer saved by an administrator. Match confidence: ' +
-          Math.round(trustedMatch.similarity * 100) +
-          '%.',
-      }
-
-      const suggestedFollowUps = await generateSuggestedFollowUps({
-        openai,
-        question,
-        answer: trustedMatch.answer,
-        answerMode,
-      })
-
-      const { data: historyRow } = await supabaseAdmin
-        .from('chat_history')
-        .insert({
-          user_id: user.id,
-          question,
-          answer: trustedMatch.answer,
-          category: category ?? null,
-          answer_mode: answerMode ?? 'general',
-          sources: trustedMatch.sources ?? [],
-          evidence_strength: evidenceStrength,
-        })
-        .select('id')
-        .single()
-
-      return NextResponse.json({
-        answer: trustedMatch.answer,
-        sources: trustedMatch.sources ?? [],
-        evidenceStrength,
-        chatHistoryId: historyRow?.id ?? null,
-        suggestedFollowUps,
-        trustedAnswer: true,
-      })
-    }
-
-    if (!activeDocs || activeDocs.length === 0) {
-      return NextResponse.json({
-        answer:
-          "I can't answer because there are no active publications matching the selected filters.",
-        sources: [],
-        evidenceStrength: {
-          label: 'Not found',
-          description: 'No active documents were available to search.',
-        },
-        chatHistoryId: null,
-        suggestedFollowUps: [
-          'Can you search all publications?',
-          'What publication should I select?',
-          'How should I rephrase this question?',
-        ],
-      })
-    }
-
-    const activeDocumentIds = activeDocs.map((doc) => doc.id)
-
-    const { data: activePages, error: pagesError } = await supabaseAdmin
-      .from('document_pages')
-      .select(`
-        page_number,
-        openai_file_id,
-        document_id,
-        documents (
-          title,
-          filename,
-          category,
-          version,
-          is_active
-        )
-      `)
-      .in('document_id', activeDocumentIds)
-
-    if (pagesError) {
-      return NextResponse.json({ error: pagesError.message }, { status: 500 })
-    }
-
-    const activePageRows =
-      activePages?.filter((row: any) => {
-        const documentInfo = Array.isArray(row.documents)
-          ? row.documents[0]
-          : row.documents
-
-        return documentInfo?.is_active && row.openai_file_id
-      }) ?? []
-
-    if (activePageRows.length === 0) {
-      return NextResponse.json({
-        answer:
-          "I can't answer because there are no processed pages matching the selected filters.",
-        sources: [],
-        evidenceStrength: {
-          label: 'Not found',
-          description: 'No processed pages were available to search.',
-        },
-        chatHistoryId: null,
-        suggestedFollowUps: [
-          'Can you search all publications?',
-          'What publication should I select?',
-          'How should I rephrase this question?',
-        ],
-      })
-    }
-
-    const activeFileIds = activePageRows
-      .map((row: any) => row.openai_file_id)
-      .filter(Boolean)
-
-    const recentConversationContext =
-  buildConversationContext(
-    conversationTurns,
-    question
+  const supabaseAdmin = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
   )
 
-    const response = await openai.responses.create({
-      model: 'gpt-4.1-mini',
-      include: ['output[*].file_search_call.search_results'] as any,
-      instructions: `
+  const {
+    data: { user },
+    error: userError,
+  } = await supabaseAdmin.auth.getUser(token)
+
+  if (userError || !user) {
+    return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
+  }
+
+  const { data: profile } = await supabaseAdmin
+    .from('profiles')
+    .select('is_active')
+    .eq('id', user.id)
+    .single()
+
+  if (!profile?.is_active) {
+    return NextResponse.json({ error: 'Account inactive' }, { status: 403 })
+  }
+
+  const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! })
+
+  // Open SSE stream — all remaining logic runs in the background task
+  const encoder = new TextEncoder()
+  const { readable, writable } = new TransformStream()
+  const writer = writable.getWriter()
+
+  async function send(data: object) {
+    await writer.write(encoder.encode(`data: ${JSON.stringify(data)}\n\n`))
+  }
+
+  ;(async () => {
+    try {
+      // Load documents inside background task so failures emit error events
+      let docsQuery = supabaseAdmin
+        .from('documents')
+        .select('id, title, filename, category, version, is_active')
+        .eq('is_active', true)
+
+      if (category && category !== 'all') docsQuery = docsQuery.eq('category', category)
+      if (documentId && documentId !== 'all') docsQuery = docsQuery.eq('id', documentId)
+
+      const { data: activeDocs, error: docsError } = await docsQuery
+      if (docsError) { await send({ type: 'error', error: docsError.message }); return }
+
+      // Trusted answer matching
+      const { data: trustedAnswers } = await supabaseAdmin
+        .from('trusted_answers')
+        .select('id, question, answer, category, answer_mode, sources')
+        .eq('is_active', true)
+
+      const trustedCandidates = (trustedAnswers ?? [])
+        .map((trusted) => {
+          const categoryMatches =
+            !trusted.category ||
+            category === 'all' ||
+            trusted.category === category
+
+          const modeMatches =
+            !trusted.answer_mode ||
+            trusted.answer_mode === 'general' ||
+            trusted.answer_mode === answerMode
+
+          const questionTopics = getPreservationTopics(question)
+          const trustedTopics = getPreservationTopics(trusted.question)
+
+          const sharedTopicCount = questionTopics.filter((topic) =>
+            trustedTopics.includes(topic)
+          ).length
+
+          const topicBoost =
+            questionTopics.length > 0 && sharedTopicCount > 0
+              ? sharedTopicCount * 0.08
+              : 0
+
+          const similarity = Math.min(
+            1,
+            getQuestionSimilarity(question, trusted.question) + topicBoost
+          )
+
+          return {
+            ...trusted,
+            similarity,
+            categoryMatches,
+            modeMatches,
+          }
+        })
+        .filter((trusted) => trusted.categoryMatches && trusted.modeMatches)
+        .sort((a, b) => b.similarity - a.similarity)
+
+      const trustedMatch = trustedCandidates[0]
+      const trustedMatchThreshold = 0.62
+
+      if (trustedMatch && trustedMatch.similarity >= trustedMatchThreshold) {
+        const evidenceStrength = {
+          label: 'Strong' as EvidenceStrengthLabel,
+          description:
+            'This is a trusted answer saved by an administrator. Match confidence: ' +
+            Math.round(trustedMatch.similarity * 100) +
+            '%.',
+        }
+
+        const suggestedFollowUps = await generateSuggestedFollowUps({
+          openai,
+          question,
+          answer: trustedMatch.answer,
+          answerMode,
+        })
+
+        const { data: historyRow } = await supabaseAdmin
+          .from('chat_history')
+          .insert({
+            user_id: user.id,
+            question,
+            answer: trustedMatch.answer,
+            category: category ?? null,
+            answer_mode: answerMode ?? 'general',
+            sources: trustedMatch.sources ?? [],
+            evidence_strength: evidenceStrength,
+          })
+          .select('id')
+          .single()
+
+        await send({
+          type: 'complete',
+          answer: trustedMatch.answer,
+          sources: trustedMatch.sources ?? [],
+          evidenceStrength,
+          chatHistoryId: historyRow?.id ?? null,
+          suggestedFollowUps,
+          trustedAnswer: true,
+        })
+        return
+      }
+
+      if (!activeDocs || activeDocs.length === 0) {
+        await send({
+          type: 'complete',
+          answer: "I can't answer because there are no active publications matching the selected filters.",
+          sources: [],
+          evidenceStrength: {
+            label: 'Not found',
+            description: 'No active documents were available to search.',
+          },
+          chatHistoryId: null,
+          suggestedFollowUps: [
+            'Can you search all publications?',
+            'What publication should I select?',
+            'How should I rephrase this question?',
+          ],
+        })
+        return
+      }
+
+      const activeDocumentIds = activeDocs.map((doc) => doc.id)
+
+      const { data: activePages, error: pagesError } = await supabaseAdmin
+        .from('document_pages')
+        .select(`
+          page_number,
+          openai_file_id,
+          document_id,
+          documents (
+            title,
+            filename,
+            category,
+            version,
+            is_active
+          )
+        `)
+        .in('document_id', activeDocumentIds)
+
+      if (pagesError) {
+        await send({ type: 'error', error: pagesError.message })
+        return
+      }
+
+      const activePageRows =
+        activePages?.filter((row: any) => {
+          const documentInfo = Array.isArray(row.documents)
+            ? row.documents[0]
+            : row.documents
+
+          return documentInfo?.is_active && row.openai_file_id
+        }) ?? []
+
+      if (activePageRows.length === 0) {
+        await send({
+          type: 'complete',
+          answer: "I can't answer because there are no processed pages matching the selected filters.",
+          sources: [],
+          evidenceStrength: {
+            label: 'Not found',
+            description: 'No processed pages were available to search.',
+          },
+          chatHistoryId: null,
+          suggestedFollowUps: [
+            'Can you search all publications?',
+            'What publication should I select?',
+            'How should I rephrase this question?',
+          ],
+        })
+        return
+      }
+
+      const activeFileIds = activePageRows
+        .map((row: any) => row.openai_file_id)
+        .filter(Boolean)
+
+      const recentConversationContext = buildConversationContext(
+        conversationTurns,
+        question
+      )
+
+      await send({ type: 'stage', stage: 'searching' })
+
+      const openaiStream = openai.responses.stream({
+        model: 'gpt-4.1-mini',
+        include: ['output[*].file_search_call.search_results'] as any,
+        instructions: `
 You are a strict document-grounded assistant.
 
 You may answer ONLY from the uploaded PDFs.
@@ -861,203 +876,233 @@ Evidence rules:
 - Do not use a source only because it is generally about food preservation; it must support the user's specific preservation topic.
 - For food safety, canning, drying, freezing, pickling, smoking, storage, or recipes, be conservative.
       `,
-      input: question,
-      tools: [
-        {
-          type: 'file_search',
-          vector_store_ids: [process.env.OPENAI_VECTOR_STORE_ID!],
-          max_num_results: 7,
-        },
-      ] as any,
-    })
+        input: question,
+        tools: [
+          {
+            type: 'file_search',
+            vector_store_ids: [process.env.OPENAI_VECTOR_STORE_ID!],
+            max_num_results: 7,
+          },
+        ] as any,
+      } as any)
 
-    const citedFileIds = new Set<string>()
-    const excerptsByFileId: Record<string, string[]> = {}
+      let answerText = ''
+      let sentReviewing = false
 
-    for (const item of response.output as any[]) {
-      if (item.type === 'message') {
-        for (const content of item.content ?? []) {
-          if (content.type === 'output_text' && content.annotations) {
-            for (const ann of content.annotations) {
-              if (ann.file_id && activeFileIds.includes(ann.file_id)) {
-                citedFileIds.add(ann.file_id)
+      for await (const event of openaiStream) {
+        const eventType = (event as any).type
+        if (eventType === 'response.output_text.delta') {
+          const delta = (event as any).delta ?? ''
+          if (delta) {
+            answerText += delta
+            if (!sentReviewing) {
+              await send({ type: 'stage', stage: 'reviewing' })
+              sentReviewing = true
+            }
+            await send({ type: 'token', text: delta })
+          }
+        }
+      }
+
+      await send({ type: 'stage', stage: 'generating' })
+      const finalResponse = await openaiStream.finalResponse()
+
+      const citedFileIds = new Set<string>()
+      const excerptsByFileId: Record<string, string[]> = {}
+
+      for (const item of finalResponse.output as any[]) {
+        if (item.type === 'message') {
+          for (const content of item.content ?? []) {
+            if (content.type === 'output_text' && content.annotations) {
+              for (const ann of content.annotations) {
+                if (ann.file_id && activeFileIds.includes(ann.file_id)) {
+                  citedFileIds.add(ann.file_id)
+                }
               }
+            }
+          }
+        }
+
+        if (item.type === 'file_search_call') {
+          const results = item.search_results ?? item.results ?? []
+
+          for (const result of results) {
+            if (!result.file_id) continue
+            if (!activeFileIds.includes(result.file_id)) continue
+
+            citedFileIds.add(result.file_id)
+
+            const text = cleanExcerpt(getSearchResultText(result))
+            if (!text) continue
+
+            if (!excerptsByFileId[result.file_id]) {
+              excerptsByFileId[result.file_id] = []
+            }
+
+            if (!excerptsByFileId[result.file_id].includes(text)) {
+              excerptsByFileId[result.file_id].push(text)
             }
           }
         }
       }
 
-      if (item.type === 'file_search_call') {
-        const results = item.search_results ?? item.results ?? []
+      const groupedSources: Record<
+        string,
+        {
+          title: string
+          filename: string
+          category: string | null
+          version: string | null
+          pages: Set<number>
+          excerpts: string[]
+        }
+      > = {}
 
-        for (const result of results) {
-          if (!result.file_id) continue
-          if (!activeFileIds.includes(result.file_id)) continue
+      for (const row of activePageRows as any[]) {
+        if (!citedFileIds.has(row.openai_file_id)) continue
 
-          citedFileIds.add(result.file_id)
+        const documentInfo = Array.isArray(row.documents)
+          ? row.documents[0]
+          : row.documents
 
-          const text = cleanExcerpt(getSearchResultText(result))
-          if (!text) continue
+        if (!documentInfo) continue
 
-          if (!excerptsByFileId[result.file_id]) {
-            excerptsByFileId[result.file_id] = []
+        const key = documentInfo.filename
+
+        if (!groupedSources[key]) {
+          groupedSources[key] = {
+            title: documentInfo.title,
+            filename: documentInfo.filename,
+            category: documentInfo.category,
+            version: documentInfo.version,
+            pages: new Set<number>(),
+            excerpts: [],
+          }
+        }
+
+        groupedSources[key].pages.add(row.page_number)
+
+        const excerpts = excerptsByFileId[row.openai_file_id] ?? []
+        for (const excerpt of excerpts) {
+          if (!groupedSources[key].excerpts.includes(excerpt)) {
+            groupedSources[key].excerpts.push(excerpt)
+          }
+        }
+      }
+
+      const sources: RankedSource[] = Object.values(groupedSources)
+        .map((doc) => {
+          const baseSource: RankedSource = {
+            title: doc.title,
+            filename: doc.filename,
+            category: doc.category,
+            version: doc.version,
+            pages: Array.from(doc.pages).sort((a, b) => a - b).slice(0, 8),
+            excerpts: doc.excerpts.slice(0, 3),
+            relevanceScore: 0,
+            relevanceReasons: [],
           }
 
-          if (!excerptsByFileId[result.file_id].includes(text)) {
-            excerptsByFileId[result.file_id].push(text)
+          const relevance = getSourceRelevanceScore({
+            question,
+            source: baseSource,
+            selectedCategory: category,
+          })
+
+          return {
+            ...baseSource,
+            relevanceScore: relevance.score,
+            relevanceReasons: relevance.reasons,
           }
-        }
-      }
-    }
-
-    const groupedSources: Record<
-      string,
-      {
-        title: string
-        filename: string
-        category: string | null
-        version: string | null
-        pages: Set<number>
-        excerpts: string[]
-      }
-    > = {}
-
-    for (const row of activePageRows as any[]) {
-      if (!citedFileIds.has(row.openai_file_id)) continue
-
-      const documentInfo = Array.isArray(row.documents)
-        ? row.documents[0]
-        : row.documents
-
-      if (!documentInfo) continue
-
-      const key = documentInfo.filename
-
-      if (!groupedSources[key]) {
-        groupedSources[key] = {
-          title: documentInfo.title,
-          filename: documentInfo.filename,
-          category: documentInfo.category,
-          version: documentInfo.version,
-          pages: new Set<number>(),
-          excerpts: [],
-        }
-      }
-
-      groupedSources[key].pages.add(row.page_number)
-
-      const excerpts = excerptsByFileId[row.openai_file_id] ?? []
-      for (const excerpt of excerpts) {
-        if (!groupedSources[key].excerpts.includes(excerpt)) {
-          groupedSources[key].excerpts.push(excerpt)
-        }
-      }
-    }
-
-    const sources: RankedSource[] = Object.values(groupedSources)
-      .map((doc) => {
-        const baseSource: RankedSource = {
-          title: doc.title,
-          filename: doc.filename,
-          category: doc.category,
-          version: doc.version,
-          pages: Array.from(doc.pages).sort((a, b) => a - b).slice(0, 8),
-          excerpts: doc.excerpts.slice(0, 3),
-          relevanceScore: 0,
-          relevanceReasons: [],
-        }
-
-        const relevance = getSourceRelevanceScore({
-          question,
-          source: baseSource,
-          selectedCategory: category,
         })
+        .sort((a, b) => b.relevanceScore - a.relevanceScore)
+        .slice(0, 5)
 
-        return {
-          ...baseSource,
-          relevanceScore: relevance.score,
-          relevanceReasons: relevance.reasons,
+      const noEvidence =
+        sources.length === 0 || citedFileIds.size === 0 || modelIndicatesNotFound(answerText)
+
+      if (noEvidence) {
+        const fallbackAnswer = buildFallbackAnswer()
+
+        const evidenceStrength = {
+          label: 'Not found' as EvidenceStrengthLabel,
+          description:
+            'No relevant supporting content was found in the selected publications.',
         }
-      })
-      .sort((a, b) => b.relevanceScore - a.relevanceScore)
-      .slice(0, 5)
 
-    const answerText = response.output_text ?? ''
-    const noEvidence =
-      sources.length === 0 || citedFileIds.size === 0 || modelIndicatesNotFound(answerText)
+        const { data: historyRow } = await supabaseAdmin
+          .from('chat_history')
+          .insert({
+            user_id: user.id,
+            question,
+            answer: fallbackAnswer,
+            category: category ?? null,
+            answer_mode: answerMode ?? 'general',
+            sources: [],
+            evidence_strength: evidenceStrength,
+          })
+          .select('id')
+          .single()
 
-    if (noEvidence) {
-      const fallbackAnswer = buildFallbackAnswer()
-
-      const evidenceStrength = {
-        label: 'Not found' as EvidenceStrengthLabel,
-        description:
-          'No relevant supporting content was found in the selected publications.',
+        await send({
+          type: 'complete',
+          answer: fallbackAnswer,
+          sources: [],
+          evidenceStrength,
+          chatHistoryId: historyRow?.id ?? null,
+          suggestedFollowUps: [
+            'Can you search all publications?',
+            'What publication should I select?',
+            'How should I rephrase this question?',
+          ],
+        })
+        return
       }
+
+      const evidenceStrength = getEvidenceStrength(sources)
 
       const { data: historyRow } = await supabaseAdmin
         .from('chat_history')
         .insert({
           user_id: user.id,
           question,
-          answer: fallbackAnswer,
+          answer: answerText,
           category: category ?? null,
           answer_mode: answerMode ?? 'general',
-          sources: [],
+          sources,
           evidence_strength: evidenceStrength,
         })
         .select('id')
         .single()
 
-      return NextResponse.json({
-        answer: fallbackAnswer,
-        sources: [],
-        evidenceStrength,
-        chatHistoryId: historyRow?.id ?? null,
-        suggestedFollowUps: [
-          'Can you search all publications?',
-          'What publication should I select?',
-          'How should I rephrase this question?',
-        ],
-      })
-    }
-
-    const evidenceStrength = getEvidenceStrength(sources)
-
-    const { data: historyRow } = await supabaseAdmin
-      .from('chat_history')
-      .insert({
-        user_id: user.id,
+      const suggestedFollowUps = await generateSuggestedFollowUps({
+        openai,
         question,
         answer: answerText,
-        category: category ?? null,
-        answer_mode: answerMode ?? 'general',
-        sources,
-        evidence_strength: evidenceStrength,
+        answerMode,
       })
-      .select('id')
-      .single()
 
-    const suggestedFollowUps = await generateSuggestedFollowUps({
-      openai,
-      question,
-      answer: answerText,
-      answerMode,
-    })
+      await send({
+        type: 'complete',
+        answer: answerText,
+        sources,
+        evidenceStrength,
+        chatHistoryId: historyRow?.id ?? null,
+        suggestedFollowUps,
+      })
+    } catch (error: any) {
+      console.error('CHAT ERROR:', error)
+      await send({ type: 'error', error: error.message ?? 'Unknown error' })
+    } finally {
+      await writer.close()
+    }
+  })()
 
-    return NextResponse.json({
-      answer: answerText,
-      sources,
-      evidenceStrength,
-      chatHistoryId: historyRow?.id ?? null,
-      suggestedFollowUps,
-    })
-  } catch (error: any) {
-    console.error('CHAT ERROR:', error)
-
-    return NextResponse.json(
-      { error: error.message ?? 'Unknown error' },
-      { status: 500 }
-    )
-  }
+  return new Response(readable, {
+    headers: {
+      'Content-Type': 'text/event-stream',
+      'Cache-Control': 'no-cache',
+      Connection: 'keep-alive',
+    },
+  })
 }

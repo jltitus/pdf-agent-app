@@ -112,10 +112,14 @@ function HistoryCard({ question, answer, category, answer_mode, evidence_strengt
 export default function HistoryPage() {
   const supabase = createClient()
 
+  const PAGE_SIZE = 50
+
   const [tab, setTab] = useState<Tab>('all')
   const [history, setHistory] = useState<HistoryItem[]>([])
   const [savedChats, setSavedChats] = useState<SavedChat[]>([])
   const [loading, setLoading] = useState(true)
+  const [loadingMore, setLoadingMore] = useState(false)
+  const [hasMore, setHasMore] = useState(false)
   const [search, setSearch] = useState('')
   const [categoryFilter, setCategoryFilter] = useState('all')
   const [modeFilter, setModeFilter] = useState('all')
@@ -127,11 +131,13 @@ export default function HistoryPage() {
           .from('chat_history')
           .select('id, question, answer, category, answer_mode, evidence_strength, created_at')
           .order('created_at', { ascending: false })
-          .limit(200),
+          .range(0, PAGE_SIZE - 1),
         fetch('/api/saved-chats'),
       ])
 
-      setHistory((hist ?? []) as HistoryItem[])
+      const items = (hist ?? []) as HistoryItem[]
+      setHistory(items)
+      setHasMore(items.length === PAGE_SIZE)
 
       if (savedRes.ok) {
         const saved = await savedRes.json()
@@ -142,6 +148,19 @@ export default function HistoryPage() {
     }
     load()
   }, [supabase])
+
+  async function loadMore() {
+    setLoadingMore(true)
+    const { data } = await supabase
+      .from('chat_history')
+      .select('id, question, answer, category, answer_mode, evidence_strength, created_at')
+      .order('created_at', { ascending: false })
+      .range(history.length, history.length + PAGE_SIZE - 1)
+    const more = (data ?? []) as HistoryItem[]
+    setHistory((prev) => [...prev, ...more])
+    setHasMore(more.length === PAGE_SIZE)
+    setLoadingMore(false)
+  }
 
   const categories = useMemo(() => {
     const source = tab === 'all' ? history : savedChats
@@ -302,6 +321,19 @@ export default function HistoryPage() {
                 created_at={item.created_at}
               />
             ))}
+          </div>
+        )}
+
+        {tab === 'all' && hasMore && !search && categoryFilter === 'all' && modeFilter === 'all' && (
+          <div className="flex justify-center">
+            <button
+              type="button"
+              onClick={loadMore}
+              disabled={loadingMore}
+              className="rounded-xl border border-[#d8d1c7] bg-white px-6 py-2.5 text-sm font-semibold text-primary hover:bg-[#f3f0ed] disabled:opacity-60"
+            >
+              {loadingMore ? 'Loading…' : `Load more (showing ${history.length})`}
+            </button>
           </div>
         )}
 

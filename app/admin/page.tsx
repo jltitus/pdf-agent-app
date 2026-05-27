@@ -2054,10 +2054,11 @@ export default function AdminPage() {
             </section>
           )}
           <div className="sticky top-[155px] z-40 rounded-3xl border border-[#d8d1c7] bg-white/90 p-2 shadow-sm backdrop-blur sm:top-[145px] lg:top-[92px]">
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:flex lg:flex-wrap">
+            <div className="grid grid-cols-3 gap-2 sm:flex sm:flex-wrap">
               {[
                 { key: "overview", label: "Overview" },
                 { key: "access", label: "Access" },
+                { key: "users", label: "Users" },
                 { key: "documents", label: "Documents" },
                 { key: "feedback", label: "Feedback" },
                 { key: "enhancements", label: "Enhancements" },
@@ -2077,9 +2078,21 @@ export default function AdminPage() {
                       window.location.href = "/admin/releases";
                       return;
                     }
+                    if (tab.key === "documents") {
+                      window.location.href = "/admin/documents";
+                      return;
+                    }
+                    if (tab.key === "users") {
+                      window.location.href = "/admin/users";
+                      return;
+                    }
+                    if (tab.key === "trusted") {
+                      window.location.href = "/admin/trusted-answers";
+                      return;
+                    }
                     setActiveTab(tab.key as any);
                   }}
-                  className={`min-h-11 rounded-xl px-2 py-2 text-center text-xs font-semibold leading-tight sm:px-3 sm:text-sm lg:w-auto ${
+                  className={`min-h-11 rounded-xl px-3 py-2 text-center text-xs font-semibold leading-tight sm:px-4 sm:text-sm ${
                     activeTab === tab.key
                       ? "bg-[#d73f09] !text-white shadow-sm"
                       : "border border-[#d8d1c7] bg-white text-primary hover:bg-[#f3f0ed]"
@@ -2092,127 +2105,6 @@ export default function AdminPage() {
           </div>
           {activeTab === "overview" && (
             <>
-              <section className={`${cardClass} space-y-4`}>
-                <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                  <div>
-                    <h2 className="text-2xl font-bold text-primary">
-                      Operational Exports & Readiness
-                    </h2>
-                    <p className="text-sm text-secondary">
-                      Download lightweight CSV and JSON exports for reporting,
-                      backup readiness, and disaster recovery reference.
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={exportSystemSnapshotJSON}
-                    className={primaryButton}
-                  >
-                    Export full backup JSON
-                  </button>
-                </div>
-
-                <div className="grid gap-3 md:grid-cols-3">
-                  <div className="rounded-xl border border-[#d8d1c7] bg-[#fcfaf7] p-3">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-muted">
-                      Backup readiness
-                    </p>
-                    <p className="mt-1 text-sm text-primary">
-                      {documents.length > 0
-                        ? "Document inventory available for export."
-                        : "No document inventory yet."}
-                    </p>
-                    <p className="mt-1 text-xs text-secondary">
-                      Last upload:{" "}
-                      {mostRecentUpload?.uploaded_at
-                        ? new Date(
-                            mostRecentUpload.uploaded_at,
-                          ).toLocaleString()
-                        : "No uploads yet"}
-                    </p>
-                  </div>
-
-                  <div className="rounded-xl border border-[#d8d1c7] bg-[#fcfaf7] p-3">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-muted">
-                      Processing watch items
-                    </p>
-                    <p
-                      className={`mt-1 text-2xl font-bold ${activeUnprocessedDocuments.length > 0 ? "text-red-700" : "text-green-700"}`}
-                    >
-                      {activeUnprocessedDocuments.length}
-                    </p>
-                    <p className="text-xs text-secondary">
-                      Active documents not processed for search
-                    </p>
-                  </div>
-
-                  <div className="rounded-xl border border-[#d8d1c7] bg-[#fcfaf7] p-3">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-muted">
-                      Review watch items
-                    </p>
-                    <p
-                      className={`mt-1 text-2xl font-bold ${pendingReviewDocuments.length > 0 ? "text-yellow-800" : "text-green-700"}`}
-                    >
-                      {pendingReviewDocuments.length}
-                    </p>
-                    <p className="text-xs text-secondary">
-                      Documents marked pending review
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                  <button
-                    type="button"
-                    onClick={exportDocumentInventoryCSV}
-                    className={secondaryButton}
-                  >
-                    Export document inventory CSV
-                  </button>
-                  <button
-                    type="button"
-                    onClick={exportAccessRequestsCSV}
-                    className={secondaryButton}
-                  >
-                    Export access requests CSV
-                  </button>
-                  <button
-                    type="button"
-                    onClick={exportFeedbackCSV}
-                    className={secondaryButton}
-                  >
-                    Export feedback CSV
-                  </button>
-                  <button
-                    type="button"
-                    onClick={exportIssueReportsCSV}
-                    className={secondaryButton}
-                  >
-                    Export issue reports CSV
-                  </button>
-                  <button
-                    type="button"
-                    onClick={exportAuditLogsCSV}
-                    className={secondaryButton}
-                  >
-                    Export audit logs CSV
-                  </button>
-                  <button
-                    type="button"
-                    onClick={exportTrustedAnswersJSON}
-                    className={secondaryButton}
-                  >
-                    Export trusted answers JSON
-                  </button>
-                </div>
-
-                <p className="rounded-xl border border-blue-200 bg-blue-50 p-3 text-xs text-blue-900">
-                  Exports download to your browser only. They do not change
-                  production data and do not include PDF binary files from
-                  Supabase Storage.
-                </p>
-              </section>
-
               <section className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-7">
                 {[
                   ["Total documents", documentHealth.total, "normal"],
@@ -2562,6 +2454,126 @@ export default function AdminPage() {
                 )}
                 </>
                 )}
+              </section>
+              <section className={`${cardClass} space-y-4`}>
+                <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
+                  <div>
+                    <h2 className="text-2xl font-bold text-primary">
+                      Operational Exports & Readiness
+                    </h2>
+                    <p className="text-sm text-secondary">
+                      Download lightweight CSV and JSON exports for reporting,
+                      backup readiness, and disaster recovery reference.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={exportSystemSnapshotJSON}
+                    className={primaryButton}
+                  >
+                    Export full backup JSON
+                  </button>
+                </div>
+
+                <div className="grid gap-3 md:grid-cols-3">
+                  <div className="rounded-xl border border-[#d8d1c7] bg-[#fcfaf7] p-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+                      Backup readiness
+                    </p>
+                    <p className="mt-1 text-sm text-primary">
+                      {documents.length > 0
+                        ? "Document inventory available for export."
+                        : "No document inventory yet."}
+                    </p>
+                    <p className="mt-1 text-xs text-secondary">
+                      Last upload:{" "}
+                      {mostRecentUpload?.uploaded_at
+                        ? new Date(
+                            mostRecentUpload.uploaded_at,
+                          ).toLocaleString()
+                        : "No uploads yet"}
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl border border-[#d8d1c7] bg-[#fcfaf7] p-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+                      Processing watch items
+                    </p>
+                    <p
+                      className={`mt-1 text-2xl font-bold ${activeUnprocessedDocuments.length > 0 ? "text-red-700" : "text-green-700"}`}
+                    >
+                      {activeUnprocessedDocuments.length}
+                    </p>
+                    <p className="text-xs text-secondary">
+                      Active documents not processed for search
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl border border-[#d8d1c7] bg-[#fcfaf7] p-3">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+                      Review watch items
+                    </p>
+                    <p
+                      className={`mt-1 text-2xl font-bold ${pendingReviewDocuments.length > 0 ? "text-yellow-800" : "text-green-700"}`}
+                    >
+                      {pendingReviewDocuments.length}
+                    </p>
+                    <p className="text-xs text-secondary">
+                      Documents marked pending review
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                  <button
+                    type="button"
+                    onClick={exportDocumentInventoryCSV}
+                    className={secondaryButton}
+                  >
+                    Export document inventory CSV
+                  </button>
+                  <button
+                    type="button"
+                    onClick={exportAccessRequestsCSV}
+                    className={secondaryButton}
+                  >
+                    Export access requests CSV
+                  </button>
+                  <button
+                    type="button"
+                    onClick={exportFeedbackCSV}
+                    className={secondaryButton}
+                  >
+                    Export feedback CSV
+                  </button>
+                  <button
+                    type="button"
+                    onClick={exportIssueReportsCSV}
+                    className={secondaryButton}
+                  >
+                    Export issue reports CSV
+                  </button>
+                  <button
+                    type="button"
+                    onClick={exportAuditLogsCSV}
+                    className={secondaryButton}
+                  >
+                    Export audit logs CSV
+                  </button>
+                  <button
+                    type="button"
+                    onClick={exportTrustedAnswersJSON}
+                    className={secondaryButton}
+                  >
+                    Export trusted answers JSON
+                  </button>
+                </div>
+
+                <p className="rounded-xl border border-blue-200 bg-blue-50 p-3 text-xs text-blue-900">
+                  Exports download to your browser only. They do not change
+                  production data and do not include PDF binary files from
+                  Supabase Storage.
+                </p>
               </section>
             </>
           )}
@@ -3129,1586 +3141,241 @@ export default function AdminPage() {
               </div>
             </section>
           )}
-          {activeTab === "documents" && (
-            <>
-              <section className={`${cardClass} space-y-4`}>
-                <div>
-                  <h2 className="text-2xl font-bold text-primary">
-                    Upload PDF
-                  </h2>
-                  <p className="text-sm text-secondary">
-                    Add active publications for the Reference system to search. Publication
-                    date and notes are optional but recommended.
-                  </p>
-                </div>
-                <form
-                  onSubmit={handleUpload}
-                  className="grid gap-4 md:grid-cols-2"
-                >
-                  <div>
-                    <label className={labelClass}>Title</label>
-                    <input
-                      value={title}
-                      onChange={(e) => setTitle(e.target.value)}
-                      placeholder="Example: Drying Fruits and Vegetables"
-                      className={inputClass}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <label className={labelClass}>Category</label>
-                    <input
-                      value={category}
-                      onChange={(e) => setCategory(e.target.value)}
-                      placeholder="Example: Food safety, Canning, Freezing"
-                      className={inputClass}
-                    />
-                  </div>
-                  <div>
-                    <label className={labelClass}>Version</label>
-                    <input
-                      value={version}
-                      onChange={(e) => setVersion(e.target.value)}
-                      placeholder="Example: 2026, v1, current"
-                      className={inputClass}
-                    />
-                  </div>
-                  <div>
-                    <label className={labelClass}>Publication date</label>
-                    <input
-                      type="date"
-                      value={publicationDate}
-                      onChange={(e) => setPublicationDate(e.target.value)}
-                      className={inputClass}
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className={labelClass}>Document notes</label>
-                    <textarea
-                      value={documentNotes}
-                      onChange={(e) => setDocumentNotes(e.target.value)}
-                      placeholder="Optional notes for admins, such as source, update context, or review notes."
-                      className="min-h-[84px] w-full rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm text-primary"
-                    />
-                  </div>
-                  <div className="md:col-span-2">
-                    <label className={labelClass}>PDF file</label>
-                    <div
-                      onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
-                      onDragLeave={() => setIsDragging(false)}
-                      onDrop={(e) => {
-                        e.preventDefault();
-                        setIsDragging(false);
-                        const dropped = e.dataTransfer.files?.[0];
-                        if (dropped?.type === 'application/pdf') setFile(dropped);
-                      }}
-                      onClick={() => document.getElementById('pdf-file-input')?.click()}
-                      className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed px-4 py-8 text-center transition-colors ${isDragging ? 'border-[#d73f09] bg-[#fff5f2]' : 'border-[#d8d1c7] bg-[#fcfaf7] hover:bg-[#f3f0ed]'}`}
-                    >
-                      <svg className="h-8 w-8 text-[#d73f09]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 13h6m-3-3v6m5 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                      {file ? (
-                        <p className="text-sm font-semibold text-primary">{file.name}</p>
-                      ) : (
-                        <>
-                          <p className="text-sm font-semibold text-primary">Drop PDF here or click to browse</p>
-                          <p className="text-xs text-secondary">PDF files only</p>
-                        </>
-                      )}
-                      <input
-                        id="pdf-file-input"
-                        type="file"
-                        accept="application/pdf"
-                        className="hidden"
-                        onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-                      />
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-2 md:col-span-2">
-                    <button
-                      type="submit"
-                      disabled={uploadStatus !== 'idle'}
-                      className={primaryButton}
-                    >
-                      {uploadStatus === 'uploading'
-                        ? 'Uploading…'
-                        : uploadStatus === 'processing'
-                          ? 'Processing…'
-                          : 'Upload & Process'}
-                    </button>
-                    {uploadStatus !== 'idle' && (
-                      <p className="animate-pulse text-sm font-medium text-orange-700">
-                        {uploadStatus === 'uploading'
-                          ? 'Uploading PDF to storage…'
-                          : 'Processing complete — building search index. Scroll down to see live status in Uploaded documents.'}
-                      </p>
-                    )}
-                  </div>
-                </form>
-              </section>
-              <section className={`${cardClass} space-y-4`}>
-                <div>
-                  <h2 className="text-2xl font-bold text-primary">
-                    Uploaded documents
-                  </h2>
-                  <p className="text-sm text-secondary">
-                    View full PDFs, replace updated publications, archive old
-                    versions, and process documents for page-level citations.
-                  </p>
-                </div>
-                <div className="grid gap-3 md:grid-cols-[1fr_220px]">
-                  <input
-                    value={documentSearch}
-                    onChange={(e) => setDocumentSearch(e.target.value)}
-                    placeholder="Search title, filename, category, version, or publication date..."
-                    className={inputClass}
-                  />
-                  <select
-                    value={documentStatusFilter}
-                    onChange={(e) =>
-                      setDocumentStatusFilter(e.target.value as any)
-                    }
-                    className={inputClass}
-                  >
-                    <option value="all">All documents</option>
-                    <option value="active">Active only</option>
-                    <option value="archived">Archived only</option>
-                    <option value="pending_review">Pending review</option>
-                    <option value="processed">Processed only</option>
-                    <option value="not_processed">Not processed only</option>
-                  </select>
-                </div>
-                <div className="flex flex-col gap-2 text-sm text-secondary md:flex-row md:items-center md:justify-between">
-                  <p>
-                    Showing <strong>{filteredDocumentsForAdmin.length}</strong>{" "}
-                    of <strong>{documents.length}</strong> uploaded documents
-                  </p>
-                  {(documentSearch || documentStatusFilter !== "all") && (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setDocumentSearch("");
-                        setDocumentStatusFilter("all");
-                      }}
-                      className={smallSecondaryButton}
-                    >
-                      Clear filters
-                    </button>
-                  )}
-                </div>
-                {selectedDocIds.size > 0 && (
-                  <div className="flex flex-wrap items-center gap-2 rounded-xl border border-[#d8d1c7] bg-[#faf8f6] px-4 py-3">
-                    <span className="text-sm font-semibold text-primary">
-                      {selectedDocIds.size} selected
-                    </span>
-                    <button
-                      type="button"
-                      disabled={bulkActioning}
-                      onClick={() => bulkSetStatus([...selectedDocIds], false)}
-                      className={smallSecondaryButton}
-                    >
-                      Archive all
-                    </button>
-                    <button
-                      type="button"
-                      disabled={bulkActioning}
-                      onClick={() => bulkSetStatus([...selectedDocIds], true)}
-                      className={smallSecondaryButton}
-                    >
-                      Unarchive all
-                    </button>
-                    <button
-                      type="button"
-                      disabled={bulkActioning}
-                      onClick={() => bulkReprocess([...selectedDocIds])}
-                      className={smallSecondaryButton}
-                    >
-                      Reprocess all
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setSelectedDocIds(new Set())}
-                      className="ml-auto text-xs text-secondary hover:text-primary"
-                    >
-                      Clear selection
-                    </button>
-                  </div>
-                )}
-                {filteredDocumentsForAdmin.length === 0 ? (
-                  <p className="rounded-xl border border-[#d8d1c7] p-3 text-sm text-secondary">
-                    No documents match your search/filter.
-                  </p>
-                ) : (
-                  <div className="space-y-3">
-                    {filteredDocumentsForAdmin.map((doc) => {
-                      const isProcessed = (doc.page_count ?? 0) > 0;
-                      const isReplacingThis = replacingId === doc.id;
-                      const replacementOpen = replaceForm.documentId === doc.id;
-                      return (
-                        <div
-                          key={doc.id}
-                          className={`rounded-xl border bg-white p-4 ${selectedDocIds.has(doc.id) ? 'border-[#d73f09]' : 'border-[#d8d1c7]'}`}
-                        >
-                          <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                            <div className="min-w-0 flex-1">
-                              <div className="flex flex-wrap items-center gap-2">
-                                <input
-                                  type="checkbox"
-                                  checked={selectedDocIds.has(doc.id)}
-                                  onChange={(e) => {
-                                    const next = new Set(selectedDocIds);
-                                    e.target.checked ? next.add(doc.id) : next.delete(doc.id);
-                                    setSelectedDocIds(next);
-                                  }}
-                                  className="h-4 w-4 accent-[#d73f09]"
-                                />
-                                <p className="font-semibold text-primary">
-                                  {doc.title || doc.filename}
-                                </p>
-                                <span
-                                  className={`rounded-full px-2 py-1 text-xs font-semibold ${doc.is_active ? "bg-green-100 text-green-700" : "bg-gray-100 text-secondary"}`}
-                                >
-                                  {doc.is_active ? "Active" : "Archived"}
-                                </span>
-                                {renderStatusPill(doc)}
-                                {(processingId === doc.id ||
-                                  doc.processing_status === "pending" ||
-                                  doc.processing_status === "validating" ||
-                                  doc.processing_status === "processing") &&
-                                  !isProcessed && (
-                                    <span className="animate-pulse rounded-full bg-orange-100 px-2 py-1 text-xs font-semibold text-orange-700">
-                                      {processingId === doc.id
-                                        ? "Processing…"
-                                        : `${doc.processing_status}…`}
-                                    </span>
-                                  )}
-                                {doc.replaced_by_document_id && (
-                                  <span className="rounded-full bg-yellow-100 px-2 py-1 text-xs font-semibold text-yellow-800">
-                                    Replaced
-                                  </span>
-                                )}
-                              </div>
-                              <p className="mt-1 break-all text-xs text-muted">
-                                {doc.filename}
-                              </p>
-                              {renderDocumentMeta(doc)}
-                            </div>
-                            <div className="flex flex-wrap gap-2">
-                              <a
-                                href={viewPdfUrl(doc)}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className={smallSecondaryButton}
-                              >
-                                View PDF
-                              </a>
-                              {!isProcessed && (
-                                <button
-                                  type="button"
-                                  onClick={() => processDocument(doc.id)}
-                                  disabled={
-                                    processingId === doc.id ||
-                                    deletingId === doc.id ||
-                                    isReplacingThis
-                                  }
-                                  className={smallSecondaryButton}
-                                >
-                                  {processingId === doc.id
-                                    ? "Processing..."
-                                    : "Process"}
-                                </button>
-                              )}
-                              <button
-                                type="button"
-                                onClick={() => openEditForm(doc)}
-                                disabled={isReplacingThis}
-                                className={smallSecondaryButton}
-                              >
-                                Edit
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() => openReplaceForm(doc)}
-                                disabled={
-                                  deletingId === doc.id || isReplacingThis
-                                }
-                                className={smallSecondaryButton}
-                              >
-                                Replace PDF
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  updateDocumentStatus(doc.id, !doc.is_active)
-                                }
-                                disabled={
-                                  updatingId === doc.id ||
-                                  deletingId === doc.id ||
-                                  isReplacingThis
-                                }
-                                className={smallSecondaryButton}
-                              >
-                                {updatingId === doc.id
-                                  ? "Updating..."
-                                  : doc.is_active
-                                    ? "Archive"
-                                    : "Unarchive"}
-                              </button>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  deleteDocument(
-                                    doc.id,
-                                    doc.title || doc.filename,
-                                  )
-                                }
-                                disabled={
-                                  deletingId === doc.id || isReplacingThis
-                                }
-                                className="rounded-xl border border-[#d8d1c7] bg-white px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
-                              >
-                                {deletingId === doc.id
-                                  ? "Deleting..."
-                                  : "Delete"}
-                              </button>
-                            </div>
-                          </div>
-                          {editingDocId === doc.id && (
-                            <div className="mt-4 rounded-xl border border-green-200 bg-green-50 p-4">
-                              <div className="mb-3 flex flex-col gap-1 md:flex-row md:items-start md:justify-between">
-                                <div>
-                                  <h3 className="font-semibold text-primary">
-                                    Edit document details
-                                  </h3>
-                                  <p className="text-sm text-secondary">
-                                    Update metadata without replacing the PDF.
-                                  </p>
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={closeEditForm}
-                                  className={smallSecondaryButton}
-                                >
-                                  Cancel
-                                </button>
-                              </div>
-                              <div className="grid gap-3 md:grid-cols-2">
-                                <div>
-                                  <label className={labelClass}>Title</label>
-                                  <input
-                                    value={editForm.title}
-                                    onChange={(e) =>
-                                      setEditForm((prev) => ({
-                                        ...prev,
-                                        title: e.target.value,
-                                      }))
-                                    }
-                                    className={inputClass}
-                                  />
-                                </div>
-                                <div>
-                                  <label className={labelClass}>Category</label>
-                                  <input
-                                    value={editForm.category}
-                                    onChange={(e) =>
-                                      setEditForm((prev) => ({
-                                        ...prev,
-                                        category: e.target.value,
-                                      }))
-                                    }
-                                    className={inputClass}
-                                  />
-                                </div>
-                                <div>
-                                  <label className={labelClass}>Version</label>
-                                  <input
-                                    value={editForm.version}
-                                    onChange={(e) =>
-                                      setEditForm((prev) => ({
-                                        ...prev,
-                                        version: e.target.value,
-                                      }))
-                                    }
-                                    className={inputClass}
-                                  />
-                                </div>
-                                <div>
-                                  <label className={labelClass}>
-                                    Publication date
-                                  </label>
-                                  <input
-                                    type="date"
-                                    value={editForm.publicationDate}
-                                    onChange={(e) =>
-                                      setEditForm((prev) => ({
-                                        ...prev,
-                                        publicationDate: e.target.value,
-                                      }))
-                                    }
-                                    className={inputClass}
-                                  />
-                                </div>
-                                <div>
-                                  <label className={labelClass}>
-                                    Approval status
-                                  </label>
-                                  <select
-                                    value={editForm.approvalStatus}
-                                    onChange={(e) =>
-                                      setEditForm((prev) => ({
-                                        ...prev,
-                                        approvalStatus: e.target.value,
-                                      }))
-                                    }
-                                    className={inputClass}
-                                  >
-                                    <option value="active">Active</option>
-                                    <option value="approved">Approved</option>
-                                    <option value="pending_review">
-                                      Pending review
-                                    </option>
-                                    <option value="archived">Archived</option>
-                                    <option value="draft">Draft</option>
-                                  </select>
-                                </div>
-                                <div className="md:col-span-2">
-                                  <label className={labelClass}>
-                                    Admin notes
-                                  </label>
-                                  <textarea
-                                    value={editForm.documentNotes}
-                                    onChange={(e) =>
-                                      setEditForm((prev) => ({
-                                        ...prev,
-                                        documentNotes: e.target.value,
-                                      }))
-                                    }
-                                    className="min-h-[80px] w-full rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm text-primary"
-                                  />
-                                </div>
-                              </div>
-                              <div className="mt-4 flex flex-wrap gap-2">
-                                <button
-                                  type="button"
-                                  onClick={() => saveDocumentMetadata(doc.id)}
-                                  disabled={savingMetadataId === doc.id}
-                                  className={blueButton}
-                                >
-                                  {savingMetadataId === doc.id
-                                    ? "Saving..."
-                                    : "Save changes"}
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={closeEditForm}
-                                  disabled={savingMetadataId === doc.id}
-                                  className={secondaryButton}
-                                >
-                                  Cancel
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                          {replacementOpen && (
-                            <div className="mt-4 rounded-xl border border-blue-200 bg-blue-50 p-4">
-                              <div className="mb-3 flex flex-col gap-1 md:flex-row md:items-start md:justify-between">
-                                <div>
-                                  <h3 className="font-semibold text-primary">
-                                    Replace this PDF
-                                  </h3>
-                                  <p className="text-sm text-secondary">
-                                    The current document will be archived. The
-                                    replacement will be uploaded, processed, and
-                                    made active automatically.
-                                  </p>
-                                </div>
-                                <button
-                                  type="button"
-                                  onClick={closeReplaceForm}
-                                  className={smallSecondaryButton}
-                                >
-                                  Cancel
-                                </button>
-                              </div>
-                              <div className="grid gap-3 md:grid-cols-2">
-                                <div>
-                                  <label className={labelClass}>
-                                    Replacement title
-                                  </label>
-                                  <input
-                                    value={replaceForm.title}
-                                    onChange={(e) =>
-                                      setReplaceForm((prev) => ({
-                                        ...prev,
-                                        title: e.target.value,
-                                      }))
-                                    }
-                                    className={inputClass}
-                                  />
-                                </div>
-                                <div>
-                                  <label className={labelClass}>Category</label>
-                                  <input
-                                    value={replaceForm.category}
-                                    onChange={(e) =>
-                                      setReplaceForm((prev) => ({
-                                        ...prev,
-                                        category: e.target.value,
-                                      }))
-                                    }
-                                    className={inputClass}
-                                  />
-                                </div>
-                                <div>
-                                  <label className={labelClass}>Version</label>
-                                  <input
-                                    value={replaceForm.version}
-                                    onChange={(e) =>
-                                      setReplaceForm((prev) => ({
-                                        ...prev,
-                                        version: e.target.value,
-                                      }))
-                                    }
-                                    placeholder="Example: 2026 update"
-                                    className={inputClass}
-                                  />
-                                </div>
-                                <div>
-                                  <label className={labelClass}>
-                                    Publication date
-                                  </label>
-                                  <input
-                                    type="date"
-                                    value={replaceForm.publicationDate}
-                                    onChange={(e) =>
-                                      setReplaceForm((prev) => ({
-                                        ...prev,
-                                        publicationDate: e.target.value,
-                                      }))
-                                    }
-                                    className={inputClass}
-                                  />
-                                </div>
-                                <div>
-                                  <label className={labelClass}>
-                                    Approval status
-                                  </label>
-                                  <select
-                                    value={replaceForm.approvalStatus}
-                                    onChange={(e) =>
-                                      setReplaceForm((prev) => ({
-                                        ...prev,
-                                        approvalStatus: e.target.value,
-                                      }))
-                                    }
-                                    className={inputClass}
-                                  >
-                                    <option value="active">Active</option>
-                                    <option value="pending_review">
-                                      Pending review
-                                    </option>
-                                    <option value="approved">Approved</option>
-                                    <option value="draft">Draft</option>
-                                  </select>
-                                </div>
-                                <div className="md:col-span-2">
-                                  <label className={labelClass}>
-                                    Admin notes
-                                  </label>
-                                  <textarea
-                                    value={replaceForm.documentNotes}
-                                    onChange={(e) =>
-                                      setReplaceForm((prev) => ({
-                                        ...prev,
-                                        documentNotes: e.target.value,
-                                      }))
-                                    }
-                                    className="min-h-[80px] w-full rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm text-primary"
-                                  />
-                                </div>
-                                <div className="md:col-span-2">
-                                  <label className={labelClass}>
-                                    Replacement PDF
-                                  </label>
-                                  <input
-                                    type="file"
-                                    accept="application/pdf"
-                                    onChange={(e) =>
-                                      setReplaceForm((prev) => ({
-                                        ...prev,
-                                        file: e.target.files?.[0] ?? null,
-                                      }))
-                                    }
-                                    className="w-full rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm text-primary"
-                                  />
-                                </div>
-                              </div>
-                              <div className="mt-4 flex flex-wrap gap-2">
-                                <button
-                                  type="button"
-                                  onClick={replaceDocument}
-                                  disabled={isReplacingThis}
-                                  className={blueButton}
-                                >
-                                  {isReplacingThis
-                                    ? "Replacing and processing..."
-                                    : "Replace and process"}
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={closeReplaceForm}
-                                  disabled={isReplacingThis}
-                                  className={secondaryButton}
-                                >
-                                  Cancel
-                                </button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </section>
-            </>
-          )}
           {activeTab === "feedback" && (
             <>
-              <section className={`${cardClass} space-y-5`}>
-                <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-                  <div>
-                    <h2 className="text-2xl font-bold text-primary">
-                      Feedback Insights
-                    </h2>
-                    <p className="text-sm text-secondary">
-                      Spot weak answers, missing sources, issue trends, and
-                      repeated content gaps.
-                    </p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <a
-                        href="/admin/feedback"
-                        className={smallSecondaryButton}
-                      >
-                        Open detailed feedback review
-                      </a>
-                      <a href="/admin/issues" className={smallSecondaryButton}>
-                        Open detailed issue review
-                      </a>
-                    </div>
-                  </div>
-                  <div className="grid gap-2 sm:grid-cols-[minmax(180px,1fr)_180px_auto]">
-                    <input
-                      type="text"
-                      value={feedbackSearch}
-                      onChange={(e) => setFeedbackSearch(e.target.value)}
-                      placeholder="Search feedback..."
-                      className={inputClass}
-                    />
-                    <select
-                      value={feedbackFilter}
-                      onChange={(e) => setFeedbackFilter(e.target.value as any)}
-                      className={inputClass}
-                    >
-                      <option value="all">All feedback</option>
-                      <option value="helpful">Helpful</option>
-                      <option value="not_helpful">Not helpful</option>
-                      <option value="missing_source">Missing source</option>
-                    </select>
-                    <button
-                      type="button"
-                      onClick={exportFeedbackCSV}
-                      className={secondaryButton}
-                    >
-                      Export CSV
-                    </button>
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-3 md:grid-cols-6">
-                  {[
-                    ["Helpful", feedbackCounts.helpful, "green"],
-                    ["Not helpful", feedbackCounts.not_helpful, "red"],
-                    ["Missing source", feedbackCounts.missing_source, "yellow"],
-                    ["Open issues", openIssues.length, "red"],
-                    ["Reviewed", reviewedIssues.length, "yellow"],
-                    ["Resolved", resolvedIssues.length, "green"],
-                    ["Enhancements", enhancementCandidateIssues.length, "blue"],
-                  ].map(([label, value, color]) => (
-                    <div
-                      key={label}
-                      className={`rounded-xl border p-3 ${color === "green" ? "border-green-300 bg-green-50" : color === "red" ? "border-red-300 bg-red-50" : color === "blue" ? "border-blue-300 bg-blue-50" : "border-yellow-300 bg-yellow-50"}`}
-                    >
-                      <p className="text-xs font-medium text-secondary">
-                        {label}
-                      </p>
-                      <p
-                        className={`text-2xl font-bold ${color === "green" ? "text-green-700" : color === "red" ? "text-red-700" : color === "blue" ? "text-blue-700" : "text-yellow-800"}`}
-                      >
-                        {value}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-                <div className="grid gap-4 lg:grid-cols-2">
-                  <section className={subCardClass}>
-                    <h3 className="font-semibold text-primary">
-                      Top problem questions
-                    </h3>
-                    <p className="text-xs text-secondary">
-                      Questions marked not helpful or missing source most often.
-                    </p>
-                    {topProblemQuestions.length === 0 ? (
-                      <p className="mt-3 text-sm text-secondary">
-                        No problem questions yet.
-                      </p>
-                    ) : (
-                      <div className="mt-3 space-y-2">
-                        {topProblemQuestions.map((item, index) => (
-                          <div
-                            key={`${item.question}-${index}`}
-                            className="rounded-xl border border-[#d8d1c7] bg-white p-3"
-                          >
-                            <div className="flex items-start justify-between gap-3">
-                              <p className="line-clamp-2 text-sm font-semibold text-primary">
-                                {item.question}
-                              </p>
-                              <span className="shrink-0 rounded-full border border-[#d8d1c7] px-2 py-1 text-xs text-secondary">
-                                {item.count}x
-                              </span>
-                            </div>
-                            <p className="mt-1 text-xs text-muted">
-                              {Array.from(item.types).join(", ")}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </section>
-                  <section className={subCardClass}>
-                    <h3 className="font-semibold text-primary">
-                      Most common issue types
-                    </h3>
-                    <p className="text-xs text-secondary">
-                      Issue report categories submitted by users.
-                    </p>
-                    {issueTypeCounts.length === 0 ? (
-                      <p className="mt-3 text-sm text-secondary">
-                        No issue types yet.
-                      </p>
-                    ) : (
-                      <div className="mt-3 space-y-2">
-                        {issueTypeCounts.map(([issueType, count]) => (
-                          <div
-                            key={issueType}
-                            className="flex items-center justify-between rounded-xl border border-[#d8d1c7] bg-white p-3 text-sm text-primary"
-                          >
-                            <span>{issueType}</span>
-                            <span className="rounded-full border border-[#d8d1c7] px-2 py-1 text-xs text-secondary">
-                              {count}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </section>
-                </div>
-                <section className={subCardClass}>
-                  <div className="flex flex-col gap-1 sm:flex-row sm:items-start sm:justify-between">
-                    <div>
-                      <h3 className="font-semibold text-primary">
-                        Recent feedback
-                      </h3>
-                      <p className="text-xs text-secondary">
-                        Filtered list for quick review and export.
-                      </p>
-                    </div>
-                    <span className="w-fit rounded-full border border-[#d8d1c7] bg-white px-2 py-1 text-xs font-semibold text-secondary">
-                      {filteredFeedback.length} showing
-                    </span>
-                  </div>
-                  {filteredFeedback.length === 0 ? (
-                    <p className="mt-3 rounded-xl border border-[#d8d1c7] bg-white p-3 text-sm text-secondary">
-                      No feedback matches the current search/filter.
-                    </p>
-                  ) : (
-                    <div className="mt-3 grid gap-3">
-                      {filteredFeedback.map((item) => (
-                        <article
-                          key={item.id}
-                          className="rounded-2xl border border-[#d8d1c7] bg-white p-4 shadow-sm"
-                        >
-                          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                            <div className="min-w-0 flex-1">
-                              <p className="whitespace-pre-wrap text-sm font-semibold text-primary">
-                                {item.question || "No question saved"}
-                              </p>
-                              {item.answer && (
-                                <div className="mt-3 rounded-xl bg-[#fcfaf7] p-3">
-                                  <p className="text-xs font-semibold uppercase tracking-wide text-muted">
-                                    Answer excerpt
-                                  </p>
-                                  <p className="mt-1 line-clamp-4 whitespace-pre-wrap text-xs text-muted">
-                                    {item.answer}
-                                  </p>
-                                </div>
-                              )}
-                              <p className="mt-2 text-xs text-muted">
-                                {new Date(item.created_at).toLocaleString()}
-                              </p>
-                            </div>
-                            <span className="w-fit rounded-full bg-gray-100 px-2 py-1 text-xs font-semibold text-secondary">
-                              {item.feedback_type.replaceAll("_", " ")}
-                            </span>
-                          </div>
-                        </article>
-                      ))}
-                    </div>
-                  )}
-                </section>
-              </section>
-              {(() => {
-                const suggestions = feedback.filter(
-                  (f) => (f.feedback_type === 'source_issue' || f.feedback_type === 'missing_source') && !declinedFeedbackIds.has(f.id)
-                );
-                if (suggestions.length === 0) return null;
-                return (
-                  <section className={`${cardClass} space-y-4`}>
-                    <div>
-                      <h2 className="text-2xl font-bold text-primary">Source Suggestions</h2>
-                      <p className="text-sm text-secondary">
-                        Users suggested these sources when they felt an answer was incomplete. Review each one, write a verified answer, then approve or decline.
-                      </p>
-                    </div>
-                    <div className="space-y-3">
-                      {suggestions.map((item) => {
-                        const marker = 'User source suggestion:';
-                        const idx = (item.answer ?? '').indexOf(marker);
-                        const suggestion = idx !== -1 ? item.answer!.slice(idx + marker.length).trim() : '';
-                        const isReviewing = reviewingFeedbackId === item.id;
-                        const isLoading = reviewFeedbackLoading === item.id;
-                        return (
-                          <div key={item.id} className="rounded-xl border border-[#d8d1c7] p-3 space-y-2">
-                            <div className="flex items-start justify-between gap-2">
-                              <p className="text-sm font-semibold text-primary">{item.question || '—'}</p>
-                              <div className="flex shrink-0 gap-1">
-                                <button
-                                  type="button"
-                                  onClick={() => setReviewingFeedbackId(isReviewing ? null : item.id)}
-                                  className="rounded-lg border border-[#d8d1c7] bg-white px-3 py-1 text-xs font-semibold text-primary hover:bg-[#f3f0ed]"
-                                >
-                                  {isReviewing ? 'Cancel' : 'Review'}
-                                </button>
-                                {!isReviewing && (
-                                  <button
-                                    type="button"
-                                    onClick={() => setDeclinedFeedbackIds((prev) => new Set([...prev, item.id]))}
-                                    className="rounded-lg border border-[#d8d1c7] bg-white px-3 py-1 text-xs font-semibold text-red-600 hover:bg-red-50"
-                                  >
-                                    Decline
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                            {suggestion && (
-                              <div className="rounded-lg bg-blue-50 border border-blue-100 px-3 py-2">
-                                <p className="text-xs font-semibold text-blue-700 mb-1">User&apos;s suggestion</p>
-                                <p className="text-sm text-blue-900">{suggestion}</p>
-                              </div>
-                            )}
-                            <p className="text-xs text-muted">{new Date(item.created_at).toLocaleString()}{!item.user_id ? ' • anonymous' : ''}</p>
-                            {isReviewing && (
-                              <div className="space-y-2 border-t border-[#f0ede9] pt-2">
-                                <label className="text-xs font-semibold text-secondary">Your verified answer</label>
-                                <textarea
-                                  rows={4}
-                                  value={reviewFeedbackAnswers[item.id] ?? ''}
-                                  onChange={(e) => setReviewFeedbackAnswers((prev) => ({ ...prev, [item.id]: e.target.value }))}
-                                  placeholder="Write the correct, verified answer based on the source suggestion..."
-                                  className="w-full rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm text-primary"
-                                />
-                                <div className="flex flex-wrap gap-2">
-                                  <button
-                                    type="button"
-                                    disabled={isLoading}
-                                    onClick={() => resolveSourceSuggestion(item, 'trust')}
-                                    className={smallSecondaryButton}
-                                  >
-                                    Save as trusted answer
-                                  </button>
-                                  {item.user_id && (
-                                    <button
-                                      type="button"
-                                      disabled={isLoading}
-                                      onClick={() => resolveSourceSuggestion(item, 'email')}
-                                      className={smallSecondaryButton}
-                                    >
-                                      Email user
-                                    </button>
-                                  )}
-                                  {item.user_id && (
-                                    <button
-                                      type="button"
-                                      disabled={isLoading}
-                                      onClick={() => resolveSourceSuggestion(item, 'both')}
-                                      className="rounded-xl border border-[#d73f09] bg-[#d73f09] px-3 py-1 text-xs font-semibold text-white hover:opacity-90 disabled:opacity-50"
-                                    >
-                                      {isLoading ? 'Saving…' : 'Save & send to user'}
-                                    </button>
-                                  )}
-                                  <button
-                                    type="button"
-                                    disabled={isLoading}
-                                    onClick={() => {
-                                      setDeclinedFeedbackIds((prev) => new Set([...prev, item.id]));
-                                      setReviewingFeedbackId(null);
-                                    }}
-                                    className="rounded-xl border border-[#d8d1c7] bg-white px-3 py-1 text-xs font-semibold text-red-600 hover:bg-red-50"
-                                  >
-                                    Decline
-                                  </button>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </section>
-                );
-              })()}
+              {/* Feedback */}
               <section className={`${cardClass} space-y-4`}>
-                <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <h2 className="text-2xl font-bold text-primary">
-                      Issue Reports
-                    </h2>
-                    <p className="text-sm text-secondary">
-                      Review user-reported problems, questions, source
-                      concerns, and enhancement candidates.
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <a href="/admin/issues" className={smallSecondaryButton}>
-                      Open detailed review
-                    </a>
-                    <span className="w-fit rounded-full border border-[#d8d1c7] bg-[#fcfaf7] px-3 py-1 text-xs font-semibold text-secondary">
-                      {openIssues.length} new
-                    </span>
+                    <h2 className="text-2xl font-bold text-primary">User Feedback</h2>
+                    <p className="text-sm text-secondary">{feedbackCounts.helpful} helpful · {feedbackCounts.not_helpful} not helpful · {feedbackCounts.missing_source} source issues</p>
                   </div>
                 </div>
-                <div className="grid gap-2 sm:grid-cols-[minmax(180px,1fr)_220px]">
+                <div className="flex flex-wrap gap-2">
                   <input
-                    type="text"
-                    value={issueSearch}
-                    onChange={(e) => setIssueSearch(e.target.value)}
-                    placeholder="Search issue type, user, question, or description..."
+                    value={feedbackSearch}
+                    onChange={(e) => setFeedbackSearch(e.target.value)}
+                    placeholder="Search feedback…"
                     className={inputClass}
                   />
-                  <select
-                    value={issueStatusFilter}
-                    onChange={(e) =>
-                      setIssueStatusFilter(e.target.value as any)
-                    }
-                    className={inputClass}
-                  >
-                    <option value="all">All issue statuses</option>
-                    <option value="new">New</option>
-                    <option value="reviewed">Reviewed</option>
-                    <option value="enhancement_candidate">
-                      Enhancement candidate
-                    </option>
-                    <option value="resolved">Resolved</option>
+                  <select value={feedbackFilter} onChange={(e) => setFeedbackFilter(e.target.value as any)} className={inputClass}>
+                    <option value="all">All types</option>
+                    <option value="helpful">Helpful</option>
+                    <option value="not_helpful">Not helpful</option>
+                    <option value="missing_source">Source issue</option>
                   </select>
                 </div>
-                {issueReports.length === 0 ? (
-                  <p className="text-sm text-secondary">
-                    No issue reports submitted yet.
-                  </p>
-                ) : filteredIssueReports.length === 0 ? (
-                  <p className="rounded-xl border border-[#d8d1c7] bg-white p-3 text-sm text-secondary">
-                    No issue reports match the current search/filter.
-                  </p>
+                {filteredFeedback.length === 0 ? (
+                  <p className="text-sm text-secondary">No feedback matching filters.</p>
                 ) : (
-                  <div className="grid gap-3">
-                    {filteredIssueReports.map((item) => (
-                      <article
-                        key={item.id}
-                        className="rounded-2xl border border-[#d8d1c7] bg-white p-4 shadow-sm"
-                      >
-                        <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
-                          <div className="min-w-0 flex-1">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <h3 className="text-sm font-bold text-primary">
-                                {item.issue_type}
-                              </h3>
-                              <span
-                                className={`rounded-full px-2 py-1 text-xs font-semibold ${getIssueStatusClass(item.status)}`}
-                              >
-                                {getIssueStatusDisplay(item.status)}
-                              </span>
-                            </div>
-                            <p className="mt-1 text-xs text-muted">
-                              {item.user_email || "Unknown user"} •{" "}
-                              {new Date(item.created_at).toLocaleString()}
-                            </p>
-                            {item.related_question && (
-                              <div className="mt-3 rounded-xl bg-[#fcfaf7] p-3">
-                                <p className="text-xs font-semibold uppercase tracking-wide text-muted">
-                                  Related question
-                                </p>
-                                <p className="mt-1 whitespace-pre-wrap text-sm text-primary">
-                                  {item.related_question}
-                                </p>
-                              </div>
-                            )}
-                            <div className="mt-3 rounded-xl bg-[#fcfaf7] p-3">
-                              <p className="text-xs font-semibold uppercase tracking-wide text-muted">
-                                Description
-                              </p>
-                              <p className="mt-1 whitespace-pre-wrap text-sm text-primary">
-                                {item.description}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="grid shrink-0 grid-cols-2 gap-2 sm:grid-cols-4 lg:w-56 lg:grid-cols-1">
-                            {item.status !== "reviewed" && (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  updateIssueStatus(item, "reviewed")
-                                }
-                                disabled={updatingIssueId === item.id}
-                                className="min-h-11 rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-[#f3f0ed] disabled:opacity-60"
-                              >
-                                Mark reviewed
-                              </button>
-                            )}
-                            {item.status !== "enhancement_candidate" && (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  updateIssueStatus(
-                                    item,
-                                    "enhancement_candidate",
-                                  )
-                                }
-                                disabled={updatingIssueId === item.id}
-                                className="min-h-11 rounded-xl border border-blue-300 bg-white px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-50 disabled:opacity-60"
-                              >
-                                Enhancement
-                              </button>
-                            )}
-                            {item.status !== "resolved" && (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  updateIssueStatus(item, "resolved")
-                                }
-                                disabled={updatingIssueId === item.id}
-                                className="min-h-11 rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-[#f3f0ed] disabled:opacity-60"
-                              >
-                                Mark resolved
-                              </button>
-                            )}
-                            {item.status !== "new" &&
-                              item.status !== "open" && (
-                                <button
-                                  type="button"
-                                  onClick={() => updateIssueStatus(item, "new")}
-                                  disabled={updatingIssueId === item.id}
-                                  className="min-h-11 rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm font-semibold text-primary hover:bg-[#f3f0ed] disabled:opacity-60"
-                                >
-                                  Reopen
-                                </button>
-                              )}
-                          </div>
+                  <div className="space-y-3">
+                    {filteredFeedback.map((item) => (
+                      <div key={item.id} className={`${subCardClass} space-y-2 ${declinedFeedbackIds.has(item.id) ? 'opacity-50' : ''}`}>
+                        <div className="flex items-start justify-between gap-2">
+                          <span className={`rounded-full px-2 py-0.5 text-xs font-semibold capitalize ${
+                            item.feedback_type === 'helpful' ? 'bg-green-100 text-green-700' :
+                            item.feedback_type === 'not_helpful' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-blue-100 text-blue-700'
+                          }`}>{item.feedback_type.replaceAll('_', ' ')}</span>
+                          <span className="text-xs text-muted">{new Date(item.created_at).toLocaleDateString()}</span>
                         </div>
-                      </article>
+                        {item.question && <p className="text-sm font-semibold text-primary">{item.question}</p>}
+                        {item.feedback_type !== 'helpful' && !declinedFeedbackIds.has(item.id) && (
+                          <>
+                            {reviewingFeedbackId === item.id ? (
+                              <div className="space-y-2">
+                                <textarea
+                                  value={reviewFeedbackAnswers[item.id] ?? ''}
+                                  onChange={(e) => setReviewFeedbackAnswers((prev) => ({ ...prev, [item.id]: e.target.value }))}
+                                  className="min-h-20 w-full rounded-xl border border-[#d8d1c7] p-3 text-sm"
+                                  placeholder="Write a verified answer to save or send…"
+                                />
+                                <div className="flex flex-wrap gap-2">
+                                  <button type="button" onClick={() => resolveSourceSuggestion(item, 'trust')} disabled={reviewFeedbackLoading === item.id} className={primaryButton}>Save as trusted</button>
+                                  <button type="button" onClick={() => resolveSourceSuggestion(item, 'email')} disabled={reviewFeedbackLoading === item.id} className={secondaryButton}>Email user</button>
+                                  <button type="button" onClick={() => resolveSourceSuggestion(item, 'both')} disabled={reviewFeedbackLoading === item.id} className={secondaryButton}>Both</button>
+                                  <button type="button" onClick={() => setReviewingFeedbackId(null)} className={secondaryButton}>Cancel</button>
+                                </div>
+                              </div>
+                            ) : (
+                              <button type="button" onClick={() => setReviewingFeedbackId(item.id)} className={secondaryButton}>Review &rarr;</button>
+                            )}
+                          </>
+                        )}
+                      </div>
                     ))}
                   </div>
                 )}
               </section>
+
+              {/* No-answer items */}
+              {noAnswerItems.length > 0 && (
+                <section className={`${cardClass} space-y-4`}>
+                  <div>
+                    <h2 className="text-2xl font-bold text-primary">Unanswered Questions</h2>
+                    <p className="text-sm text-secondary">{noAnswerItems.length} question{noAnswerItems.length !== 1 ? 's' : ''} with no source found</p>
+                  </div>
+                  <div className="space-y-3">
+                    {noAnswerItems.map((item) => (
+                      <div key={item.id} className={`${subCardClass} space-y-2`}>
+                        <p className="text-sm font-semibold text-primary">{item.question}</p>
+                        <div className="flex flex-wrap gap-2 text-xs text-muted">
+                          {item.category && <span className="rounded-full bg-[#f3f0ed] px-2 py-0.5">{item.category}</span>}
+                          <span>{new Date(item.created_at).toLocaleDateString()}</span>
+                        </div>
+                        {resolvingId === item.id ? (
+                          <div className="space-y-2">
+                            <textarea
+                              value={resolveAnswers[item.id] ?? ''}
+                              onChange={(e) => setResolveAnswers((prev) => ({ ...prev, [item.id]: e.target.value }))}
+                              className="min-h-20 w-full rounded-xl border border-[#d8d1c7] p-3 text-sm"
+                              placeholder="Write an answer to save or send…"
+                            />
+                            <div className="flex flex-wrap gap-2">
+                              <button type="button" onClick={() => resolveNoAnswer(item, 'trust')} disabled={resolveLoading === item.id} className={primaryButton}>Save as trusted</button>
+                              <button type="button" onClick={() => resolveNoAnswer(item, 'email')} disabled={resolveLoading === item.id} className={secondaryButton}>Email user</button>
+                              <button type="button" onClick={() => resolveNoAnswer(item, 'both')} disabled={resolveLoading === item.id} className={secondaryButton}>Both</button>
+                              <button type="button" onClick={() => setResolvingId(null)} className={secondaryButton}>Cancel</button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button type="button" onClick={() => setResolvingId(item.id)} className={secondaryButton}>Respond &rarr;</button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+
+              {/* Issue reports */}
               <section className={`${cardClass} space-y-4`}>
                 <div>
-                  <h2 className="text-2xl font-bold text-primary">
-                    Content Gaps
-                  </h2>
-                  <p className="text-sm text-secondary">
-                    Questions the Reference system could not answer and frequently
-                    requested topics.
-                  </p>
+                  <h2 className="text-2xl font-bold text-primary">Issue Reports</h2>
+                  <p className="text-sm text-secondary">{openIssues.length} open · {reviewedIssues.length} reviewed · {resolvedIssues.length} resolved</p>
                 </div>
-                <div className="grid gap-4 lg:grid-cols-2">
-                  <div>
-                    <h3 className="font-semibold text-primary">
-                      Top repeated gaps
-                    </h3>
-                    {contentGaps.length === 0 ? (
-                      <p className="mt-2 text-sm text-secondary">
-                        No gaps yet.
-                      </p>
-                    ) : (
-                      <div className="mt-3 space-y-2">
-                        {contentGaps.map((gap, index) => (
-                          <div
-                            key={index}
-                            className="rounded-xl border border-[#d8d1c7] p-3"
-                          >
-                            <div className="flex justify-between gap-3">
-                              <p className="text-sm font-semibold text-primary">
-                                {gap.question}
-                              </p>
-                              <span className="text-xs text-muted">
-                                {gap.count}x
-                              </span>
-                            </div>
-                            <p className="mt-1 text-xs text-muted">
-                              Mode: {gap.answer_mode || "general"}
-                              {gap.category
-                                ? ` • Category: ${gap.category}`
-                                : ""}
-                            </p>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <div>
-                    <h3 className="font-semibold text-primary">
-                      Unanswered questions
-                    </h3>
-                    <p className="mt-1 text-sm text-secondary">
-                      Questions where the AI returned no answer. Write a response, save it as a trusted answer, and optionally email the user who asked.
-                    </p>
-                    {noAnswerItems.length === 0 ? (
-                      <p className="mt-2 text-sm text-secondary">
-                        No unanswered questions yet.
-                      </p>
-                    ) : (
-                      <div className="mt-3 space-y-3">
-                        {noAnswerItems.slice(0, 20).map((item) => (
-                          <div
-                            key={item.id}
-                            className="rounded-xl border border-[#d8d1c7] p-3 space-y-2"
-                          >
-                            <div className="flex items-start justify-between gap-2">
-                              <p className="text-sm font-semibold text-primary">{item.question}</p>
-                              <button
-                                type="button"
-                                onClick={() => setResolvingId(resolvingId === item.id ? null : item.id)}
-                                className="shrink-0 rounded-lg border border-[#d8d1c7] bg-white px-3 py-1 text-xs font-semibold text-primary hover:bg-[#f3f0ed]"
-                              >
-                                {resolvingId === item.id ? 'Cancel' : 'Resolve'}
-                              </button>
-                            </div>
-                            <p className="text-xs text-muted">
-                              {item.answer_mode || "general"}
-                              {item.category ? ` • ${item.category}` : ""}
-                              {" • "}{new Date(item.created_at).toLocaleString()}
-                              {!item.user_id && " • anonymous"}
-                            </p>
-                            {resolvingId === item.id && (
-                              <div className="space-y-2 border-t border-[#f0ede9] pt-2">
-                                <label className="text-xs font-semibold text-secondary">Your answer</label>
-                                <textarea
-                                  rows={4}
-                                  value={resolveAnswers[item.id] ?? ""}
-                                  onChange={(e) => setResolveAnswers((prev) => ({ ...prev, [item.id]: e.target.value }))}
-                                  placeholder="Write the answer to this question..."
-                                  className="w-full rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm text-primary"
-                                />
-                                <div className="flex flex-wrap gap-2">
-                                  <button
-                                    type="button"
-                                    disabled={resolveLoading === item.id}
-                                    onClick={() => resolveNoAnswer(item, 'trust')}
-                                    className={smallSecondaryButton}
-                                  >
-                                    Save as trusted answer
-                                  </button>
-                                  {item.user_id && (
-                                    <button
-                                      type="button"
-                                      disabled={resolveLoading === item.id}
-                                      onClick={() => resolveNoAnswer(item, 'email')}
-                                      className={smallSecondaryButton}
-                                    >
-                                      Email user
-                                    </button>
-                                  )}
-                                  {item.user_id && (
-                                    <button
-                                      type="button"
-                                      disabled={resolveLoading === item.id}
-                                      onClick={() => resolveNoAnswer(item, 'both')}
-                                      className="rounded-xl border border-[#d73f09] bg-[#d73f09] px-3 py-1 text-xs font-semibold text-white hover:opacity-90 disabled:opacity-50"
-                                    >
-                                      {resolveLoading === item.id ? 'Saving…' : 'Save & send to user'}
-                                    </button>
-                                  )}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                <div className="flex flex-wrap gap-2">
+                  <input
+                    value={issueSearch}
+                    onChange={(e) => setIssueSearch(e.target.value)}
+                    placeholder="Search issues…"
+                    className={inputClass}
+                  />
+                  <select value={issueStatusFilter} onChange={(e) => setIssueStatusFilter(e.target.value as any)} className={inputClass}>
+                    <option value="all">All statuses</option>
+                    <option value="new">New</option>
+                    <option value="reviewed">Reviewed</option>
+                    <option value="resolved">Resolved</option>
+                    <option value="enhancement_candidate">Enhancement</option>
+                  </select>
                 </div>
+                {filteredIssueReports.length === 0 ? (
+                  <p className="text-sm text-secondary">No issues matching filters.</p>
+                ) : (
+                  <div className="space-y-3">
+                    {filteredIssueReports.map((issue) => (
+                      <div key={issue.id} className={`${subCardClass} space-y-2`}>
+                        <div className="flex items-start justify-between gap-2">
+                          <span className={`rounded-full px-2 py-0.5 text-xs font-semibold capitalize ${getIssueStatusClass(issue.status)}`}>{getIssueStatusDisplay(issue.status)}</span>
+                          <span className="text-xs text-muted">{new Date(issue.created_at).toLocaleDateString()}</span>
+                        </div>
+                        <p className="text-xs font-semibold uppercase tracking-wide text-muted">{issue.issue_type.replaceAll('_', ' ')}</p>
+                        <p className="text-sm text-primary">{issue.description}</p>
+                        {issue.related_question && <p className="text-xs text-secondary italic">Related: {issue.related_question}</p>}
+                        {issue.user_email && <p className="text-xs text-muted">{issue.user_email}</p>}
+                        <div className="flex flex-wrap gap-2">
+                          {(['new', 'reviewed', 'resolved', 'enhancement_candidate'] as const).map((s) => (
+                            <button
+                              key={s}
+                              type="button"
+                              onClick={() => updateIssueStatus(issue, s)}
+                              disabled={updatingIssueId === issue.id || issue.status === s || (issue.status === 'open' && s === 'new')}
+                              className={`rounded-xl border px-3 py-1.5 text-xs font-semibold transition disabled:opacity-40 ${
+                                issue.status === s || (issue.status === 'open' && s === 'new')
+                                  ? 'border-[#d73f09] bg-[#d73f09] text-white'
+                                  : 'border-[#d8d1c7] bg-white text-primary hover:bg-[#f3f0ed]'
+                              }`}
+                            >{s === 'enhancement_candidate' ? 'Enhancement' : s.charAt(0).toUpperCase() + s.slice(1)}</button>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </section>
             </>
           )}
+
           {activeTab === "audit" && (
-            <section className={`${cardClass} space-y-5`}>
-              <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+            <section className={`${cardClass} space-y-4`}>
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold text-primary">
-                    Audit Logs
-                  </h2>
-                  <p className="text-sm text-secondary">
-                    Review recent admin actions captured by the audit logging
-                    system. Showing the latest 100 events for performance.
-                  </p>
+                  <h2 className="text-2xl font-bold text-primary">Audit Logs</h2>
+                  <p className="text-sm text-secondary">{filteredAuditLogs.length} of {auditLogs.length} entries</p>
                 </div>
-                <button
-                  type="button"
-                  onClick={loadAuditLogs}
-                  className={secondaryButton}
-                >
-                  Refresh logs
-                </button>
+                <button type="button" onClick={exportAuditLogsCSV} className={secondaryButton}>Export CSV</button>
               </div>
-              <div className="grid gap-3 md:grid-cols-[1fr_180px_220px]">
+
+              <div className="flex flex-wrap gap-2">
                 <input
-                  type="text"
                   value={auditSearch}
                   onChange={(e) => setAuditSearch(e.target.value)}
-                  placeholder="Search actor, action, target, or metadata..."
+                  placeholder="Search by action, email, target…"
                   className={inputClass}
                 />
-                <select
-                  value={auditStatusFilter}
-                  onChange={(e) => setAuditStatusFilter(e.target.value as any)}
-                  className={inputClass}
-                >
+                <select value={auditStatusFilter} onChange={(e) => setAuditStatusFilter(e.target.value as any)} className={inputClass}>
                   <option value="all">All statuses</option>
                   <option value="success">Success</option>
                   <option value="failure">Failure</option>
                 </select>
-                <select
-                  value={auditActionFilter}
-                  onChange={(e) => setAuditActionFilter(e.target.value)}
-                  className={inputClass}
-                >
+                <select value={auditActionFilter} onChange={(e) => setAuditActionFilter(e.target.value)} className={inputClass}>
                   <option value="all">All actions</option>
-                  {auditActionOptions.map((action) => (
-                    <option key={action} value={action}>
-                      {action}
-                    </option>
-                  ))}
+                  {auditActionOptions.map((a) => <option key={a} value={a}>{a}</option>)}
                 </select>
-              </div>
-              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                {[
-                  ["Loaded logs", auditLogs.length],
-                  ["Showing", filteredAuditLogs.length],
-                  [
-                    "Successful",
-                    auditLogs.filter((log) => log.status === "success").length,
-                  ],
-                  [
-                    "Failures",
-                    auditLogs.filter((log) => log.status === "failure").length,
-                  ],
-                ].map(([label, value]) => (
-                  <div
-                    key={String(label)}
-                    className="rounded-xl border border-[#d8d1c7] bg-white p-3"
-                  >
-                    <p className="text-xs text-secondary">{label}</p>
-                    <p className="text-2xl font-bold text-primary">{value}</p>
-                  </div>
-                ))}
-              </div>
-              {auditLogs.length === 0 ? (
-                <p className="rounded-xl border border-[#d8d1c7] bg-white p-4 text-sm text-secondary">
-                  No audit logs found yet. Admin actions logged after Phase 11B
-                  should appear here.
-                </p>
-              ) : filteredAuditLogs.length === 0 ? (
-                <p className="rounded-xl border border-[#d8d1c7] bg-white p-4 text-sm text-secondary">
-                  No audit logs match the current search/filter.
-                </p>
-              ) : (
-                <>
-                  <div className="grid gap-3 lg:hidden">
-                    {filteredAuditLogs.map((log) => (
-                      <article
-                        key={log.id}
-                        className="rounded-2xl border border-[#d8d1c7] bg-white p-4 shadow-sm"
-                      >
-                        <div className="space-y-3">
-                          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                            <div>
-                              <p className="break-words text-sm font-bold text-primary">
-                                {log.action}
-                              </p>
-                              <p className="mt-1 break-words text-xs text-muted">
-                                {new Date(log.created_at).toLocaleString()}
-                              </p>
-                            </div>
-                            <span
-                              className={`w-fit rounded-full px-2 py-1 text-xs font-semibold ${getAuditStatusClass(log.status)}`}
-                            >
-                              {log.status}
-                            </span>
-                          </div>
-                          <div className="grid gap-2 text-sm">
-                            <div className="rounded-xl bg-[#fcfaf7] p-3">
-                              <p className="text-xs font-semibold uppercase tracking-wide text-muted">
-                                Actor
-                              </p>
-                              <p className="mt-1 break-words text-primary">
-                                {log.actor_email || "Unknown actor"}
-                              </p>
-                              <p className="mt-1 text-xs text-muted">
-                                {log.actor_role || "No role saved"}
-                              </p>
-                            </div>
-                            <div className="rounded-xl bg-[#fcfaf7] p-3">
-                              <p className="text-xs font-semibold uppercase tracking-wide text-muted">
-                                Target
-                              </p>
-                              <p className="mt-1 break-words text-primary">
-                                {log.target_type || "—"}
-                              </p>
-                              <p className="mt-1 break-all text-xs text-muted">
-                                {log.target_id || "—"}
-                              </p>
-                            </div>
-                            <div className="min-w-0 rounded-xl bg-[#fcfaf7] p-3">
-                              <p className="text-xs font-semibold uppercase tracking-wide text-muted">
-                                Metadata
-                              </p>
-                              <pre className="mt-1 max-h-28 max-w-full overflow-hidden whitespace-pre-wrap break-all rounded-xl bg-white p-2 text-xs text-muted">
-                                {formatAuditMetadata(log.metadata)}
-                              </pre>
-                            </div>
-                          </div>
-                        </div>
-                      </article>
-                    ))}
-                  </div>
-                  <div className="hidden max-h-[620px] overflow-y-auto rounded-xl border border-[#d8d1c7] lg:block">
-                    <table className="w-full text-sm text-primary">
-                      <thead className="sticky top-0 bg-[#fcfaf7]">
-                        <tr>
-                          <th className="p-3 text-left">Date</th>
-                          <th className="p-3 text-left">Actor</th>
-                          <th className="p-3 text-left">Action</th>
-                          <th className="p-3 text-left">Target</th>
-                          <th className="p-3 text-left">Status</th>
-                          <th className="p-3 text-left">Metadata</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {filteredAuditLogs.map((log) => (
-                          <tr
-                            key={log.id}
-                            className="border-t border-[#d8d1c7] align-top"
-                          >
-                            <td className="p-3 text-xs text-muted">
-                              {new Date(log.created_at).toLocaleString()}
-                            </td>
-                            <td className="p-3">
-                              <p className="break-words text-xs font-semibold text-primary">
-                                {log.actor_email || "Unknown actor"}
-                              </p>
-                              <p className="mt-1 text-xs text-muted">
-                                {log.actor_role || "No role"}
-                              </p>
-                            </td>
-                            <td className="p-3 text-xs font-semibold text-primary">
-                              {log.action}
-                            </td>
-                            <td className="p-3 text-xs text-muted">
-                              <p>{log.target_type || "—"}</p>
-                              <p className="mt-1 break-all text-xs">
-                                {log.target_id || "—"}
-                              </p>
-                            </td>
-                            <td className="p-3">
-                              <span
-                                className={`rounded-full px-2 py-1 text-xs font-semibold ${getAuditStatusClass(log.status)}`}
-                              >
-                                {log.status}
-                              </span>
-                            </td>
-                            <td className="max-w-xs p-3 text-xs text-muted">
-                              <p className="line-clamp-4 break-all">
-                                {formatAuditMetadata(log.metadata)}
-                              </p>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </>
-              )}
-            </section>
-          )}
-          {activeTab === "trusted" && (
-            <section className={`${cardClass} space-y-4`}>
-              <div>
-                <h2 className="text-2xl font-bold text-primary">
-                  Trusted Answers
-                </h2>
-                <p className="text-sm text-secondary">
-                  Manage administrator-approved answers reused by chat before
-                  calling AI search.
-                </p>
-              </div>
-              {trustedAnswers.length === 0 ? (
-                <p className="text-sm text-secondary">
-                  No trusted answers saved yet.
-                </p>
-              ) : (
-                <div className="space-y-3">
-                  {trustedAnswers.map((item) => (
-                    <div
-                      key={item.id}
-                      className="space-y-3 rounded-xl border border-[#d8d1c7] p-4"
-                    >
-                      {editingTrustedId === item.id ? (
-                        <>
-                          <div>
-                            <label className={labelClass}>
-                              Trusted question
-                            </label>
-                            <input
-                              value={trustedEditQuestion}
-                              onChange={(e) =>
-                                setTrustedEditQuestion(e.target.value)
-                              }
-                              className={inputClass}
-                            />
-                          </div>
-                          <div>
-                            <label className={labelClass}>Trusted answer</label>
-                            <textarea
-                              value={trustedEditAnswer}
-                              onChange={(e) =>
-                                setTrustedEditAnswer(e.target.value)
-                              }
-                              className="min-h-[160px] w-full rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-sm text-primary"
-                            />
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            <button
-                              type="button"
-                              onClick={() => updateTrustedAnswer(item)}
-                              className={primaryButton}
-                            >
-                              Save changes
-                            </button>
-                            <button
-                              type="button"
-                              onClick={cancelEditTrustedAnswer}
-                              className={secondaryButton}
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </>
-                      ) : (
-                        <>
-                          <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
-                            <div>
-                              <p className="font-semibold text-primary">
-                                {item.question}
-                              </p>
-                              <p className="mt-1 whitespace-pre-wrap text-sm text-secondary">
-                                {item.answer}
-                              </p>
-                              <p className="mt-2 text-xs text-muted">
-                                Mode: {item.answer_mode || "general"}
-                                {item.category
-                                  ? ` • Category: ${item.category}`
-                                  : ""}{" "}
-                                • {new Date(item.created_at).toLocaleString()}
-                              </p>
-                            </div>
-                            <span
-                              className={`w-fit rounded-full px-2 py-1 text-xs font-semibold ${item.is_active ? "bg-green-100 text-green-700" : "bg-gray-100 text-secondary"}`}
-                            >
-                              {item.is_active ? "active" : "inactive"}
-                            </span>
-                          </div>
-                          <div className="flex flex-wrap gap-2 border-t border-[#d8d1c7] pt-3">
-                            <button
-                              type="button"
-                              onClick={() => startEditTrustedAnswer(item)}
-                              className={smallSecondaryButton}
-                            >
-                              Edit
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => toggleTrustedAnswer(item)}
-                              className={smallSecondaryButton}
-                            >
-                              {item.is_active ? "Deactivate" : "Activate"}
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => deleteTrustedAnswer(item)}
-                              className="rounded-xl border border-[#d8d1c7] bg-white px-3 py-1 text-xs font-semibold text-red-700 hover:bg-red-50"
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-              <div className="border-t border-[#d8d1c7] pt-4">
-                <div className="mb-3 flex items-center justify-between">
-                  <div>
-                    <h3 className="font-semibold text-primary">Similar user questions</h3>
-                    <p className="text-sm text-secondary">Chat history questions that closely match an existing trusted answer.</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={loadSimilarQuestions}
-                    disabled={similarQuestionsLoading}
-                    className="rounded-xl border border-[#d8d1c7] bg-white px-3 py-1.5 text-xs font-semibold text-primary hover:bg-[#f3f0ed] disabled:opacity-50"
-                  >
-                    {similarQuestionsLoading ? 'Scanning…' : similarQuestionsLoaded ? 'Re-scan' : 'Scan now'}
-                  </button>
-                </div>
-                {similarQuestionsLoaded && (
-                  similarQuestions.length === 0 ? (
-                    <p className="text-sm text-secondary">No close matches found — your trusted answers cover the ground well.</p>
-                  ) : (
-                    <div className="space-y-2">
-                      {similarQuestions.map((item) => (
-                        <div key={item.chatId} className="rounded-xl border border-[#d8d1c7] p-3 space-y-1">
-                          <div className="flex items-start justify-between gap-2">
-                            <p className="text-sm font-medium text-primary">{item.chatQuestion}</p>
-                            <span className="shrink-0 rounded-full bg-orange-100 px-2 py-0.5 text-xs font-semibold text-orange-700">{item.similarity}% match</span>
-                          </div>
-                          <p className="text-xs text-muted">
-                            Matches trusted: <span className="italic">{item.matchedQuestion}</span>
-                          </p>
-                          <p className="text-xs text-muted">{new Date(item.createdAt).toLocaleString()}</p>
-                        </div>
-                      ))}
-                    </div>
-                  )
+                {(auditSearch || auditStatusFilter !== 'all' || auditActionFilter !== 'all') && (
+                  <button type="button" onClick={() => { setAuditSearch(''); setAuditStatusFilter('all'); setAuditActionFilter('all'); }} className={secondaryButton}>Clear</button>
                 )}
               </div>
+
+              {filteredAuditLogs.length === 0 ? (
+                <p className="text-sm text-secondary">No audit log entries match the current filters.</p>
+              ) : (
+                <div className="overflow-x-auto rounded-xl border border-[#d8d1c7]">
+                  <table className="w-full text-sm">
+                    <thead className="bg-[#f3f0ed] text-xs font-bold uppercase tracking-wide text-secondary">
+                      <tr>
+                        <th className="p-3 text-left">Time</th>
+                        <th className="p-3 text-left">Actor</th>
+                        <th className="p-3 text-left">Action</th>
+                        <th className="p-3 text-left">Target</th>
+                        <th className="p-3 text-left">Status</th>
+                        <th className="p-3 text-left">Details</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#e8e1d8]">
+                      {filteredAuditLogs.map((log) => (
+                        <tr key={log.id} className="hover:bg-[#fcfaf7]">
+                          <td className="whitespace-nowrap p-3 text-xs text-muted">{new Date(log.created_at).toLocaleString()}</td>
+                          <td className="p-3">
+                            <p className="text-xs font-semibold text-primary">{log.actor_email ?? '—'}</p>
+                            {log.actor_role && <p className="text-xs text-muted capitalize">{log.actor_role}</p>}
+                          </td>
+                          <td className="p-3 text-xs font-semibold text-primary">{log.action}</td>
+                          <td className="p-3 text-xs text-secondary">
+                            {log.target_type && <span className="font-semibold">{log.target_type}</span>}
+                            {log.target_id && <span className="ml-1 text-muted">{log.target_id.slice(0, 8)}…</span>}
+                          </td>
+                          <td className="p-3">
+                            <span className={`rounded-full px-2 py-0.5 text-xs font-semibold capitalize ${getAuditStatusClass(log.status)}`}>{log.status}</span>
+                          </td>
+                          <td className="max-w-xs p-3 text-xs text-muted">
+                            <p className="line-clamp-3 break-all">{formatAuditMetadata(log.metadata)}</p>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
             </section>
           )}
         </div>

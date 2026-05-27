@@ -16,6 +16,7 @@ type ProfileForm = {
   avatar_url: string
   bio: string
   phone: string
+  email: string
   is_profile_public: boolean
   show_phone: boolean
   show_email: boolean
@@ -43,6 +44,7 @@ export default function EditProfilePage() {
     avatar_url: '',
     bio: '',
     phone: '',
+    email: '',
     is_profile_public: false,
     show_phone: false,
     show_email: false,
@@ -81,6 +83,7 @@ export default function EditProfilePage() {
           avatar_url: data.avatar_url ?? '',
           bio: data.bio ?? '',
           phone: data.phone ?? '',
+          email: data.email ?? '',
           is_profile_public: Boolean(data.is_profile_public),
           show_phone: Boolean(data.show_phone),
           show_email: Boolean(data.show_email),
@@ -176,6 +179,7 @@ export default function EditProfilePage() {
         avatar_url: form.avatar_url || null,
         bio: form.bio.trim() || null,
         phone: form.phone.trim() || null,
+        email: form.email.trim() || null,
         is_profile_public: form.is_profile_public,
         show_phone: form.show_phone,
         show_email: form.show_email,
@@ -423,9 +427,20 @@ export default function EditProfilePage() {
                 Add contact details and choose what other authenticated MFP members can see.
               </p>
 
-              <div className="mt-5 space-y-3">
+              <div className="mt-5 space-y-4">
                 <div>
-                  <label className={labelClass}>Phone number</label>
+                  <div className="mb-1 flex items-center justify-between gap-3">
+                    <span className={labelClass} style={{ marginBottom: 0 }}>Phone number</span>
+                    <label className="flex cursor-pointer items-center gap-1.5 text-sm text-secondary">
+                      <input
+                        type="checkbox"
+                        checked={form.show_phone}
+                        onChange={(e) => updateField('show_phone', e.target.checked)}
+                        className="h-4 w-4 accent-[#d73f09]"
+                      />
+                      Display in directory
+                    </label>
+                  </div>
                   <input
                     type="tel"
                     value={form.phone}
@@ -435,43 +450,42 @@ export default function EditProfilePage() {
                   />
                 </div>
 
-                <label className="flex gap-3 rounded-2xl border border-[#d8d1c7] bg-[#fcfaf7] p-4">
+                <div>
+                  <div className="mb-1 flex items-center justify-between gap-3">
+                    <span className={labelClass} style={{ marginBottom: 0 }}>Contact email</span>
+                    <label className="flex cursor-pointer items-center gap-1.5 text-sm text-secondary">
+                      <input
+                        type="checkbox"
+                        checked={form.show_email}
+                        onChange={(e) => updateField('show_email', e.target.checked)}
+                        className="h-4 w-4 accent-[#d73f09]"
+                      />
+                      Display in directory
+                    </label>
+                  </div>
                   <input
-                    type="checkbox"
-                    checked={form.show_phone}
-                    onChange={(e) => updateField('show_phone', e.target.checked)}
-                    className="mt-1 h-4 w-4 accent-[#d73f09]"
+                    type="email"
+                    value={form.email}
+                    onChange={(e) => updateField('email', e.target.value)}
+                    placeholder="Example: you@example.com"
+                    className={inputClass}
                   />
-                  <span>
-                    <span className="block font-semibold text-primary">Show my phone number in the directory</span>
-                    <span className="mt-1 block text-sm leading-6 text-secondary">Only visible to authenticated MFP members.</span>
-                  </span>
-                </label>
+                  <p className="mt-1.5 text-xs text-muted">
+                    Does not need to match your login email.
+                  </p>
+                </div>
 
-                <label className="flex gap-3 rounded-2xl border border-[#d8d1c7] bg-[#fcfaf7] p-4">
-                  <input
-                    type="checkbox"
-                    checked={form.show_email}
-                    onChange={(e) => updateField('show_email', e.target.checked)}
-                    className="mt-1 h-4 w-4 accent-[#d73f09]"
-                  />
-                  <span>
-                    <span className="block font-semibold text-primary">Show my email address in the directory</span>
-                    <span className="mt-1 block text-sm leading-6 text-secondary">Only visible to authenticated MFP members.</span>
-                  </span>
-                </label>
-
-                <label className="flex gap-3 rounded-2xl border border-[#d8d1c7] bg-[#fcfaf7] p-4">
+                <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-[#d8d1c7] bg-[#fcfaf7] px-4 py-3">
                   <input
                     type="checkbox"
                     checked={form.is_profile_public}
                     onChange={(e) => updateField('is_profile_public', e.target.checked)}
-                    className="mt-1 h-4 w-4 accent-[#d73f09]"
+                    className="h-4 w-4 shrink-0 accent-[#d73f09]"
                   />
                   <span>
-                    <span className="block font-semibold text-primary">Show my profile in the professional directory</span>
-                    <span className="mt-1 block text-sm leading-6 text-secondary">
-                      When enabled, authenticated users can see your name, location, affiliation, specialties, bio, avatar, and public links.
+                    <span className="block font-semibold text-primary">Show my profile in the directory</span>
+                    <span className="block text-xs leading-5 text-secondary">
+                      Authenticated users can see your name, location, affiliation, specialties, bio, avatar, and public links.
                     </span>
                   </span>
                 </label>

@@ -58,6 +58,7 @@ export default function HeaderBar() {
   const navItems = [
     { href: '/dashboard', label: 'Home', icon: '🏠' },
     { href: '/chat', label: 'Chat', icon: '💬' },
+    { href: '/history', label: 'History', icon: '📋' },
     { href: '/publications', label: 'Publications', icon: '📚' },
     { href: '/profile', label: 'Profile', icon: '👤' },
     { href: '/community', label: 'Community', icon: '🌱' },

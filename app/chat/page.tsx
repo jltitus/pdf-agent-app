@@ -106,6 +106,7 @@ export default function ChatPage() {
   const [message, setMessage] = useState("");
   const [searchState, setSearchState] = useState<SearchState>("idle");
   const lastTurnRef = useRef<HTMLDivElement>(null);
+  const userIdRef = useRef<string | null>(null)
 
   const [category, setCategory] = useState("all");
   const [categories, setCategories] = useState<string[]>([]);
@@ -113,6 +114,8 @@ export default function ChatPage() {
   const [documents, setDocuments] = useState<DocumentOption[]>([]);
   const [answerMode, setAnswerMode] = useState("general");
   const [filtersOpen, setFiltersOpen] = useState(false);
+
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [conversationTurns, setConversationTurns] = useState<
@@ -135,6 +138,27 @@ export default function ChatPage() {
 
   useEffect(() => {
     async function loadData() {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (user?.id) {
+        userIdRef.current = user.id
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single()
+        if (profile?.role === 'admin') setIsAdmin(true)
+        try {
+          const stored = localStorage.getItem(`mfp-chat-turns-${user.id}`)
+          if (stored) {
+            const parsed: ConversationTurn[] = JSON.parse(stored)
+            const complete = parsed
+              .filter((t) => t.answer && t.answer.trim() !== '')
+              .map((t) => ({ ...t, sourceSuggestionOpen: false, sourceSuggestionText: '', expandedSources: [] }))
+            if (complete.length > 0) setConversationTurns(complete.slice(-6))
+          }
+        } catch { /* ignore parse/quota errors */ }
+      }
+
       const { data: docData } = await supabase
         .from("documents")
         .select("id, title, filename, category")
@@ -190,26 +214,17 @@ export default function ChatPage() {
   }, [loading])
 
   useEffect(() => {
-    if (!loading) {
-      setSearchState("idle");
-      return;
-    }
-
-    setSearchState("searching");
-
-    const reviewingTimer = window.setTimeout(() => {
-      setSearchState("reviewing");
-    }, 900);
-
-    const generatingTimer = window.setTimeout(() => {
-      setSearchState("generating");
-    }, 1800);
-
-    return () => {
-      window.clearTimeout(reviewingTimer);
-      window.clearTimeout(generatingTimer);
-    };
+    if (!loading) setSearchState('idle')
   }, [loading]);
+
+  useEffect(() => {
+    if (loading) return
+    const uid = userIdRef.current
+    if (!uid) return
+    try {
+      localStorage.setItem(`mfp-chat-turns-${uid}`, JSON.stringify(conversationTurns))
+    } catch { /* ignore quota errors */ }
+  }, [conversationTurns, loading])
 
   async function refreshHistory() {
     const { data } = await supabase
@@ -258,198 +273,225 @@ async function saveChatAnswer(index: number) {
 
   setMessage('')
 }
-  async function submitQuestion(
-    currentQuestion: string,
-    priorTurns: ConversationTurn[],
-  ) {
-    const { data } = await supabase.auth.getSession();
-    const token = data.session?.access_token;
+  async function readChatStream(
+    res: Response,
+    onStage: (stage: SearchState) => void,
+    onToken: (text: string) => void,
+  ): Promise<{
+    answer: string
+    sources: Source[]
+    evidenceStrength: EvidenceStrength | null
+    chatHistoryId: string | null
+    suggestedFollowUps: string[]
+    trustedAnswer: boolean
+  }> {
+    const reader = res.body!.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
+    let streamedAnswer = ''
 
-    if (!token) {
-      throw new Error("You must be signed in.");
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+
+      buffer += decoder.decode(value, { stream: true })
+      const parts = buffer.split('\n\n')
+      buffer = parts.pop() ?? ''
+
+      for (const part of parts) {
+        const line = part.trim()
+        if (!line.startsWith('data: ')) continue
+
+        let event: any
+        try { event = JSON.parse(line.slice(6)) } catch { continue }
+
+        if (event.type === 'stage') {
+          onStage(event.stage as SearchState)
+        } else if (event.type === 'token') {
+          streamedAnswer += event.text
+          onToken(event.text)
+        } else if (event.type === 'complete') {
+          return {
+            answer: event.answer ?? streamedAnswer,
+            sources: event.sources ?? [],
+            evidenceStrength: event.evidenceStrength ?? null,
+            chatHistoryId: event.chatHistoryId ?? null,
+            suggestedFollowUps: event.suggestedFollowUps ?? [],
+            trustedAnswer: event.trustedAnswer ?? false,
+          }
+        } else if (event.type === 'error') {
+          throw new Error(event.error ?? 'Stream error')
+        }
+      }
     }
 
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        question: currentQuestion,
-        category,
-        documentId,
-        answerMode,
-        conversationTurns: priorTurns.map((turn) => ({
-          question: turn.question,
-          answer: turn.answer,
-        })),
-      }),
-    });
-
-const result = await res.json();
-
-if (!res.ok) {
-  throw new Error(result.error ?? "Something went wrong.");
-}
-
-const activityRes = await fetch('/api/track-user-activity', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify({
-    activityType: 'chat',
-  }),
-})
-
-if (!activityRes.ok) {
-  const activityError = await activityRes.json().catch(() => null)
-  console.error('Activity tracking failed:', activityError)
-}
-
-return result;
-
-
+    throw new Error('Stream ended without a complete event')
   }
 
   async function askQuestion(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
+    e.preventDefault()
 
-    const trimmedQuestion = question.trim();
-    if (!trimmedQuestion) return;
+    const trimmedQuestion = question.trim()
+    if (!trimmedQuestion) return
 
-    setLoading(true);
-    setMessage("");
+    setLoading(true)
+    setMessage('')
 
-    const currentQuestion = trimmedQuestion;
-    const priorTurns = conversationTurns;
+    const currentQuestion = trimmedQuestion
+    const priorTurns = conversationTurns
 
-    setQuestion("");
+    setQuestion('')
+
+    setConversationTurns((prev) =>
+      [
+        ...prev,
+        {
+          question: currentQuestion,
+          answer: '',
+          sources: [],
+          evidenceStrength: null,
+          chatHistoryId: null,
+          feedbackSubmitted: null,
+          trustedAnswer: false,
+          suggestedFollowUps: [],
+          sourceSuggestionOpen: false,
+          sourceSuggestionText: '',
+        },
+      ].slice(-6),
+    )
 
     try {
-      const result = await submitQuestion(currentQuestion, priorTurns);
+      const { data } = await supabase.auth.getSession()
+      const token = data.session?.access_token
+      if (!token) throw new Error('You must be signed in.')
 
-      setConversationTurns((prev) =>
-        [
-          ...prev,
-          {
-            question: currentQuestion,
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          question: currentQuestion,
+          category,
+          documentId,
+          answerMode,
+          conversationTurns: priorTurns.map((turn) => ({
+            question: turn.question,
+            answer: turn.answer,
+          })),
+        }),
+      })
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.error ?? 'Something went wrong.')
+      }
+
+      const result = await readChatStream(
+        res,
+        (stage) => setSearchState(stage),
+        (text) =>
+          setConversationTurns((prev) => {
+            const turns = [...prev]
+            const last = turns[turns.length - 1]
+            if (last) turns[turns.length - 1] = { ...last, answer: last.answer + text }
+            return turns
+          }),
+      )
+
+      setConversationTurns((prev) => {
+        const turns = [...prev]
+        const last = turns[turns.length - 1]
+        if (last) {
+          turns[turns.length - 1] = {
+            ...last,
             answer: result.answer,
-            sources: result.sources ?? [],
-            evidenceStrength: result.evidenceStrength ?? null,
-            chatHistoryId: result.chatHistoryId ?? null,
-            feedbackSubmitted: null,
-            trustedAnswer: result.trustedAnswer ?? false,
-            suggestedFollowUps: result.suggestedFollowUps ?? [],
-            sourceSuggestionOpen: false,
-            sourceSuggestionText: "",
-          },
-        ].slice(-6),
-      );
+            sources: result.sources,
+            evidenceStrength: result.evidenceStrength,
+            chatHistoryId: result.chatHistoryId,
+            trustedAnswer: result.trustedAnswer,
+            suggestedFollowUps: result.suggestedFollowUps,
+          }
+        }
+        return turns
+      })
 
-      setLoading(false);
-      await refreshHistory();
+      setLoading(false)
+      await refreshHistory()
+
+      fetch('/api/track-user-activity', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ activityType: 'chat' }),
+      }).catch(console.error)
     } catch (error: any) {
-      setMessage(error.message ?? "Connection error.");
-      setQuestion(currentQuestion);
-      setLoading(false);
+      setMessage(error.message ?? 'Connection error.')
+      setConversationTurns((prev) => {
+        const turns = [...prev]
+        if (turns.length > 0 && turns[turns.length - 1].answer === '') turns.pop()
+        return turns
+      })
+      setQuestion(currentQuestion)
+      setLoading(false)
     }
   }
 
   async function regenerateTurn(index: number) {
-    const turn = conversationTurns[index];
-    if (!turn) return;
+    const turn = conversationTurns[index]
+    if (!turn) return
 
-    setLoading(true);
-    setMessage("");
+    setLoading(true)
+    setMessage('')
 
-    const priorTurns = conversationTurns.slice(0, index);
+    setConversationTurns((prev) =>
+      prev.map((existingTurn, turnIndex) =>
+        turnIndex === index ? { ...existingTurn, answer: '' } : existingTurn,
+      ),
+    )
 
-    try {
-      const result = await submitQuestion(turn.question, priorTurns);
-
-      setConversationTurns((prev) =>
-        prev.map((existingTurn, turnIndex) =>
-          turnIndex === index
-            ? {
-                ...existingTurn,
-                answer: result.answer,
-                sources: result.sources ?? [],
-                evidenceStrength: result.evidenceStrength ?? null,
-                chatHistoryId: result.chatHistoryId ?? null,
-                feedbackSubmitted: null,
-                trustedAnswer: result.trustedAnswer ?? false,
-                suggestedFollowUps: result.suggestedFollowUps ?? [],
-                sourceSuggestionOpen: false,
-                sourceSuggestionText: "",
-              }
-            : existingTurn,
-        ),
-      );
-
-      setLoading(false);
-      await refreshHistory();
-    } catch (error: any) {
-      setMessage(error.message ?? "Could not regenerate answer.");
-      setLoading(false);
-    }
-  }
-
-  async function tryBroaderSearch(index: number) {
-    const turn = conversationTurns[index];
-    if (!turn) return;
-
-    setLoading(true);
-    setMessage("");
-
-    const previousCategory = category;
-    const previousDocumentId = documentId;
-
-    setCategory("all");
-    setDocumentId("all");
-
-    const priorTurns = conversationTurns.slice(0, index);
+    const priorTurns = conversationTurns.slice(0, index)
 
     try {
-      const { data } = await supabase.auth.getSession();
-      const token = data.session?.access_token;
+      const { data } = await supabase.auth.getSession()
+      const token = data.session?.access_token
+      if (!token) throw new Error('You must be signed in.')
 
-      if (!token) {
-        setMessage("You must be signed in.");
-        setLoading(false);
-        setCategory(previousCategory);
-        setDocumentId(previousDocumentId);
-        return;
-      }
-
-      const res = await fetch("/api/chat", {
-        method: "POST",
+      const res = await fetch('/api/chat', {
+        method: 'POST',
         headers: {
-          "Content-Type": "application/json",
+          'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({
           question: turn.question,
-          category: "all",
-          documentId: "all",
+          category,
+          documentId,
           answerMode,
-          conversationTurns: priorTurns.map((priorTurn) => ({
-            question: priorTurn.question,
-            answer: priorTurn.answer,
+          conversationTurns: priorTurns.map((t) => ({
+            question: t.question,
+            answer: t.answer,
           })),
         }),
-      });
-
-      const result = await res.json();
+      })
 
       if (!res.ok) {
-        setMessage(result.error ?? "Broader search failed.");
-        setLoading(false);
-        setCategory(previousCategory);
-        setDocumentId(previousDocumentId);
-        return;
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.error ?? 'Something went wrong.')
       }
+
+      const result = await readChatStream(
+        res,
+        (stage) => setSearchState(stage),
+        (text) =>
+          setConversationTurns((prev) =>
+            prev.map((existingTurn, turnIndex) =>
+              turnIndex === index
+                ? { ...existingTurn, answer: existingTurn.answer + text }
+                : existingTurn,
+            ),
+          ),
+      )
 
       setConversationTurns((prev) =>
         prev.map((existingTurn, turnIndex) =>
@@ -457,27 +499,116 @@ return result;
             ? {
                 ...existingTurn,
                 answer: result.answer,
-                sources: result.sources ?? [],
-                evidenceStrength: result.evidenceStrength ?? null,
-                chatHistoryId: result.chatHistoryId ?? null,
+                sources: result.sources,
+                evidenceStrength: result.evidenceStrength,
+                chatHistoryId: result.chatHistoryId,
                 feedbackSubmitted: null,
-                trustedAnswer: result.trustedAnswer ?? false,
-                suggestedFollowUps: result.suggestedFollowUps ?? [],
+                trustedAnswer: result.trustedAnswer,
+                suggestedFollowUps: result.suggestedFollowUps,
                 sourceSuggestionOpen: false,
-                sourceSuggestionText: "",
+                sourceSuggestionText: '',
               }
             : existingTurn,
         ),
-      );
+      )
 
-      setLoading(false);
-      await refreshHistory();
+      setLoading(false)
+      await refreshHistory()
     } catch (error: any) {
-      setMessage(error.message ?? "Broader search failed.");
-      setLoading(false);
+      setMessage(error.message ?? 'Could not regenerate answer.')
+      setLoading(false)
+    }
+  }
+
+  async function tryBroaderSearch(index: number) {
+    const turn = conversationTurns[index]
+    if (!turn) return
+
+    setLoading(true)
+    setMessage('')
+
+    const previousCategory = category
+    const previousDocumentId = documentId
+
+    setCategory('all')
+    setDocumentId('all')
+
+    setConversationTurns((prev) =>
+      prev.map((existingTurn, turnIndex) =>
+        turnIndex === index ? { ...existingTurn, answer: '' } : existingTurn,
+      ),
+    )
+
+    const priorTurns = conversationTurns.slice(0, index)
+
+    try {
+      const { data } = await supabase.auth.getSession()
+      const token = data.session?.access_token
+      if (!token) throw new Error('You must be signed in.')
+
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          question: turn.question,
+          category: 'all',
+          documentId: 'all',
+          answerMode,
+          conversationTurns: priorTurns.map((t) => ({
+            question: t.question,
+            answer: t.answer,
+          })),
+        }),
+      })
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        throw new Error(err.error ?? 'Broader search failed.')
+      }
+
+      const result = await readChatStream(
+        res,
+        (stage) => setSearchState(stage),
+        (text) =>
+          setConversationTurns((prev) =>
+            prev.map((existingTurn, turnIndex) =>
+              turnIndex === index
+                ? { ...existingTurn, answer: existingTurn.answer + text }
+                : existingTurn,
+            ),
+          ),
+      )
+
+      setConversationTurns((prev) =>
+        prev.map((existingTurn, turnIndex) =>
+          turnIndex === index
+            ? {
+                ...existingTurn,
+                answer: result.answer,
+                sources: result.sources,
+                evidenceStrength: result.evidenceStrength,
+                chatHistoryId: result.chatHistoryId,
+                feedbackSubmitted: null,
+                trustedAnswer: result.trustedAnswer,
+                suggestedFollowUps: result.suggestedFollowUps,
+                sourceSuggestionOpen: false,
+                sourceSuggestionText: '',
+              }
+            : existingTurn,
+        ),
+      )
+
+      setLoading(false)
+      await refreshHistory()
+    } catch (error: any) {
+      setMessage(error.message ?? 'Broader search failed.')
+      setLoading(false)
     } finally {
-      setCategory(previousCategory);
-      setDocumentId(previousDocumentId);
+      setCategory(previousCategory)
+      setDocumentId(previousDocumentId)
     }
   }
 
@@ -582,12 +713,6 @@ return result;
 setMessage('');
   }
 
-  function startNewChat() {
-    setQuestion("");
-    setConversationTurns([]);
-    setMessage("");
-  }
-
   function loadHistoryItem(item: HistoryItem) {
     setQuestion("");
     setConversationTurns([
@@ -638,14 +763,15 @@ setMessage('');
     <>
    
 
-      <main className="min-h-screen bg-[#f7f4ef] pb-20 text-primary md:pb-0">
+      <main className="min-h-screen bg-[#f7f4ef] pb-28 text-primary md:pb-0">
         <div className="mx-auto flex max-w-6xl flex-col gap-5 px-3 py-5 sm:px-6 md:px-8">
-          <section className="rounded-2xl border border-[#d8d1c7] bg-white p-4 text-primary shadow-sm sm:p-5">
+          <section className="overflow-hidden rounded-2xl border border-[#d8d1c7] bg-white shadow-sm">
+            <div className="bg-[#d73f09] px-5 py-3 text-white">
+              <p className="text-xs font-bold uppercase tracking-[0.18em]">Oregon State University Extension</p>
+            </div>
+            <div className="p-4 sm:p-5">
             <div className="mb-4">
-              <p className="text-xs font-bold uppercase tracking-wide text-[#d73f09]">
-                Oregon State University Extension
-              </p>
-              <h1 className="mt-1 text-2xl font-bold text-primary sm:text-3xl">
+              <h1 className="text-2xl font-bold text-primary sm:text-3xl">
                 Ask an OSU publication question
               </h1>
               <p className="mt-2 text-sm leading-6 text-secondary">
@@ -840,6 +966,7 @@ setMessage('');
                 </select>
               </div>
             </div>
+            </div>
           </section>
 
           <div className="grid gap-5 md:grid-cols-[1fr_280px] lg:grid-cols-[1fr_320px]">
@@ -860,18 +987,11 @@ setMessage('');
                       <p className="text-sm text-secondary">
                         {conversationTurns.length > 0
                           ? "Ask a follow-up in the message box below."
-                          : "Start with a preservation question about a publication, process, recipe, or safety guidance."}
+                          : "Ask about food, preservation methods, jar sizes, elevation, or a specific publication."}
                       </p>
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={startNewChat}
-                    className="min-h-11 rounded-xl border border-[#d8d1c7] bg-white px-4 py-2 text-sm font-semibold text-primary shadow-sm hover:bg-[#f3f0ed]"
-                  >
-                    ✨ New question
-                  </button>
                 </div>
               </div>
 
@@ -934,20 +1054,22 @@ setMessage('');
               </form>
 
               <div className="flex-1 space-y-5 overflow-y-auto p-4">
-                {conversationTurns.length === 0 && !loading ? (
-                  <div className="rounded-2xl border border-dashed border-[#d8d1c7] bg-white p-5 text-center">
-                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-[#e7f0e7] text-2xl">
-                      💬
-                    </div>
-                    <h3 className="mt-3 text-lg font-bold text-primary">
-                      Ready for a preservation question
-                    </h3>
-                    <p className="mx-auto mt-2 max-w-md text-sm leading-5 text-secondary">
-                      Include the food, preservation method, jar size,
-                      elevation, or publication name when you know it.
-                    </p>
+                {conversationTurns.length > 0 && !loading && (
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setConversationTurns([])
+                        const uid = userIdRef.current
+                        if (uid) localStorage.removeItem(`mfp-chat-turns-${uid}`)
+                      }}
+                      className="rounded-xl border border-[#d8d1c7] bg-white px-3 py-1.5 text-xs font-semibold text-secondary hover:bg-[#f3f0ed]"
+                    >
+                      Clear conversation
+                    </button>
                   </div>
-                ) : conversationTurns.length > 0 ? (
+                )}
+                {conversationTurns.length > 0 && (
                   conversationTurns.map((turn, index) => (
                     <article
                       key={`${turn.question}-${index}`}
@@ -997,6 +1119,7 @@ setMessage('');
                         </div>
                       </div>
 
+                      {(!loading || index < conversationTurns.length - 1) && (
                       <div className="mt-4">
                         <div className="flex items-center justify-between gap-3">
                           <p className="text-sm font-bold text-primary">
@@ -1151,8 +1274,10 @@ setMessage('');
                           </div>
                         )}
                       </div>
+                      )}
 
-
+{(!loading || index < conversationTurns.length - 1) && (
+<>
 <div className="mt-4 border-t border-gray-200 pt-4">
   <div className="flex flex-wrap items-center gap-2">
     {/* Thumbs up/down */}
@@ -1240,7 +1365,7 @@ setMessage('');
       {turn.savedChat ? '✅ Saved' : '💾 Save'}
     </button>
 
-    <button
+    {isAdmin && <button
       type="button"
       onClick={() => saveTrustedFromChat(index)}
       disabled={loading || turn.trustedSaved}
@@ -1251,7 +1376,7 @@ setMessage('');
       } disabled:opacity-80`}
     >
       {turn.trustedSaved ? '✅ Trusted' : '⭐ Trusted'}
-    </button>
+    </button>}
 
     {turn.chatHistoryId && (
       <a
@@ -1299,6 +1424,8 @@ setMessage('');
     {turn.trustedSaved && <p>✅ Trusted answer saved.</p>}
   </div>
 )}
+</>
+)}
 
                       {index === conversationTurns.length - 1 &&
                         turn.suggestedFollowUps &&
@@ -1323,7 +1450,7 @@ setMessage('');
                         )}
                     </article>
                   ))
-                ) : null}
+                )}
 
                 {loading && (
                   <div className="rounded-2xl border border-[#e5ded5] bg-white p-4 shadow-sm">
@@ -1379,7 +1506,7 @@ setMessage('');
               </div>
             </section>
 
-            <aside className="space-y-4">
+            <aside className="hidden space-y-4 md:block">
               <section className="rounded-2xl border border-[#d8d1c7] bg-white p-4 text-primary shadow-sm">
                 <div className="mb-3 flex items-center gap-2">
                   <span
@@ -1452,7 +1579,8 @@ setMessage('');
 
         <form
           onSubmit={askQuestion}
-          className="fixed inset-x-0 bottom-0 z-50 w-full max-w-full overflow-hidden border-t border-gray-200 bg-white/95 p-2 backdrop-blur text-primary shadow-lg md:hidden"
+          className="fixed inset-x-0 bottom-0 z-50 w-full max-w-full overflow-hidden border-t border-gray-200 bg-white/95 px-2 pt-2 backdrop-blur text-primary shadow-lg md:hidden"
+          style={{ paddingBottom: 'max(env(safe-area-inset-bottom), 8px)' }}
         >
           {loading && (
             <div className="mb-1.5 text-center text-xs font-semibold text-[#d73f09]">
