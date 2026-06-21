@@ -23,12 +23,12 @@ export default function ToolkitPage() {
               Toolkit
             </h1>
             <p className="mt-2 text-lg font-semibold text-secondary">
-              Games, printables &amp; run sheets for Master Food Preserver outreach.
+              Games, printables &amp; Activity Guides for Master Food Preserver outreach.
             </p>
             <p className="mt-4 max-w-3xl text-base leading-7 text-secondary">
               Everything you need to run an MFP table at a farmers market, fair, or class.
               Each activity can be played live on a tablet or printed for a no-tech table, and
-              comes with a step-by-step volunteer run sheet. Use the filters to find what fits
+              comes with a step-by-step Activity Guide. Use the filters to find what fits
               your event, audience, and prep time. Grounded in OSU Extension publications.
             </p>
             {/* Skill legend */}

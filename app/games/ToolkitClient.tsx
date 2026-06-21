@@ -72,8 +72,8 @@ const ACTIVITIES: Activity[] = [
     ),
     play: '/games/prize-wheel',
     fullscreen: '/games/prize-wheel-app.html',
-    runSheet: '/games/guides/prize-wheel-run-sheet.pdf',
-    kit: '/games/kits/prize-wheel-print-kit.zip',
+    runSheet: '/games/guides/food-preservation-trivia-activity-guide.pdf',
+    kit: '/games/kits/food-preservation-trivia-print-kit.zip',
     deckGrid: true,
     references: [{ label: '📊 Question bank (CSV, 640 Q&A)', href: '/games/questions.csv', download: true }],
   },
@@ -99,7 +99,7 @@ const ACTIVITIES: Activity[] = [
     ),
     play: '/games/sorting-game',
     fullscreen: '/games/sorting/sort-app.html',
-    runSheet: '/games/guides/is-this-safe-run-sheet.pdf',
+    runSheet: '/games/guides/is-this-safe-activity-guide.pdf',
     kit: '/games/kits/is-this-safe-print-kit.zip',
     tierDecks: [
       { tier: 'Kids', front: '/games/sorting/cards-front-kids.pdf', back: '/games/sorting/cards-back-kids.pdf' },
@@ -136,7 +136,7 @@ const ACTIVITIES: Activity[] = [
     play: '/games/bingo',
     playLabel: '📢 Open caller',
     fullscreen: '/games/bingo/caller.html',
-    runSheet: '/games/guides/preservation-bingo-run-sheet.pdf',
+    runSheet: '/games/guides/preservation-bingo-activity-guide.pdf',
     kit: '/games/kits/preservation-bingo-print-kit.zip',
     prints: [
       { label: '🎟️ Bingo cards — teens/adults (text)', href: '/games/bingo/bingo-cards-adults.pdf' },
@@ -168,8 +168,8 @@ const ACTIVITIES: Activity[] = [
     ),
     play: '/games/shelf-life',
     fullscreen: '/games/shelf-life/shelf-app.html',
-    runSheet: '/games/guides/shelf-life-run-sheet.pdf',
-    kit: '/games/kits/shelf-life-print-kit.zip',
+    runSheet: '/games/guides/how-long-does-it-last-activity-guide.pdf',
+    kit: '/games/kits/how-long-does-it-last-print-kit.zip',
     prints: [
       { label: '🃏 Question cards (40, 2.5×3.5)', href: '/games/shelf-life/question-cards.pdf' },
       { label: '🪧 Flip-board (large, for an easel)', href: '/games/shelf-life/flip-board.pdf' },
@@ -200,7 +200,7 @@ const ACTIVITIES: Activity[] = [
     play: '/games/seasonal-planner',
     playLabel: '📅 Open planner',
     fullscreen: '/games/seasonal/planner-app.html',
-    runSheet: '/games/guides/seasonal-planner-run-sheet.pdf',
+    runSheet: '/games/guides/seasonal-planner-activity-guide.pdf',
     kit: '/games/kits/seasonal-planner-print-kit.zip',
     prints: [
       { label: '🟧 Planner — color', href: '/games/seasonal/seasonal-planner-color.pdf' },
@@ -289,7 +289,7 @@ export default function ToolkitClient() {
       <div className="flex items-start gap-3 rounded-2xl border border-[#f3d9cb] bg-[#fdf1ea] p-4 text-sm text-[#7a3a18]">
         <span className="text-lg" aria-hidden>👋</span>
         <p>
-          <b>New here?</b> Open any activity&rsquo;s <b>Run sheet</b> first — it walks you through
+          <b>New here?</b> Open an <b>Activity Guide</b> first — it walks you through
           setup, exactly what to do, and a no-tablet version. No tech or food-preservation
           experience needed. Each activity can be played on a tablet or printed for a table.
         </p>
@@ -417,14 +417,14 @@ export default function ToolkitClient() {
                 Open full screen ↗
               </Link>
               <a href={a.runSheet} target="_blank" className="rounded-xl border-2 border-[#5D4037] px-6 py-3 text-base font-bold text-[#5D4037] hover:bg-[#f3ece8]">
-                📋 Volunteer run sheet
+                📋 Activity Guide
               </a>
               <a href={a.kit} download className="rounded-xl border-2 border-[#1976D2] px-6 py-3 text-base font-bold text-[#1976D2] hover:bg-[#eaf2fb]">
                 ⬇ Print kit (ZIP)
               </a>
             </div>
             <p className="mt-2 text-sm text-secondary">
-              New to this? The <b>run sheet</b> walks you through setup, exactly what to do, a
+              New to this? The <b>Activity Guide</b> walks you through setup, exactly what to do, a
               no-tablet version, and volunteer tips. The <b>print kit</b> bundles every printable
               for this activity in one download.
             </p>
