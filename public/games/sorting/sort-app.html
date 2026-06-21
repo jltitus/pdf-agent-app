@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<title>Is This Safe? — Sorting Game</title>
+<style>
+  :root { --osu-orange:#d73f09; --ink:#222; --bg:#f7f4ef; --safe:#2E7D32; --notsafe:#C62828; --depends:#F57C00; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { margin:0; height:100%; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--ink); overflow:hidden; user-select:none; -webkit-user-select:none; }
+  .app { height:100vh; display:flex; flex-direction:column; }
+  header { background:var(--osu-orange); color:#fff; padding:10px 20px; display:flex; align-items:center; justify-content:space-between; flex:0 0 auto; gap:12px; flex-wrap:wrap; }
+  header h1 { margin:0; font-size:20px; }
+  header .sub { font-size:11px; opacity:.9; text-transform:uppercase; letter-spacing:.15em; }
+  .controls { display:flex; align-items:center; gap:12px; font-size:15px; font-weight:700; }
+  select { font-size:15px; padding:6px 10px; border-radius:8px; border:none; font-weight:600; }
+  .controls button { background:rgba(255,255,255,.18); color:#fff; border:none; border-radius:8px; padding:6px 12px; font-size:13px; font-weight:700; cursor:pointer; }
+  main { flex:1 1 auto; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:18px; min-height:0; gap:16px; }
+  .card { background:#fff; border-radius:22px; box-shadow:0 8px 26px rgba(0,0,0,.10); width:min(760px,94vw); max-height:62vh; overflow:auto; }
+  .band { height:14px; border-radius:22px 22px 0 0; }
+  .card-body { padding:22px 28px; }
+  .eyebrow { font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:.12em; }
+  .topic { font-size:12px; font-weight:700; color:#888; text-transform:uppercase; letter-spacing:.08em; margin-top:6px; }
+  .scenario { font-size:clamp(20px,2.6vw,30px); font-weight:800; line-height:1.3; margin:8px 0 4px; }
+  .choices { display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px; width:min(760px,94vw); }
+  .choice { border:4px solid #e3ddd2; background:#fff; border-radius:18px; padding:22px 10px; font-size:clamp(16px,2vw,22px); font-weight:800; cursor:pointer; transition:transform .06s; }
+  .choice:active { transform:scale(.97); }
+  .choice[data-k="SAFE"] { color:var(--safe); }
+  .choice[data-k="NOT SAFE"] { color:var(--notsafe); }
+  .choice[data-k="IT DEPENDS"] { color:var(--depends); }
+  .choice.correct { background:#eaf5ea; border-color:var(--safe); }
+  .choice.is-correct-answer { background:#eaf5ea; border-color:var(--safe); box-shadow:0 0 0 3px rgba(46,125,50,.25); }
+  .choice.wrong { background:#fdeaea; border-color:var(--notsafe); }
+  .choice:disabled { cursor:default; }
+  .reveal { width:min(760px,94vw); background:#fff; border-radius:18px; box-shadow:0 6px 20px rgba(0,0,0,.10); padding:18px 24px; display:none; }
+  .reveal.show { display:block; }
+  .verdict { font-size:22px; font-weight:800; }
+  .explain { margin-top:8px; font-size:17px; line-height:1.45; color:#333; }
+  .source { margin-top:10px; font-size:12px; color:#999; }
+  .row { display:flex; gap:12px; }
+  .btn { border:none; border-radius:14px; padding:14px 26px; font-size:18px; font-weight:800; cursor:pointer; color:#fff; background:var(--osu-orange); }
+  .btn:active { transform:scale(.98); }
+  .hint { color:#888; font-size:15px; text-align:center; }
+  @media (orientation:portrait) { .choices { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div>
+      <div class="sub">Oregon State University Extension · MFP</div>
+      <h1>Is This Safe? — Sorting Game</h1>
+    </div>
+    <div class="controls">
+      <select id="topicFilter" aria-label="Filter by topic"></select>
+      <span id="score">Correct: 0 / 0</span>
+      <button id="reset">Reset</button>
+    </div>
+  </header>
+  <main id="main"><!-- dynamic --></main>
+</div>
+<script>window.__EMBEDDED_CARDS__ = null;</script>
+<script>
+(function(){
+  "use strict";
+  var ANSWERS=["SAFE","NOT SAFE","IT DEPENDS"];
+  var VERDICT_COLOR={"SAFE":"var(--safe)","NOT SAFE":"var(--notsafe)","IT DEPENDS":"var(--depends)"};
+  var CARDS=[], used={}, score={correct:0,total:0}, filter="all", current=null, answered=false;
+  var main=document.getElementById("main"), sel=document.getElementById("topicFilter");
+
+  function load(){ if(window.__EMBEDDED_CARDS__&&window.__EMBEDDED_CARDS__.length) return Promise.resolve(window.__EMBEDDED_CARDS__);
+    return fetch("cards.json",{cache:"no-store"}).then(function(r){if(!r.ok)throw new Error("cards.json "+r.status);return r.json();}); }
+  function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+
+  function pool(){ return CARDS.filter(function(c){ return (filter==="all"||c.topic_id===filter)&&!used[c.card_id]; }); }
+  function pick(){ var p=pool(); if(!p.length){ CARDS.forEach(function(c){ if(filter==="all"||c.topic_id===filter) delete used[c.card_id]; }); p=pool(); }
+    return p.length? p[Math.floor(Math.random()*p.length)] : null; }
+
+  function render(){
+    current=pick(); answered=false;
+    if(!current){ main.innerHTML='<p class="hint">No cards for this topic.</p>'; return; }
+    used[current.card_id]=true;
+    var c=current;
+    var choices=ANSWERS.map(function(a){ return '<button class="choice" data-k="'+a+'">'+a+'</button>'; }).join('');
+    main.innerHTML=
+      '<div class="card"><div class="band" style="background:'+esc(c.color)+'"></div><div class="card-body">'+
+        '<div class="eyebrow" style="color:'+esc(c.color)+'">Is this safe?</div>'+
+        '<div class="topic">'+esc(c.topic)+' · '+esc(c.card_id)+'</div>'+
+        '<div class="scenario">'+esc(c.scenario_text)+'</div>'+
+      '</div></div>'+
+      '<div class="choices">'+choices+'</div>'+
+      '<div class="reveal" id="reveal"></div>'+
+      '<div class="row"><button class="btn" id="next">Next card →</button></div>';
+    Array.prototype.forEach.call(main.querySelectorAll(".choice"),function(b){ b.addEventListener("click",function(){choose(b);}); });
+    document.getElementById("next").addEventListener("click",render);
+  }
+
+  function choose(btn){
+    if(answered) return; answered=true;
+    var chosen=btn.getAttribute("data-k"); var correct=chosen===current.answer;
+    score.total++; if(correct) score.correct++; updateScore();
+    Array.prototype.forEach.call(main.querySelectorAll(".choice"),function(b){
+      b.disabled=true;
+      if(b.getAttribute("data-k")===current.answer) b.classList.add("is-correct-answer");
+    });
+    if(!correct) btn.classList.add("wrong");
+    var c=current, r=document.getElementById("reveal");
+    r.className="reveal show";
+    r.innerHTML='<div class="verdict" style="color:'+VERDICT_COLOR[c.answer]+'">'+(correct?"✔ Correct — ":"Answer: ")+esc(c.answer)+'</div>'+
+      '<div class="explain">'+esc(c.back_explanation)+'</div>'+
+      (c.source_document?'<div class="source">Source: '+esc(c.source_document)+'</div>':'');
+  }
+
+  function updateScore(){ document.getElementById("score").textContent="Correct: "+score.correct+" / "+score.total; }
+  function buildFilter(){
+    var topics={}; CARDS.forEach(function(c){ topics[c.topic_id]=c.topic; });
+    var html='<option value="all">All topics</option>';
+    Object.keys(topics).forEach(function(id){ html+='<option value="'+id+'">'+esc(topics[id])+'</option>'; });
+    sel.innerHTML=html;
+    sel.addEventListener("change",function(){ filter=sel.value; render(); });
+  }
+  document.getElementById("reset").addEventListener("click",function(){ score={correct:0,total:0}; updateScore(); });
+
+  load().then(function(d){ CARDS=d; buildFilter(); render(); }).catch(function(e){
+    main.innerHTML='<p class="hint">Couldn\'t load cards: '+esc(e.message)+'</p>';
+  });
+})();
+</script>
+</body>
+</html>

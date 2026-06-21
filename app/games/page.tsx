@@ -93,7 +93,11 @@ export default function ResourceHubPage() {
         {/* ---- Interactive games ---- */}
         <section className="overflow-hidden rounded-3xl border border-[#d8d1c7] bg-white shadow-sm">
           <div className="p-5 sm:p-8">
-            <SectionHeader icon="🎡" title="Interactive games" sub="run live on a tablet" />
+            <SectionHeader
+              icon="🎡"
+              title="Interactive games"
+              sub="run live on a tablet — or print for a no-tech table"
+            />
             <div className="rounded-2xl border border-[#ece6dc] bg-[#faf8f4] p-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <h3 className="text-xl font-bold text-primary">Prize Wheel Trivia</h3>
@@ -134,6 +138,70 @@ export default function ResourceHubPage() {
                 materials, setup, exactly what to tap, a no-tablet card version, and
                 volunteer tips. No tech or food-preservation experience needed.
               </p>
+            </div>
+
+            {/* Is This Safe? Sorting Game */}
+            <div className="mt-4 rounded-2xl border border-[#ece6dc] bg-[#faf8f4] p-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h3 className="text-xl font-bold text-primary">Is This Safe? Sorting Game</h3>
+                <div className="flex flex-wrap gap-2">
+                  <Badge cls={EFFORT.prep.cls}>Beginner–Intermediate</Badge>
+                  <Badge>Teens &amp; Adults</Badge>
+                  <Badge>60 scenario cards</Badge>
+                </div>
+              </div>
+              <p className="mt-3 max-w-2xl text-base leading-7 text-secondary">
+                Players read a real home preservation scenario and decide:{' '}
+                <b className="text-[#2E7D32]">Safe</b>, <b className="text-[#C62828]">Not Safe</b>,
+                or <b className="text-[#F57C00]">It Depends</b>? Then flip for the answer and a
+                plain-language explanation. The &ldquo;It Depends&rdquo; cards spark the best
+                conversations. 8 topics.
+              </p>
+              <div className="mt-4 flex flex-wrap gap-3">
+                <Link
+                  href="/games/sorting-game"
+                  className="rounded-xl bg-[#d73f09] px-6 py-3 text-base font-bold text-white shadow-sm hover:bg-[#b23408]"
+                >
+                  ▶ Play digital sort
+                </Link>
+                <Link
+                  href="/games/sorting/sort-app.html"
+                  target="_blank"
+                  className="rounded-xl border-2 border-[#d73f09] px-6 py-3 text-base font-bold text-[#d73f09] hover:bg-[#fdeee8]"
+                >
+                  Open full screen ↗
+                </Link>
+                <a
+                  href="/games/guides/is-this-safe-run-sheet.pdf"
+                  target="_blank"
+                  className="rounded-xl border-2 border-[#5D4037] px-6 py-3 text-base font-bold text-[#5D4037] hover:bg-[#f3ece8]"
+                >
+                  📋 Volunteer run sheet (PDF)
+                </a>
+              </div>
+              <div className="mt-4 border-t border-[#ece6dc] pt-3">
+                <p className="mb-2 text-sm font-bold uppercase tracking-wide text-secondary">
+                  Print for a table
+                </p>
+                <div className="flex flex-wrap gap-x-5 gap-y-2 text-base">
+                  <a className="font-semibold text-[#1976D2] hover:underline" href="/games/sorting/cards-front.pdf" download>
+                    🃏 Scenario cards (front)
+                  </a>
+                  <a className="font-semibold text-[#1976D2] hover:underline" href="/games/sorting/cards-back.pdf" download>
+                    ↩ Answer side (back)
+                  </a>
+                  <a className="font-semibold text-[#1976D2] hover:underline" href="/games/sorting/volunteer-key.pdf" download>
+                    🔑 Volunteer answer key
+                  </a>
+                  <a className="font-semibold text-[#1976D2] hover:underline" href="/games/sorting/sorting-labels.pdf" download>
+                    🪧 Sorting signs (Safe / Not Safe / It Depends)
+                  </a>
+                </div>
+                <p className="mt-2 text-xs text-secondary">
+                  Print scenario cards double-sided (flip on short edge) so each answer lands on
+                  the back. Set the three signs across the table and keep the answer key handy.
+                </p>
+              </div>
             </div>
           </div>
         </section>
