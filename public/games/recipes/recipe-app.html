@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<title>Recipe card swap station</title>
+<style>
+  :root { --osu-orange:#d73f09; --ink:#222; --bg:#f7f4ef; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { margin:0; height:100%; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--ink); }
+  .app { min-height:100vh; display:flex; flex-direction:column; }
+  header { background:var(--osu-orange); color:#fff; padding:10px 20px; }
+  header .sub { font-size:11px; opacity:.9; text-transform:uppercase; letter-spacing:.15em; }
+  header h1 { margin:2px 0 0; font-size:20px; }
+  .bar { padding:10px 16px; background:#fff; border-bottom:1px solid #e3ddd2; display:flex; gap:10px; flex-wrap:wrap; }
+  .bar input,.bar select { font-size:15px; padding:9px 12px; border-radius:10px; border:1px solid #d8d1c7; }
+  .bar input { flex:1 1 220px; }
+  main { flex:1 1 auto; padding:16px; }
+  .grid { display:grid; gap:14px; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); max-width:1200px; margin:0 auto; }
+  .card { background:#fff; border-radius:16px; box-shadow:0 4px 14px rgba(0,0,0,.08); overflow:hidden; }
+  .head { padding:14px 16px; color:#fff; }
+  .name { font-size:19px; font-weight:800; }
+  .meta { font-size:12px; opacity:.95; margin-top:3px; }
+  details > summary { list-style:none; cursor:pointer; padding:12px 16px; font-weight:800; color:var(--osu-orange); }
+  details > summary::-webkit-details-marker { display:none; }
+  .body { padding:0 16px 16px; }
+  .lab { font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.08em; color:#888; margin:10px 0 4px; }
+  pre.txt { white-space:pre-wrap; font-family:inherit; font-size:15px; line-height:1.45; margin:0; }
+  .specs { margin-top:10px; font-size:13px; font-weight:700; }
+  .src { margin-top:8px; font-size:12px; color:#999; }
+  .disc { margin-top:10px; padding:10px 12px; border-radius:10px; background:#fff8f3; border:1px solid #f3d9cb; font-size:12px; font-style:italic; color:#7a3a18; }
+  .empty { text-align:center; color:#999; padding:40px; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header><div class="sub">OSU Extension · MFP · Tested recipes only</div><h1>Recipe card swap station</h1></header>
+  <div class="bar">
+    <input id="q" type="search" placeholder="Search recipes (jam, salsa, pickle…)" aria-label="Search recipes" />
+    <select id="methodSel" aria-label="Filter by method"></select>
+  </div>
+  <main><div class="grid" id="grid"></div></main>
+</div>
+<script>window.__EMBEDDED_RECIPES__ = null;</script>
+<script>
+(function(){
+  "use strict";
+  var R=[], q="", method="all";
+  var grid=document.getElementById("grid"), qEl=document.getElementById("q"), methodSel=document.getElementById("methodSel");
+  function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+  function load(){ if(window.__EMBEDDED_RECIPES__&&window.__EMBEDDED_RECIPES__.length) return Promise.resolve(window.__EMBEDDED_RECIPES__);
+    return fetch("recipe-data.json",{cache:"no-store"}).then(function(r){if(!r.ok)throw new Error("data "+r.status);return r.json();}); }
+  function disc(x){ return 'This recipe has been tested for safety by '+esc(x.source_document)+'. Always follow tested recipes exactly. Do not alter ingredients, proportions, or processing times.'; }
+  function render(){
+    var list=R.filter(function(x){
+      if(method!=="all"&&x.preservation_method!==method) return false;
+      if(q&&!(x.recipe_name+' '+x.preservation_method+' '+x.ingredients).toLowerCase().includes(q)) return false;
+      return true;
+    });
+    if(!list.length){ grid.innerHTML='<p class="empty">No recipes match.</p>'; return; }
+    grid.innerHTML=list.map(function(x){
+      return '<div class="card"><div class="head" style="background:'+esc(x.color)+'">'+
+        '<div class="name">'+esc(x.recipe_name)+'</div>'+
+        '<div class="meta">'+esc(x.preservation_method)+' · '+esc(x.difficulty)+(x.willamette_valley_season?' · in season: '+esc(x.willamette_valley_season):'')+'</div></div>'+
+        '<details><summary>View recipe ▾</summary><div class="body">'+
+          '<div class="lab">Ingredients</div><pre class="txt">'+esc(x.ingredients)+'</pre>'+
+          '<div class="lab">Instructions</div><pre class="txt">'+esc(x.instructions)+'</pre>'+
+          '<div class="specs">Headspace '+esc(x.headspace||'-')+' · Process '+esc(x.processing_time)+' · Yield '+esc(x.yield||'-')+'</div>'+
+          '<div class="src">Source: '+esc(x.source_document)+(x.source_edition?', '+esc(x.source_edition):'')+(x.source_page?', p. '+esc(x.source_page):'')+'</div>'+
+          '<div class="disc">'+disc(x)+'</div>'+
+        '</div></details></div>';
+    }).join('');
+  }
+  function buildFilter(){ var m={}; R.forEach(function(x){ m[x.preservation_method]=1; });
+    methodSel.innerHTML='<option value="all">All methods</option>'+Object.keys(m).map(function(k){return '<option value="'+esc(k)+'">'+esc(k)+'</option>';}).join('');
+    methodSel.addEventListener("change",function(){ method=methodSel.value; render(); });
+    qEl.addEventListener("input",function(){ q=qEl.value.trim().toLowerCase(); render(); });
+  }
+  load().then(function(d){ R=d; buildFilter(); render(); }).catch(function(e){ grid.innerHTML='<p class="empty">Couldn\'t load: '+esc(e.message)+'</p>'; });
+})();
+</script>
+</body>
+</html>

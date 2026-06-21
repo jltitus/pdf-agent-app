@@ -278,6 +278,38 @@ const ACTIVITIES: Activity[] = [
     printNote:
       'Print the decks you need and cut the cards apart. Each card front is a step; the back has only the step number for self-checking. Safety steps have a red border.',
   },
+  {
+    id: 'recipe-swap',
+    emoji: '📇',
+    title: 'Recipe card swap station',
+    accent: '#4A773C',
+    category: 'Recipe cards',
+    skill: 'Some prep',
+    audience: ['Adults'],
+    audienceLabel: 'Adults',
+    prep: '5–10 min',
+    count: '12 tested recipes',
+    keywords: 'recipe cards swap tested jam salsa pickle canning take-home citation',
+    description: (
+      <>
+        A take-one / swap-one station of <b>tested</b> recipe cards (4×6) drawn from OSU &amp; USDA
+        publications — jam, salsa, pickles, canned fruit, green beans, and more. Each card has the
+        exact ingredients, headspace, processing time, yield, its source citation, and a
+        tested-recipe reminder. A Master Food Preserver should verify each card against its source
+        before printing for the public.
+      </>
+    ),
+    play: '/games/recipe-swap',
+    fullscreen: '/games/recipes/recipe-app.html',
+    runSheet: '/games/guides/recipe-card-swap-station-activity-guide.pdf',
+    kit: '/games/kits/recipe-card-swap-station-print-kit.zip',
+    prints: [
+      { label: '🃏 Recipe cards (4×6, 2-up)', href: '/games/recipes/recipe-cards-all.pdf' },
+      { label: '🔑 Recipe index (citations + verify note)', href: '/games/recipes/recipe-index.pdf' },
+    ],
+    printNote:
+      'Verify each recipe against its cited OSU/USDA publication (see the Recipe index) before printing for the public. Every card carries the tested-recipe disclaimer.',
+  },
 ]
 
 // ---- filter facets ----
