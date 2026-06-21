@@ -60,7 +60,7 @@ export default function HeaderBar() {
     { href: '/chat', label: 'Chat', icon: '💬' },
     { href: '/history', label: 'History', icon: '📋' },
     { href: '/publications', label: 'Publications', icon: '📚' },
-    { href: '/games', label: 'Outreach Toolkit', icon: '🧰' },
+    { href: '/games', label: 'Toolkit', icon: '🧰' },
     { href: '/profile', label: 'Profile', icon: '👤' },
     { href: '/community', label: 'Community', icon: '🌱' },
     { href: '/help', label: 'Help', icon: '❓' },

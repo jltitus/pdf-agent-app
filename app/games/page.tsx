@@ -1,7 +1,7 @@
 import Link from 'next/link'
 
 export const metadata = {
-  title: 'Outreach Toolkit — MFP Volunteer Resource Hub',
+  title: 'Toolkit — MFP Volunteer Resource Hub',
 }
 
 // Mirrors mfp-prize-wheel/scripts/config.mjs (topic ids/colors) so download
@@ -62,17 +62,20 @@ export default function ResourceHubPage() {
           </div>
           <div className="p-5 sm:p-8">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-[#d73f09]">
-              Outreach Toolkit
+              Master Food Preservers · Outreach
             </p>
             <h1 className="mt-3 text-3xl font-bold leading-tight text-primary sm:text-4xl">
-              MFP Volunteer Resource Hub
+              Toolkit
             </h1>
+            <p className="mt-2 text-lg font-semibold text-secondary">
+              Games, printables &amp; run sheets for Master Food Preserver outreach.
+            </p>
             <p className="mt-4 max-w-3xl text-base leading-7 text-secondary">
-              One stop for Master Food Preserver outreach materials — interactive games,
-              printable activities, and volunteer handouts for farmers markets, fairs,
-              and classes. Everything is grounded in OSU Extension food-preservation
+              Everything you need to run an MFP table at a farmers market, fair, or
+              class — interactive games, printable activities, and step-by-step
+              volunteer run sheets. Grounded in OSU Extension food-preservation
               publications. Organized by <b>activity type</b> and tagged by{' '}
-              <b>skill level required</b> (how much volunteer prep) and <b>audience</b>.
+              <b>skill level</b> (how much volunteer prep) and <b>audience</b>.
             </p>
             {/* Legend */}
             <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-secondary">
@@ -118,10 +121,18 @@ export default function ResourceHubPage() {
                 >
                   Open full screen ↗
                 </Link>
+                <a
+                  href="/games/guides/prize-wheel-run-sheet.pdf"
+                  target="_blank"
+                  className="rounded-xl border-2 border-[#5D4037] px-6 py-3 text-base font-bold text-[#5D4037] hover:bg-[#f3ece8]"
+                >
+                  📋 Volunteer run sheet (PDF)
+                </a>
               </div>
               <p className="mt-3 text-sm text-secondary">
-                Tip: open full screen on the tablet, then add to the home screen for a
-                kiosk-style launch. Works offline once loaded.
+                New to this? The <b>run sheet</b> is a printable step-by-step guide —
+                materials, setup, exactly what to tap, a no-tablet card version, and
+                volunteer tips. No tech or food-preservation experience needed.
               </p>
             </div>
           </div>
