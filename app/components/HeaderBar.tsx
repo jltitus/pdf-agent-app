@@ -140,13 +140,6 @@ export default function HeaderBar() {
 </Link>
             ))}
 
-            <div className="mx-1 h-6 w-px bg-[#d8d1c7]" />
-
-            <a href={adminItem.href} className={desktopNavClass(adminItem.href)}>
-              <span className="mr-1" aria-hidden="true">{adminItem.icon}</span>
-              {adminItem.label}
-            </a>
-
             {userInfo && (
               <button
                 type="button"
@@ -165,7 +158,7 @@ export default function HeaderBar() {
             aria-label="Mobile navigation"
             className="mt-3 grid grid-cols-2 gap-2 border-t border-[#d8d1c7] pt-3 sm:grid-cols-3 xl:hidden"
           >
-            {[...navItems, adminItem].map((item) => (
+            {navItems.map((item) => (
               <Link
   key={item.href}
   href={item.href}
@@ -203,6 +196,14 @@ export default function HeaderBar() {
             admin
           </span>
         )}
+
+        <a
+          href={adminItem.href}
+          className="shrink-0 inline-flex items-center gap-1 rounded-full border border-[#d8d1c7] bg-white px-2.5 py-0.5 text-xs font-semibold text-[#d73f09] hover:bg-[#fdeee8]"
+        >
+          <span aria-hidden="true">{adminItem.icon}</span>
+          {adminItem.label}
+        </a>
       </div>
 
       <Link href="/whats-new" prefetch={false}  className="w-fit text-xs font-semibold text-[#d73f09] underline hover:text-[#b23408]"
