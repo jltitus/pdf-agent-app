@@ -20,13 +20,13 @@ export default async function SessionExpiredPage({
           <div className="mb-5 flex items-center gap-3">
             <img
               src="/jar-logosm.png"
-              alt="MFP Publication Reference system logo"
+              alt="MFP Volunteer Resource Hub logo"
               className="h-12 w-12 object-contain"
             />
 
             <div>
               <p className="text-xs font-semibold uppercase tracking-wide text-secondary">
-                MFP Publication Reference system
+                MFP Volunteer Resource Hub
               </p>
               <h1 className="text-2xl font-bold text-primary">
                 Session expired

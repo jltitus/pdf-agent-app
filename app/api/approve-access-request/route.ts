@@ -27,10 +27,10 @@ async function sendTemporaryPasswordEmail({
   const resend = new Resend(process.env.RESEND_API_KEY)
 
   await resend.emails.send({
-    from: 'MFP Publication Reference system <mfp@titus225.com>',
+    from: 'MFP Volunteer Resource Hub <mfp@titus225.com>',
     to: email,
     bcc: process.env.ADMIN_NOTIFICATION_EMAIL || undefined,
-    subject: 'Your MFP Publication Reference system login information',
+    subject: 'Your MFP Volunteer Resource Hub login information',
     html: emailTemplate(`
       <h2 style="margin:0 0 16px;font-size:22px;color:#1a1a1a;">Your access has been approved</h2>
       <p>Hello ${fullName || 'there'},</p>

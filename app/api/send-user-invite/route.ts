@@ -69,10 +69,10 @@ async function sendOnboardingEmail({
     from: 'MFP Reference system <mfp@titus225.com>',
     to: email,
     bcc: process.env.ADMIN_NOTIFICATION_EMAIL || undefined,
-    subject: 'Your MFP Publication Reference system login information',
+    subject: 'Your MFP Volunteer Resource Hub login information',
     html: emailTemplate(`
       <h2 style="margin:0 0 16px;font-size:22px;color:#1a1a1a;">Welcome${fullName ? `, ${fullName}` : ''}!</h2>
-      <p>Your account for the MFP Publication Reference System is ready. Use the temporary login information below to sign in for the first time.</p>
+      <p>Your account for the MFP Volunteer Resource Hub is ready. Use the temporary login information below to sign in for the first time.</p>
       <table style="margin:20px 0;background:#f7f4ef;border-radius:10px;padding:16px 20px;width:100%;">
         <tr><td style="font-size:13px;color:#666;padding-bottom:4px;">Email</td></tr>
         <tr><td style="font-weight:600;color:#1a1a1a;padding-bottom:12px;">${email}</td></tr>

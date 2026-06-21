@@ -103,7 +103,7 @@ export default function RoadmapPage() {
         <div className="mx-auto max-w-6xl space-y-6 px-3 py-5 sm:px-6 sm:py-8">
           <section className="rounded-2xl border border-[#d8d1c7] bg-white p-5 shadow-sm sm:p-6">
             <p className="text-sm font-semibold uppercase tracking-wide text-muted">
-              MFP Publication Reference system
+              MFP Volunteer Resource Hub
             </p>
 
             <h1 className="mt-2 text-3xl font-bold text-primary">

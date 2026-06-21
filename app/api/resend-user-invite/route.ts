@@ -24,7 +24,7 @@ async function sendTemporaryPasswordEmail({
     from: 'MFP Reference system <mfp@titus225.com>',
     to: email,
     bcc: process.env.ADMIN_NOTIFICATION_EMAIL || undefined,
-    subject: 'Your MFP Publication Reference system temporary password',
+    subject: 'Your MFP Volunteer Resource Hub temporary password',
     html: emailTemplate(`
       <h2 style="margin:0 0 16px;font-size:22px;color:#1a1a1a;">New temporary password${fullName ? ` for ${fullName}` : ''}</h2>
       <p>Your temporary password has been reset. Use the details below to sign in.</p>

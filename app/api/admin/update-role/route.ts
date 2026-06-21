@@ -55,14 +55,14 @@ export async function POST(request: Request) {
         const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? ''
         const name = targetProfile?.full_name || 'there'
         await resend.emails.send({
-          from: 'MFP Publication Reference system <mfp@titus225.com>',
+          from: 'MFP Volunteer Resource Hub <mfp@titus225.com>',
           to: targetUser.email,
           bcc: process.env.ADMIN_NOTIFICATION_EMAIL || undefined,
-          subject: 'You now have admin access — MFP Publication Reference System',
+          subject: 'You now have admin access — MFP Volunteer Resource Hub',
           html: emailTemplate(`
             <h2 style="margin:0 0 16px;font-size:20px;color:#1a1a1a;">You've been granted admin access</h2>
             <p>Hello ${name},</p>
-            <p>An administrator has granted you admin access to the MFP Publication Reference System. You will now see an <strong>Admin</strong> button in the navigation menu.</p>
+            <p>An administrator has granted you admin access to the MFP Volunteer Resource Hub. You will now see an <strong>Admin</strong> button in the navigation menu.</p>
             <p>From the Admin area you can manage users, review publications, view audit logs, and more.</p>
             <p style="margin-top:24px;">
               <a href="${siteUrl}/admin" style="display:inline-block;background-color:#d73f09;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;">Go to Admin Dashboard</a>

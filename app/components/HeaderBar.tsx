@@ -60,6 +60,7 @@ export default function HeaderBar() {
     { href: '/chat', label: 'Chat', icon: '💬' },
     { href: '/history', label: 'History', icon: '📋' },
     { href: '/publications', label: 'Publications', icon: '📚' },
+    { href: '/games', label: 'Outreach Toolkit', icon: '🧰' },
     { href: '/profile', label: 'Profile', icon: '👤' },
     { href: '/community', label: 'Community', icon: '🌱' },
     { href: '/help', label: 'Help', icon: '❓' },
@@ -116,13 +117,13 @@ export default function HeaderBar() {
             >
               <img
                 src="/jar-logosm.png"
-                alt="MFP Publication Reference system logo"
+                alt="MFP Volunteer Resource Hub logo"
                 className="h-10 w-10 shrink-0 object-contain"
               />
 
               <div className="min-w-0">
                 <h1 className="truncate text-base font-bold leading-tight text-primary sm:text-xl">
-                  MFP Publication Reference system
+                  MFP Volunteer Resource Hub
                 </h1>
                 <p className="truncate text-xs font-semibold tracking-wide text-secondary">
                   MASTER FOOD PRESERVERS

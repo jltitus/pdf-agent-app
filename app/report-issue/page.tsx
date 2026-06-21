@@ -83,7 +83,7 @@ export default function ReportIssuePage() {
             <div className="flex items-center gap-4">
               <img
                 src="/jar-logosm.png"
-                alt="MFP Publication Reference system logo"
+                alt="MFP Volunteer Resource Hub logo"
                 className="h-14 w-14 object-contain"
               />
 
@@ -92,7 +92,7 @@ export default function ReportIssuePage() {
                   Report an Issue
                 </h1>
                 <p className="text-sm font-semibold tracking-wide text-secondary">
-                  MFP PUBLICATION Reference system
+                  MFP Volunteer Resource Hub
                 </p>
               </div>
             </div>

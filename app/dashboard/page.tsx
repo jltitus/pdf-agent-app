@@ -115,7 +115,7 @@ export default function DashboardPage() {
     return (
       <main className="min-h-screen bg-[#f7f4ef] p-6 text-primary">
         <div className="mx-auto max-w-6xl rounded-2xl border border-[#d8d1c7] bg-white p-5 shadow-sm">
-          Loading MFP Publication Reference system...
+          Loading MFP Volunteer Resource Hub...
         </div>
       </main>
     )

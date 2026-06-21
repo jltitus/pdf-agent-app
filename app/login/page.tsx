@@ -95,13 +95,13 @@ export default function LoginPage() {
                 <div className="mt-4 flex items-center gap-4">
                   <img
                     src="/jar-logosm.png"
-                    alt="MFP Publication Reference system logo"
+                    alt="MFP Volunteer Resource Hub logo"
                     className="h-14 w-14 object-contain"
                   />
 
                   <div>
                     <h1 className="text-3xl font-bold text-primary">
-                      MFP Publication Reference system
+                      MFP Volunteer Resource Hub
                     </h1>
 
                     <p className="text-sm font-semibold tracking-wide text-secondary">
@@ -157,7 +157,7 @@ export default function LoginPage() {
             <div className="mb-8 flex items-center gap-3 md:hidden">
               <img
                 src="/jar-logosm.png"
-                alt="MFP Publication Reference system logo"
+                alt="MFP Volunteer Resource Hub logo"
                 className="h-12 w-12 object-contain"
               />
 
@@ -167,7 +167,7 @@ export default function LoginPage() {
                 </p>
 
                 <h1 className="text-2xl font-bold text-primary">
-                  MFP Publication Reference system
+                  MFP Volunteer Resource Hub
                 </h1>
 
                 <p className="text-xs font-semibold tracking-wide text-secondary">
@@ -186,7 +186,7 @@ export default function LoginPage() {
               </h2>
 
               <p className="mt-2 text-sm leading-6 text-secondary">
-                Access the OSU Master Food Preserver publication reference system.
+                Access the OSU Master Food Preserver volunteer resource hub.
               </p>
             </div>
 

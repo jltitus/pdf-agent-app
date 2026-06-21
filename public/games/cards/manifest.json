@@ -1,0 +1,194 @@
+[
+  {
+    "file": "food-safety-kids.pdf",
+    "topic": "Food Safety",
+    "tier": "Kids (under 10)",
+    "count": 20
+  },
+  {
+    "file": "food-safety-tweens.pdf",
+    "topic": "Food Safety",
+    "tier": "Tweens (10–14)",
+    "count": 20
+  },
+  {
+    "file": "food-safety-teens.pdf",
+    "topic": "Food Safety",
+    "tier": "Teens (14–18)",
+    "count": 20
+  },
+  {
+    "file": "food-safety-adults.pdf",
+    "topic": "Food Safety",
+    "tier": "Adults",
+    "count": 20
+  },
+  {
+    "file": "canning-fruits-kids.pdf",
+    "topic": "Canning Fruits",
+    "tier": "Kids (under 10)",
+    "count": 20
+  },
+  {
+    "file": "canning-fruits-tweens.pdf",
+    "topic": "Canning Fruits",
+    "tier": "Tweens (10–14)",
+    "count": 20
+  },
+  {
+    "file": "canning-fruits-teens.pdf",
+    "topic": "Canning Fruits",
+    "tier": "Teens (14–18)",
+    "count": 20
+  },
+  {
+    "file": "canning-fruits-adults.pdf",
+    "topic": "Canning Fruits",
+    "tier": "Adults",
+    "count": 20
+  },
+  {
+    "file": "canning-tomatoes-salsas-kids.pdf",
+    "topic": "Canning Tomatoes and Salsas",
+    "tier": "Kids (under 10)",
+    "count": 20
+  },
+  {
+    "file": "canning-tomatoes-salsas-tweens.pdf",
+    "topic": "Canning Tomatoes and Salsas",
+    "tier": "Tweens (10–14)",
+    "count": 20
+  },
+  {
+    "file": "canning-tomatoes-salsas-teens.pdf",
+    "topic": "Canning Tomatoes and Salsas",
+    "tier": "Teens (14–18)",
+    "count": 20
+  },
+  {
+    "file": "canning-tomatoes-salsas-adults.pdf",
+    "topic": "Canning Tomatoes and Salsas",
+    "tier": "Adults",
+    "count": 20
+  },
+  {
+    "file": "low-acid-foods-kids.pdf",
+    "topic": "Low Acid Foods",
+    "tier": "Kids (under 10)",
+    "count": 20
+  },
+  {
+    "file": "low-acid-foods-tweens.pdf",
+    "topic": "Low Acid Foods",
+    "tier": "Tweens (10–14)",
+    "count": 20
+  },
+  {
+    "file": "low-acid-foods-teens.pdf",
+    "topic": "Low Acid Foods",
+    "tier": "Teens (14–18)",
+    "count": 20
+  },
+  {
+    "file": "low-acid-foods-adults.pdf",
+    "topic": "Low Acid Foods",
+    "tier": "Adults",
+    "count": 20
+  },
+  {
+    "file": "pickling-kids.pdf",
+    "topic": "Pickling",
+    "tier": "Kids (under 10)",
+    "count": 20
+  },
+  {
+    "file": "pickling-tweens.pdf",
+    "topic": "Pickling",
+    "tier": "Tweens (10–14)",
+    "count": 20
+  },
+  {
+    "file": "pickling-teens.pdf",
+    "topic": "Pickling",
+    "tier": "Teens (14–18)",
+    "count": 20
+  },
+  {
+    "file": "pickling-adults.pdf",
+    "topic": "Pickling",
+    "tier": "Adults",
+    "count": 20
+  },
+  {
+    "file": "jams-jellies-kids.pdf",
+    "topic": "Jams and Jellies",
+    "tier": "Kids (under 10)",
+    "count": 20
+  },
+  {
+    "file": "jams-jellies-tweens.pdf",
+    "topic": "Jams and Jellies",
+    "tier": "Tweens (10–14)",
+    "count": 20
+  },
+  {
+    "file": "jams-jellies-teens.pdf",
+    "topic": "Jams and Jellies",
+    "tier": "Teens (14–18)",
+    "count": 20
+  },
+  {
+    "file": "jams-jellies-adults.pdf",
+    "topic": "Jams and Jellies",
+    "tier": "Adults",
+    "count": 20
+  },
+  {
+    "file": "freezing-cold-storage-kids.pdf",
+    "topic": "Freezing and Cold Storage",
+    "tier": "Kids (under 10)",
+    "count": 20
+  },
+  {
+    "file": "freezing-cold-storage-tweens.pdf",
+    "topic": "Freezing and Cold Storage",
+    "tier": "Tweens (10–14)",
+    "count": 20
+  },
+  {
+    "file": "freezing-cold-storage-teens.pdf",
+    "topic": "Freezing and Cold Storage",
+    "tier": "Teens (14–18)",
+    "count": 20
+  },
+  {
+    "file": "freezing-cold-storage-adults.pdf",
+    "topic": "Freezing and Cold Storage",
+    "tier": "Adults",
+    "count": 20
+  },
+  {
+    "file": "dehydrating-smoking-kids.pdf",
+    "topic": "Dehydrating and Smoking",
+    "tier": "Kids (under 10)",
+    "count": 20
+  },
+  {
+    "file": "dehydrating-smoking-tweens.pdf",
+    "topic": "Dehydrating and Smoking",
+    "tier": "Tweens (10–14)",
+    "count": 20
+  },
+  {
+    "file": "dehydrating-smoking-teens.pdf",
+    "topic": "Dehydrating and Smoking",
+    "tier": "Teens (14–18)",
+    "count": 20
+  },
+  {
+    "file": "dehydrating-smoking-adults.pdf",
+    "topic": "Dehydrating and Smoking",
+    "tier": "Adults",
+    "count": 20
+  }
+]

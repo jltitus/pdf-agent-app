@@ -1,5 +1,5 @@
 const LOGO_URL = 'https://pdf-agent-app-r6ih.vercel.app/jar-logosm.png'
-const BRAND_NAME = 'MFP Publication Reference System'
+const BRAND_NAME = 'MFP Volunteer Resource Hub'
 const BRAND_COLOR = '#d73f09'
 
 export function emailTemplate(body: string): string {

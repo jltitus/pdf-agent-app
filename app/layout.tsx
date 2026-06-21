@@ -15,8 +15,8 @@ const geistMono = Geist_Mono({
 })
 
 export const metadata: Metadata = {
-  title: 'MFP Publication Reference System',
-  description: 'Master Food Preservers Publication Reference — ask questions, find answers.',
+  title: 'MFP Volunteer Resource Hub',
+  description: 'MFP Volunteer Resource Hub — outreach tools, activities, and OSU Extension publication answers for Master Food Preservers.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,

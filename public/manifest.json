@@ -1,7 +1,7 @@
 {
-  "name": "MFP Publication Reference System",
-  "short_name": "MFP Reference",
-  "description": "Master Food Preservers Publication Reference — ask questions, find answers.",
+  "name": "MFP Volunteer Resource Hub",
+  "short_name": "MFP Hub",
+  "description": "MFP Volunteer Resource Hub — outreach tools, activities, and OSU Extension publication answers for Master Food Preservers.",
   "start_url": "/dashboard",
   "display": "standalone",
   "background_color": "#f7f4ef",

@@ -73,7 +73,7 @@ export default function HomePage() {
         <div className="mx-auto max-w-6xl">
           <div className="rounded-2xl border border-[#d8d1c7] bg-white p-5 shadow-sm">
             <p className="text-sm text-secondary">
-              Loading MFP Publication Reference system...
+              Loading MFP Volunteer Resource Hub...
             </p>
           </div>
         </div>
@@ -102,7 +102,7 @@ export default function HomePage() {
                   </p>
 
                   <h1 className="mt-1 text-2xl font-bold text-primary sm:text-3xl lg:text-4xl">
-                    MFP Publication Reference system
+                    MFP Volunteer Resource Hub
                   </h1>
 
                   <p className="mt-2 max-w-2xl text-sm leading-6 text-secondary sm:text-base">

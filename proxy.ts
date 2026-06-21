@@ -11,6 +11,7 @@ const protectedRoutes = [
   '/view-pdf',
   '/history',
   '/print',
+  '/games',
 ]
 
 const authRoutes = [
