@@ -290,8 +290,8 @@ export default function ToolkitClient() {
         <span className="text-lg" aria-hidden>👋</span>
         <p>
           <b>New here?</b> Open an <b>Activity Guide</b> first — it walks you through
-          setup, exactly what to do, and a no-tablet version. No tech or food-preservation
-          experience needed. Each activity can be played on a tablet or printed for a table.
+          setup, exactly what to do, and a no-tablet version. Each activity can be played on a
+          tablet or printed for a table.
         </p>
       </div>
 
