@@ -43,6 +43,7 @@ type Activity = {
   fullscreen: string
   runSheet: string
   deckGrid?: boolean
+  tierDecks?: { tier: string; front: string; back: string }[]
   prints?: { label: string; href: string; note?: string }[]
   printNote?: string
   references?: { label: string; href: string; download?: boolean }[]
@@ -92,14 +93,18 @@ const ACTIVITIES: Activity[] = [
     play: '/games/sorting-game',
     fullscreen: '/games/sorting/sort-app.html',
     runSheet: '/games/guides/is-this-safe-run-sheet.pdf',
+    tierDecks: [
+      { tier: 'Kids', front: '/games/sorting/cards-front-kids.pdf', back: '/games/sorting/cards-back-kids.pdf' },
+      { tier: 'Tweens', front: '/games/sorting/cards-front-tweens.pdf', back: '/games/sorting/cards-back-tweens.pdf' },
+      { tier: 'Teens', front: '/games/sorting/cards-front-teens.pdf', back: '/games/sorting/cards-back-teens.pdf' },
+      { tier: 'Adults', front: '/games/sorting/cards-front-adults.pdf', back: '/games/sorting/cards-back-adults.pdf' },
+    ],
     prints: [
-      { label: '🃏 Scenario cards (front)', href: '/games/sorting/cards-front.pdf' },
-      { label: '↩ Answer side (back)', href: '/games/sorting/cards-back.pdf' },
-      { label: '🔑 Volunteer answer key', href: '/games/sorting/volunteer-key.pdf' },
+      { label: '🔑 Volunteer answer key (all ages)', href: '/games/sorting/volunteer-key.pdf' },
       { label: '🪧 Sorting signs', href: '/games/sorting/sorting-labels.pdf' },
     ],
     printNote:
-      'Print scenario cards double-sided (flip on short edge) so each answer lands on the back. Set the three signs across the table and keep the answer key handy.',
+      'Pick an age deck below (24 cards each). Print scenarios (front) and answers (back) double-sided, flip on the short edge so each answer lands on its card. Set the three signs across the table and keep the answer key handy.',
   },
   {
     id: 'preservation-bingo',
@@ -305,6 +310,33 @@ export default function ToolkitClient() {
                   </div>
                   {a.printNote && <p className="mt-2 text-xs text-secondary">{a.printNote}</p>}
                 </>
+              )}
+
+              {a.tierDecks && (
+                <div className="mt-3 overflow-x-auto">
+                  <table className="w-full min-w-[420px] border-collapse text-sm">
+                    <thead>
+                      <tr className="text-left">
+                        <th className="border-b border-[#e7e1d7] py-2 pr-3">Age deck</th>
+                        <th className="border-b border-[#e7e1d7] px-2 py-2 text-center">Scenarios (front)</th>
+                        <th className="border-b border-[#e7e1d7] px-2 py-2 text-center">Answers (back)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {a.tierDecks.map((d) => (
+                        <tr key={d.tier}>
+                          <td className="border-b border-[#f0ece4] py-2 pr-3 font-semibold">{d.tier}</td>
+                          <td className="border-b border-[#f0ece4] px-2 py-2 text-center">
+                            <a className="font-semibold text-[#1976D2] hover:underline" href={d.front} download>PDF</a>
+                          </td>
+                          <td className="border-b border-[#f0ece4] px-2 py-2 text-center">
+                            <a className="font-semibold text-[#1976D2] hover:underline" href={d.back} download>PDF</a>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               )}
 
               {a.deckGrid && (
