@@ -20,11 +20,22 @@ export default function ToolkitPage() {
               Master Food Preservers · Outreach
             </p>
             <h1 className="mt-3 text-3xl font-bold leading-tight text-primary sm:text-4xl">
-              Toolkit
+              Outreach activities &amp; printables
             </h1>
             <p className="mt-2 text-lg font-semibold text-secondary">
               Games, printables &amp; Activity guides for farmers-market outreach.
             </p>
+            {/* Scope chips — where these are used */}
+            <div className="mt-4 flex flex-wrap gap-2">
+              {['🧺 Farmers markets', '🏫 Youth programs', '🎓 Workshops', '🎪 Fairs & events'].map((s) => (
+                <span
+                  key={s}
+                  className="rounded-full border border-[#e3ddd2] bg-[#faf8f4] px-3 py-1 text-sm font-semibold text-secondary"
+                >
+                  {s}
+                </span>
+              ))}
+            </div>
             <p className="mt-4 max-w-3xl text-base leading-7 text-secondary">
               Each activity plays on a tablet or prints for a no-tech table, with a
               step-by-step Activity guide. Grounded in OSU Extension publications.

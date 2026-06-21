@@ -348,6 +348,27 @@ export default function ToolkitClient() {
 
   return (
     <>
+      {/* Activity quick-nav — surfaced at the top so the full scope is visible */}
+      {visible.length > 1 && (
+        <nav aria-label="Activities" className="overflow-hidden rounded-2xl border border-[#d8d1c7] bg-white p-3 shadow-sm sm:p-4">
+          <p className="mb-2 text-xs font-bold uppercase tracking-wide text-secondary">
+            {visible.length} activities
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {visible.map((a) => (
+              <a
+                key={a.id}
+                href={`#${a.id}`}
+                className="inline-flex items-center gap-1.5 rounded-full border border-[#d8d1c7] bg-white px-3 py-1.5 text-sm font-semibold text-primary hover:bg-[#f3f0ed]"
+              >
+                <span aria-hidden>{a.emoji}</span>
+                {a.title}
+              </a>
+            ))}
+          </div>
+        </nav>
+      )}
+
       {/* First-time callout */}
       <div className="flex items-start gap-3 rounded-2xl border border-[#f3d9cb] bg-[#fdf1ea] p-4 text-sm text-[#7a3a18]">
         <span className="text-lg" aria-hidden>👋</span>
@@ -392,22 +413,6 @@ export default function ToolkitClient() {
           )}
         </div>
       </section>
-
-      {/* Activity index (jump links) */}
-      {visible.length > 1 && (
-        <nav aria-label="Activities" className="flex flex-wrap items-center gap-2 px-1">
-          <span className="text-xs font-bold uppercase tracking-wide text-secondary">Jump to:</span>
-          {visible.map((a) => (
-            <a
-              key={a.id}
-              href={`#${a.id}`}
-              className="rounded-full border border-[#d8d1c7] bg-white px-3 py-1 text-xs font-semibold text-primary hover:bg-[#f3f0ed]"
-            >
-              {a.emoji} {a.title}
-            </a>
-          ))}
-        </nav>
-      )}
 
       <p className="px-1 text-sm text-secondary" aria-live="polite">
         {visible.length} {visible.length === 1 ? 'activity' : 'activities'}
