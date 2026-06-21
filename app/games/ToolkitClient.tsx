@@ -146,6 +146,38 @@ const ACTIVITIES: Activity[] = [
     printNote:
       'Print 2 cards per sheet and cut in half. Give each player a card and markers (dried beans, pennies, or a pen).',
   },
+  {
+    id: 'shelf-life',
+    emoji: '⏳',
+    title: 'How Long Does It Last?',
+    accent: '#00859B',
+    category: 'Guessing game',
+    skill: 'Grab & go',
+    audience: ['Kids', 'Tweens', 'Teens', 'Adults'],
+    audienceLabel: 'All ages',
+    prep: '5–10 min',
+    count: '40 items',
+    keywords: 'shelf life how long last fresh preserved guess storage wow',
+    description: (
+      <>
+        A &ldquo;wow&rdquo; guessing game: see a food item and guess how long it lasts{' '}
+        <b className="text-[#2E7D32]">fresh</b> vs. <b className="text-[#00859B]">preserved</b>. The
+        reveal shows both shelf lives with a comparison bar, a surprising fact, and an
+        age-appropriate explanation. 40 items chosen for surprising differences.
+      </>
+    ),
+    play: '/games/shelf-life',
+    fullscreen: '/games/shelf-life/shelf-app.html',
+    runSheet: '/games/guides/shelf-life-run-sheet.pdf',
+    kit: '/games/kits/shelf-life-print-kit.zip',
+    prints: [
+      { label: '🃏 Question cards (40, 2.5×3.5)', href: '/games/shelf-life/question-cards.pdf' },
+      { label: '🪧 Flip-board (large, for an easel)', href: '/games/shelf-life/flip-board.pdf' },
+      { label: '🔑 Volunteer key (all ages)', href: '/games/shelf-life/volunteer-key.pdf' },
+    ],
+    printNote:
+      'Print question cards double-sided (flip on short edge) and cut. Print the flip-board for a table easel — big front (guess) and back (answer).',
+  },
 ]
 
 // ---- filter facets ----

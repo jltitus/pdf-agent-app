@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<title>How Long Does It Last?</title>
+<style>
+  :root { --osu-orange:#d73f09; --ink:#222; --bg:#f7f4ef; --fresh:#2E7D32; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { margin:0; height:100%; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--ink); overflow:hidden; user-select:none; }
+  .app { height:100vh; display:flex; flex-direction:column; }
+  header { background:var(--osu-orange); color:#fff; padding:10px 20px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  header h1 { margin:0; font-size:20px; }
+  header .sub { font-size:11px; opacity:.9; text-transform:uppercase; letter-spacing:.15em; }
+  .controls { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  select { font-size:15px; padding:6px 10px; border-radius:8px; border:none; font-weight:600; }
+  main { flex:1 1 auto; display:flex; align-items:center; justify-content:center; padding:20px; min-height:0; }
+  .card { background:#fff; border-radius:24px; box-shadow:0 8px 28px rgba(0,0,0,.10); width:min(820px,95vw); max-height:84vh; overflow:auto; }
+  .band { height:16px; border-radius:24px 24px 0 0; }
+  .body { padding:24px 30px 28px; }
+  .eyebrow { font-size:13px; font-weight:800; text-transform:uppercase; letter-spacing:.12em; }
+  .topic { font-size:12px; font-weight:700; color:#888; text-transform:uppercase; letter-spacing:.08em; margin-top:6px; }
+  .food { font-size:clamp(30px,5vw,52px); font-weight:900; line-height:1.05; margin:6px 0 4px; }
+  .method { font-size:15px; font-style:italic; color:#777; }
+  .prompt { margin-top:14px; font-size:clamp(17px,2.2vw,22px); font-weight:700; color:var(--osu-orange); }
+  .btn { border:none; border-radius:16px; padding:18px 34px; font-size:20px; font-weight:900; cursor:pointer; color:#fff; background:var(--osu-orange); box-shadow:0 6px 16px rgba(215,63,9,.3); }
+  .btn:active { transform:scale(.98); }
+  .btn.secondary { background:#6b6258; box-shadow:none; font-size:17px; padding:14px 24px; }
+  .actions { margin-top:18px; display:flex; gap:12px; flex-wrap:wrap; }
+  .reveal { margin-top:20px; display:none; }
+  .reveal.show { display:block; }
+  .barrow { margin:10px 0 16px; }
+  .barlabel { font-size:14px; font-weight:800; margin-bottom:4px; }
+  .track { background:#edeae4; border-radius:10px; height:42px; overflow:hidden; }
+  .fill { height:100%; width:0; border-radius:10px; display:flex; align-items:center; padding-left:12px; color:#fff; font-weight:800; font-size:16px; white-space:nowrap; transition:width 900ms cubic-bezier(.22,1,.36,1); }
+  .wow { background:#fff8f3; border:2px solid #f3d9cb; border-radius:14px; padding:14px 18px; font-size:clamp(16px,2vw,20px); font-weight:700; }
+  .explain { margin-top:12px; font-size:17px; line-height:1.45; color:#333; }
+  .safety { margin-top:10px; font-size:14px; color:#a23; font-weight:600; }
+  .source { margin-top:10px; font-size:12px; color:#999; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div>
+      <div class="sub">Oregon State University Extension · MFP</div>
+      <h1>How Long Does It Last?</h1>
+    </div>
+    <div class="controls">
+      <select id="ageSel" aria-label="Explanation age level"></select>
+      <select id="topicSel" aria-label="Filter by topic"></select>
+      <button class="btn secondary" id="next">Next →</button>
+    </div>
+  </header>
+  <main id="main"></main>
+</div>
+<script>window.__EMBEDDED_SHELF__ = null;</script>
+<script>
+(function(){
+  "use strict";
+  var AGES=[["explain_kids","Kids"],["explain_tweens","Tweens"],["explain_teens","Teens"],["explain_adult","Adult"]];
+  var ITEMS=[], used={}, filter="all", age="explain_adult", current=null;
+  var main=document.getElementById("main"), ageSel=document.getElementById("ageSel"), topicSel=document.getElementById("topicSel");
+
+  function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+  function load(){ if(window.__EMBEDDED_SHELF__&&window.__EMBEDDED_SHELF__.length) return Promise.resolve(window.__EMBEDDED_SHELF__);
+    return fetch("shelf-life-data.json",{cache:"no-store"}).then(function(r){if(!r.ok)throw new Error("data "+r.status);return r.json();}); }
+
+  function pool(){ return ITEMS.filter(function(c){ return (filter==="all"||c.topic_id===filter)&&!used[c.id]; }); }
+  function pick(){ var p=pool(); if(!p.length){ ITEMS.forEach(function(c){ if(filter==="all"||c.topic_id===filter) delete used[c.id]; }); p=pool(); } return p.length?p[Math.floor(Math.random()*p.length)]:null; }
+
+  function fracs(f,p){ var m=Math.max(f,p,1); return { f:Math.max(0.06,f/m), p:Math.max(0.06,p/m) }; }
+
+  function render(){
+    current=pick();
+    if(!current){ main.innerHTML='<p>No items.</p>'; return; }
+    used[current.id]=true;
+    var c=current;
+    main.innerHTML=
+      '<div class="card"><div class="band" style="background:'+esc(c.color)+'"></div><div class="body">'+
+        '<div class="eyebrow" style="color:'+esc(c.color)+'">How long does it last?</div>'+
+        '<div class="topic">'+esc(c.topic)+'</div>'+
+        '<div class="food">'+esc(c.food_item)+'</div>'+
+        (c.preservation_method?'<div class="method">Preserved by: '+esc(c.preservation_method)+'</div>':'')+
+        '<div class="prompt">Make your guess — how long FRESH vs. PRESERVED?</div>'+
+        '<div class="actions"><button class="btn" id="revealBtn">Reveal answer</button></div>'+
+        '<div class="reveal" id="reveal"></div>'+
+      '</div></div>';
+    document.getElementById("revealBtn").addEventListener("click",reveal);
+  }
+
+  function reveal(){
+    var c=current, fr=fracs(c.fresh_days,c.preserved_days);
+    var r=document.getElementById("reveal");
+    r.innerHTML=
+      '<div class="barrow"><div class="barlabel" style="color:var(--fresh)">FRESH</div>'+
+        '<div class="track"><div class="fill" id="fillF" style="background:var(--fresh)">'+esc(c.fresh_shelf_life)+'</div></div></div>'+
+      '<div class="barrow"><div class="barlabel" style="color:'+esc(c.color)+'">PRESERVED ('+esc(c.preservation_method||"preserved")+')</div>'+
+        '<div class="track"><div class="fill" id="fillP" style="background:'+esc(c.color)+'">'+esc(c.preserved_shelf_life)+'</div></div></div>'+
+      '<div class="wow">😮 '+esc(c.surprising_fact)+'</div>'+
+      '<div class="explain" id="explain"></div>'+
+      (c.safety_note?'<div class="safety">⚠ '+esc(c.safety_note)+'</div>':'')+
+      (c.source_document?'<div class="source">Source: '+esc(c.source_document)+'</div>':'');
+    r.classList.add("show");
+    updateExplain();
+    document.getElementById("revealBtn").disabled=true;
+    requestAnimationFrame(function(){ requestAnimationFrame(function(){
+      document.getElementById("fillF").style.width=(fr.f*100)+"%";
+      document.getElementById("fillP").style.width=(fr.p*100)+"%";
+    }); });
+  }
+  function updateExplain(){ var e=document.getElementById("explain"); if(e&&current) e.textContent=current[age]||current.explain_adult; }
+
+  function buildSelectors(){
+    ageSel.innerHTML=AGES.map(function(a){ return '<option value="'+a[0]+'"'+(a[0]===age?' selected':'')+'>'+a[1]+'</option>'; }).join('');
+    ageSel.addEventListener("change",function(){ age=ageSel.value; updateExplain(); });
+    var topics={}; ITEMS.forEach(function(c){ topics[c.topic_id]=c.topic; });
+    var th='<option value="all">All topics</option>';
+    Object.keys(topics).forEach(function(id){ th+='<option value="'+id+'">'+esc(topics[id])+'</option>'; });
+    topicSel.innerHTML=th;
+    topicSel.addEventListener("change",function(){ filter=topicSel.value; render(); });
+  }
+  document.getElementById("next").addEventListener("click",render);
+
+  load().then(function(d){ ITEMS=d; buildSelectors(); render(); }).catch(function(e){ main.innerHTML='<p style="padding:30px">Couldn\'t load: '+esc(e.message)+'</p>'; });
+})();
+</script>
+</body>
+</html>
