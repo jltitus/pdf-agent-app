@@ -103,7 +103,7 @@ const ACTIVITIES: Activity[] = [
 // ---- filter facets ----
 const FACETS = {
   Category: Array.from(new Set(ACTIVITIES.map((a) => a.category))),
-  Skill: ['Grab & go', 'Some prep', 'Trained MFP'],
+  Skill: ['Grab & go', 'Some prep'],
   Audience: ['Kids', 'Tweens', 'Teens', 'Adults'],
   Prep: Array.from(new Set(ACTIVITIES.map((a) => a.prep))),
 } as const
