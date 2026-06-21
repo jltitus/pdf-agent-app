@@ -1,7 +1,7 @@
 import Link from 'next/link'
 
 export const metadata = {
-  title: 'Food preservation trivia — MFP Toolkit',
+  title: 'Food preservation trivia — MFP Outreach',
 }
 
 // The wheel itself is a self-contained static app at public/games/prize-wheel-app.html

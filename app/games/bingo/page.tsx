@@ -1,7 +1,7 @@
 import Link from 'next/link'
 
 export const metadata = {
-  title: 'Preservation bingo — MFP Toolkit',
+  title: 'Preservation bingo — MFP Outreach',
 }
 
 // Self-contained caller at public/games/bingo/caller.html (also runs offline).
@@ -11,7 +11,7 @@ export default function BingoPage() {
     <main className="flex min-h-screen flex-col bg-[#f7f4ef]">
       <div className="flex items-center justify-between px-4 py-2">
         <Link href="/games" className="text-sm font-semibold text-[#d73f09] hover:underline">
-          ← Back to Toolkit
+          ← Back to Outreach
         </Link>
         <a
           href="/games/bingo/caller.html"

@@ -1,7 +1,7 @@
 import ToolkitClient from './ToolkitClient'
 
 export const metadata = {
-  title: 'Toolkit — MFP Volunteer Resource Hub',
+  title: 'Outreach — MFP Volunteer Resource Hub',
 }
 
 export default function ToolkitPage() {
