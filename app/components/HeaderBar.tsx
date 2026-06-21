@@ -102,7 +102,7 @@ export default function HeaderBar() {
             <button
               type="button"
               onClick={() => setMenuOpen((value) => !value)}
-              className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-2xl font-bold leading-none text-primary shadow-sm lg:hidden"
+              className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center rounded-xl border border-[#d8d1c7] bg-white px-3 py-2 text-2xl font-bold leading-none text-primary shadow-sm xl:hidden"
               aria-expanded={menuOpen}
               aria-controls="mobile-main-menu"
               aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
@@ -112,7 +112,7 @@ export default function HeaderBar() {
 
             <a
               href="/dashboard"
-              className="flex min-w-0 shrink-0 items-center gap-3"
+              className="flex min-w-0 items-center gap-3"
               onClick={() => setMenuOpen(false)}
             >
               <img
@@ -132,7 +132,7 @@ export default function HeaderBar() {
             </a>
           </div>
 
-          <nav aria-label="Main navigation" className="hidden flex-1 items-center justify-end gap-1 lg:flex">
+          <nav aria-label="Main navigation" className="hidden flex-1 items-center justify-end gap-1 xl:flex">
             {navItems.map((item) => (
               <Link key={item.href} href={item.href} prefetch={false} className={desktopNavClass(item.href)}>
   <span className="mr-1" aria-hidden="true">{item.icon}</span>
@@ -163,7 +163,7 @@ export default function HeaderBar() {
           <nav
             id="mobile-main-menu"
             aria-label="Mobile navigation"
-            className="mt-3 grid grid-cols-2 gap-2 border-t border-[#d8d1c7] pt-3 sm:grid-cols-3 lg:hidden"
+            className="mt-3 grid grid-cols-2 gap-2 border-t border-[#d8d1c7] pt-3 sm:grid-cols-3 xl:hidden"
           >
             {[...navItems, adminItem].map((item) => (
               <Link
