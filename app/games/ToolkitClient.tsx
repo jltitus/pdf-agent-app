@@ -46,6 +46,7 @@ type Activity = {
   kit: string
   deckGrid?: boolean
   tierDecks?: { tier: string; front: string; back: string }[]
+  puzzleGrid?: { label: string; kids: string; adult: string }[]
   prints?: { label: string; href: string }[]
   printNote?: string
   references?: { label: string; href: string; download?: boolean }[]
@@ -240,6 +241,42 @@ const ACTIVITIES: Activity[] = [
     ],
     printNote:
       'Print double-sided (flip on short edge) so each bust lands on the back of its claim, then cut. HIGH-risk myths have a red border.',
+  },
+  {
+    id: 'timeline-puzzle',
+    emoji: '🧩',
+    title: 'Canning Timeline Puzzle',
+    accent: '#1976D2',
+    category: 'Sequencing puzzle',
+    skill: 'Some prep',
+    audience: ['Kids', 'Tweens', 'Teens', 'Adults'],
+    audienceLabel: 'All ages',
+    prep: '10–15 min',
+    count: '6 processes',
+    keywords: 'timeline puzzle order steps sequence canning process strawberry jam tomatoes green beans pickles freezing',
+    description: (
+      <>
+        Players put the steps of a real food-preservation process in the correct order — the exact
+        OSU recipe sequence. Six processes, each as a <b>Kids</b> deck (simple) and a{' '}
+        <b>Teen/Adult</b> deck (full technical steps). Safety-critical steps are flagged; the step
+        number on the back lets players self-check.
+      </>
+    ),
+    play: '/games/timeline-puzzle',
+    fullscreen: '/games/timeline/timeline-app.html',
+    runSheet: '/games/guides/timeline-puzzle-activity-guide.pdf',
+    kit: '/games/kits/timeline-puzzle-print-kit.zip',
+    prints: [{ label: '🔑 Answer keys (all processes)', href: '/games/timeline/answer-keys.pdf' }],
+    puzzleGrid: [
+      { label: 'Strawberry Jam', kids: '/games/timeline/puzzle-strawberry-jam-kids.pdf', adult: '/games/timeline/puzzle-strawberry-jam-adult.pdf' },
+      { label: 'Whole Tomatoes', kids: '/games/timeline/puzzle-whole-tomatoes-kids.pdf', adult: '/games/timeline/puzzle-whole-tomatoes-adult.pdf' },
+      { label: 'Pressure-Canned Green Beans', kids: '/games/timeline/puzzle-green-beans-kids.pdf', adult: '/games/timeline/puzzle-green-beans-adult.pdf' },
+      { label: 'Refrigerator Pickles', kids: '/games/timeline/puzzle-refrigerator-pickles-kids.pdf', adult: '/games/timeline/puzzle-refrigerator-pickles-adult.pdf' },
+      { label: 'Freezing Vegetables', kids: '/games/timeline/puzzle-freezing-vegetables-kids.pdf', adult: '/games/timeline/puzzle-freezing-vegetables-adult.pdf' },
+      { label: 'Fruit Preserves', kids: '/games/timeline/puzzle-fruit-preserves-kids.pdf', adult: '/games/timeline/puzzle-fruit-preserves-adult.pdf' },
+    ],
+    printNote:
+      'Print the decks you need and cut the cards apart. Each card front is a step; the back has only the step number for self-checking. Safety steps have a red border.',
   },
 ]
 
@@ -478,6 +515,33 @@ export default function ToolkitClient() {
                             </td>
                             <td className="border-b border-[#f0ece4] px-2 py-2 text-center">
                               <a className="font-semibold text-[#1976D2] hover:underline" href={d.back} download>PDF</a>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+
+                {a.puzzleGrid && (
+                  <div className="mt-3 overflow-x-auto">
+                    <table className="w-full min-w-[440px] border-collapse text-sm">
+                      <thead>
+                        <tr className="text-left">
+                          <th className="border-b border-[#e7e1d7] py-2 pr-3">Process</th>
+                          <th className="border-b border-[#e7e1d7] px-2 py-2 text-center">Kids deck</th>
+                          <th className="border-b border-[#e7e1d7] px-2 py-2 text-center">Teen/Adult deck</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {a.puzzleGrid.map((d) => (
+                          <tr key={d.label}>
+                            <td className="border-b border-[#f0ece4] py-2 pr-3 font-semibold">{d.label}</td>
+                            <td className="border-b border-[#f0ece4] px-2 py-2 text-center">
+                              <a className="font-semibold text-[#1976D2] hover:underline" href={d.kids} download>PDF</a>
+                            </td>
+                            <td className="border-b border-[#f0ece4] px-2 py-2 text-center">
+                              <a className="font-semibold text-[#1976D2] hover:underline" href={d.adult} download>PDF</a>
                             </td>
                           </tr>
                         ))}

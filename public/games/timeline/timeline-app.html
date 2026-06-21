@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<title>Canning Timeline Puzzle</title>
+<style>
+  :root { --osu-orange:#d73f09; --ink:#222; --bg:#f7f4ef; --safety:#C62828; --ok:#2E7D32; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { margin:0; height:100%; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--ink); }
+  .app { min-height:100vh; display:flex; flex-direction:column; }
+  header { background:var(--osu-orange); color:#fff; padding:10px 20px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  header h1 { margin:0; font-size:20px; }
+  header .sub { font-size:11px; opacity:.9; text-transform:uppercase; letter-spacing:.15em; }
+  .controls { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  select { font-size:15px; padding:7px 10px; border-radius:8px; border:none; font-weight:700; }
+  .controls button { background:#fff; color:var(--osu-orange); border:none; border-radius:8px; padding:8px 14px; font-size:14px; font-weight:800; cursor:pointer; }
+  .bar { padding:10px 20px; background:#fff; border-bottom:1px solid #e3ddd2; font-size:16px; font-weight:700; display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap; }
+  main { flex:1 1 auto; padding:16px; }
+  .grid { display:grid; gap:12px; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); max-width:1200px; margin:0 auto; }
+  .step { position:relative; background:#fff; border:3px solid #e3ddd2; border-radius:14px; padding:16px 14px 14px; font-size:16px; font-weight:600; cursor:pointer; min-height:84px; line-height:1.35; }
+  .step.safety { border-color:var(--safety); }
+  .step.placed { background:#faf8f4; }
+  .step.correct { border-color:var(--ok); background:#eef6ee; }
+  .step.wrong { border-color:var(--safety); background:#fdeeee; }
+  .step:disabled { cursor:default; }
+  .badge { position:absolute; top:-12px; left:-12px; width:30px; height:30px; border-radius:50%; background:var(--osu-orange); color:#fff; font-weight:900; font-size:15px; display:flex; align-items:center; justify-content:center; }
+  .step.correct .badge { background:var(--ok); }
+  .step.wrong .badge { background:var(--safety); }
+  .saf { color:var(--safety); font-size:11px; font-weight:800; text-transform:uppercase; display:block; margin-bottom:4px; }
+  .fix { font-size:12px; font-weight:800; color:var(--safety); margin-top:6px; }
+  .result { font-size:20px; font-weight:900; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div><div class="sub">OSU Extension · MFP</div><h1>Canning Timeline Puzzle</h1></div>
+    <div class="controls">
+      <select id="procSel" aria-label="Process"></select>
+      <select id="verSel" aria-label="Version"></select>
+      <button id="shuffle">New shuffle</button>
+    </div>
+  </header>
+  <div class="bar"><span id="instruct">Tap the steps in the right order.</span><span class="result" id="result"></span></div>
+  <main><div class="grid" id="grid"></div></main>
+</div>
+<script>window.__EMBEDDED_TIMELINE__ = null;</script>
+<script>
+(function(){
+  "use strict";
+  var CARDS=[], procId=null, ver="kids", shuffled=[], nextPos=1, checked=false;
+  var grid=document.getElementById("grid"), procSel=document.getElementById("procSel"), verSel=document.getElementById("verSel"), result=document.getElementById("result"), instruct=document.getElementById("instruct");
+
+  function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+  function load(){ if(window.__EMBEDDED_TIMELINE__&&window.__EMBEDDED_TIMELINE__.length) return Promise.resolve(window.__EMBEDDED_TIMELINE__);
+    return fetch("puzzle-data.json",{cache:"no-store"}).then(function(r){if(!r.ok)throw new Error("data "+r.status);return r.json();}); }
+  function procName(id){ var c=CARDS.find(function(x){return x.process_id===id;}); return c?c.process_name:id; }
+  function steps(){ return CARDS.filter(function(c){return c.process_id===procId&&c.version===ver;}).slice().sort(function(a,b){return a.step_number-b.step_number;}); }
+
+  function shuffle(a){ a=a.slice(); for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;} return a; }
+  function start(){ var s=steps(); shuffled=shuffle(s).map(function(x){return {c:x, pos:0};}); nextPos=1; checked=false; result.textContent=""; instruct.textContent="Tap the steps in the right order."; render(); }
+
+  function render(){
+    grid.innerHTML=shuffled.map(function(it,i){
+      var c=it.c, cls="step"+(c.safety_flag?" safety":"")+(it.pos?" placed":"");
+      if(checked){ cls+= (it.pos===c.step_number)?" correct":" wrong"; }
+      return '<button class="'+cls+'" data-i="'+i+'"'+((it.pos||checked)?' disabled':'')+'>'+
+        (it.pos?'<span class="badge">'+it.pos+'</span>':'')+
+        (c.safety_flag?'<span class="saf">! Safety step</span>':'')+
+        esc(c.step_text)+
+        (checked&&it.pos!==c.step_number?'<div class="fix">Goes in spot '+c.step_number+'</div>':'')+
+      '</button>';
+    }).join('');
+    Array.prototype.forEach.call(grid.querySelectorAll(".step"),function(b){ b.addEventListener("click",function(){ place(+b.getAttribute("data-i")); }); });
+  }
+  function place(i){
+    if(checked||shuffled[i].pos) return;
+    shuffled[i].pos=nextPos++;
+    if(nextPos>shuffled.length){ check(); } else render();
+  }
+  function check(){
+    checked=true;
+    var right=shuffled.filter(function(it){return it.pos===it.c.step_number;}).length;
+    result.textContent=right+" / "+shuffled.length+" in the right spot";
+    instruct.textContent= right===shuffled.length? "Perfect order! 🎉" : "Green = correct spot. Tap New shuffle to try again.";
+    render();
+  }
+
+  function buildControls(){
+    var procs={}; CARDS.forEach(function(c){ procs[c.process_id]=c.process_name; });
+    procId=procId||Object.keys(procs)[0];
+    procSel.innerHTML=Object.keys(procs).map(function(id){return '<option value="'+id+'"'+(id===procId?' selected':'')+'>'+esc(procs[id])+'</option>';}).join('');
+    procSel.addEventListener("change",function(){ procId=procSel.value; start(); });
+    verSel.innerHTML='<option value="kids">Kids</option><option value="adult">Teen/Adult</option>';
+    verSel.value=ver;
+    verSel.addEventListener("change",function(){ ver=verSel.value; start(); });
+  }
+  document.getElementById("shuffle").addEventListener("click",start);
+  load().then(function(d){ CARDS=d; buildControls(); start(); }).catch(function(e){ grid.innerHTML='<p style="padding:30px">Couldn\'t load: '+esc(e.message)+'</p>'; });
+})();
+</script>
+</body>
+</html>
