@@ -43,25 +43,6 @@ export default function ToolkitPage() {
         {/* Filters + activity cards (client) */}
         <ToolkitClient />
 
-        {/* Handouts & references */}
-        <section className="overflow-hidden rounded-3xl border border-[#d8d1c7] bg-white shadow-sm">
-          <div className="p-5 sm:p-8">
-            <div className="mb-3 flex items-baseline gap-3">
-              <span className="text-2xl" aria-hidden>📄</span>
-              <h2 className="text-2xl font-bold text-primary">Handouts &amp; references</h2>
-              <span className="text-sm text-secondary">for volunteers</span>
-            </div>
-            <p className="mb-3 text-sm text-secondary">Apply to every activity.</p>
-            <ul className="space-y-2 text-base">
-              <li>
-                <a className="font-semibold text-[#1976D2] hover:underline" href="/games/PRIZES.md" target="_blank">
-                  🎁 Prize &amp; reward ideas (by age group)
-                </a>
-              </li>
-            </ul>
-          </div>
-        </section>
-
         <p className="px-1 pb-4 text-xs text-secondary">
           More activities coming to the toolkit. Content is grounded in OSU Extension
           publications but model-generated — spot-check before printing at scale.
