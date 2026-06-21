@@ -24,7 +24,7 @@ export default function SortingGamePage() {
       </div>
       <iframe
         src="/games/sorting/sort-app.html"
-        title="Is This Safe? Sorting Game"
+        title="Is this safe? Sorting game"
         className="w-full flex-1 border-0"
       />
     </main>

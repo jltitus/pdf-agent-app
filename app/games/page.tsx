@@ -23,11 +23,11 @@ export default function ToolkitPage() {
               Toolkit
             </h1>
             <p className="mt-2 text-lg font-semibold text-secondary">
-              Games, printables &amp; Activity Guides for farmers-market outreach.
+              Games, printables &amp; Activity guides for farmers-market outreach.
             </p>
             <p className="mt-4 max-w-3xl text-base leading-7 text-secondary">
               Each activity plays on a tablet or prints for a no-tech table, with a
-              step-by-step Activity Guide. Grounded in OSU Extension publications.
+              step-by-step Activity guide. Grounded in OSU Extension publications.
             </p>
             {/* Skill legend */}
             <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs text-secondary">

@@ -1,7 +1,7 @@
 import Link from 'next/link'
 
 export const metadata = {
-  title: 'Seasonal Preservation Planner — MFP Toolkit',
+  title: 'Seasonal preservation planner — MFP Toolkit',
 }
 
 // Self-contained planner at public/games/seasonal/planner-app.html (also offline).
@@ -23,7 +23,7 @@ export default function SeasonalPlannerPage() {
       </div>
       <iframe
         src="/games/seasonal/planner-app.html"
-        title="Seasonal Preservation Planner"
+        title="Seasonal preservation planner"
         className="w-full flex-1 border-0"
       />
     </main>

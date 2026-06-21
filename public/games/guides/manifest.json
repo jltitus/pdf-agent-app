@@ -1,37 +1,37 @@
 [
   {
     "id": "prize-wheel",
-    "title": "Food Preservation Trivia",
+    "title": "Food preservation trivia",
     "file": "food-preservation-trivia-activity-guide.pdf"
   },
   {
     "id": "is-this-safe",
-    "title": "Is This Safe? Sorting Game",
+    "title": "Is this safe? Sorting game",
     "file": "is-this-safe-activity-guide.pdf"
   },
   {
     "id": "preservation-bingo",
-    "title": "Preservation Bingo",
+    "title": "Preservation bingo",
     "file": "preservation-bingo-activity-guide.pdf"
   },
   {
     "id": "shelf-life",
-    "title": "How Long Does It Last?",
+    "title": "How long does it last?",
     "file": "how-long-does-it-last-activity-guide.pdf"
   },
   {
     "id": "seasonal-planner",
-    "title": "Seasonal Preservation Planner",
+    "title": "Seasonal preservation planner",
     "file": "seasonal-planner-activity-guide.pdf"
   },
   {
     "id": "myth-busters",
-    "title": "Food Preservation Myth Busters",
+    "title": "Food preservation myth busters",
     "file": "myth-busters-activity-guide.pdf"
   },
   {
     "id": "timeline-puzzle",
-    "title": "Canning Timeline Puzzle",
+    "title": "Canning timeline puzzle",
     "file": "timeline-puzzle-activity-guide.pdf"
   }
 ]

@@ -1,7 +1,7 @@
 import Link from 'next/link'
 
 export const metadata = {
-  title: 'How Long Does It Last? — MFP Toolkit',
+  title: 'How long does it last? — MFP Toolkit',
 }
 
 // Self-contained game at public/games/shelf-life/shelf-app.html (also offline).
@@ -23,7 +23,7 @@ export default function ShelfLifePage() {
       </div>
       <iframe
         src="/games/shelf-life/shelf-app.html"
-        title="How Long Does It Last?"
+        title="How long does it last?"
         className="w-full flex-1 border-0"
       />
     </main>

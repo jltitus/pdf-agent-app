@@ -1,7 +1,7 @@
 import Link from 'next/link'
 
 export const metadata = {
-  title: 'Preservation Bingo — MFP Toolkit',
+  title: 'Preservation bingo — MFP Toolkit',
 }
 
 // Self-contained caller at public/games/bingo/caller.html (also runs offline).
@@ -23,7 +23,7 @@ export default function BingoPage() {
       </div>
       <iframe
         src="/games/bingo/caller.html"
-        title="Preservation Bingo Caller"
+        title="Preservation bingo Caller"
         className="w-full flex-1 border-0"
       />
     </main>

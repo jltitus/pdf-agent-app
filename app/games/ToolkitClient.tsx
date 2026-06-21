@@ -56,7 +56,7 @@ const ACTIVITIES: Activity[] = [
   {
     id: 'prize-wheel',
     emoji: '🎡',
-    title: 'Food Preservation Trivia',
+    title: 'Food preservation trivia',
     accent: '#d73f09',
     category: 'Trivia game',
     skill: 'Grab & go',
@@ -81,7 +81,7 @@ const ACTIVITIES: Activity[] = [
   {
     id: 'is-this-safe',
     emoji: '🔎',
-    title: 'Is This Safe? Sorting Game',
+    title: 'Is this safe? Sorting game',
     accent: '#006A8E',
     category: 'Sorting game',
     skill: 'Some prep',
@@ -118,7 +118,7 @@ const ACTIVITIES: Activity[] = [
   {
     id: 'preservation-bingo',
     emoji: '🎟️',
-    title: 'Preservation Bingo',
+    title: 'Preservation bingo',
     accent: '#7B1FA2',
     category: 'Bingo game',
     skill: 'Some prep',
@@ -150,7 +150,7 @@ const ACTIVITIES: Activity[] = [
   {
     id: 'shelf-life',
     emoji: '⏳',
-    title: 'How Long Does It Last?',
+    title: 'How long does it last?',
     accent: '#00859B',
     category: 'Guessing game',
     skill: 'Grab & go',
@@ -182,7 +182,7 @@ const ACTIVITIES: Activity[] = [
   {
     id: 'seasonal-planner',
     emoji: '📅',
-    title: 'Seasonal Preservation Planner',
+    title: 'Seasonal preservation planner',
     accent: '#388E3C',
     category: 'Planner',
     skill: 'Grab & go',
@@ -213,7 +213,7 @@ const ACTIVITIES: Activity[] = [
   {
     id: 'myth-busters',
     emoji: '🔬',
-    title: 'Food Preservation Myth Busters',
+    title: 'Food preservation myth busters',
     accent: '#C62828',
     category: 'Myth busting',
     skill: 'Some prep',
@@ -245,7 +245,7 @@ const ACTIVITIES: Activity[] = [
   {
     id: 'timeline-puzzle',
     emoji: '🧩',
-    title: 'Canning Timeline Puzzle',
+    title: 'Canning timeline puzzle',
     accent: '#1976D2',
     category: 'Sequencing puzzle',
     skill: 'Some prep',
@@ -352,7 +352,7 @@ export default function ToolkitClient() {
       <div className="flex items-start gap-3 rounded-2xl border border-[#f3d9cb] bg-[#fdf1ea] p-4 text-sm text-[#7a3a18]">
         <span className="text-lg" aria-hidden>👋</span>
         <p>
-          <b>New here?</b> Open an <b>Activity Guide</b> first — it walks you through
+          <b>New here?</b> Open an <b>Activity guide</b> first — it walks you through
           setup, exactly what to do, and a no-tablet version. Each activity can be played on a
           tablet or printed for a table.
         </p>
@@ -454,14 +454,14 @@ export default function ToolkitClient() {
                 Open full screen ↗
               </Link>
               <a href={a.runSheet} target="_blank" className="rounded-xl border-2 border-[#5D4037] px-6 py-3 text-base font-bold text-[#5D4037] hover:bg-[#f3ece8]">
-                📋 Activity Guide
+                📋 Activity guide
               </a>
               <a href={a.kit} download className="rounded-xl border-2 border-[#1976D2] px-6 py-3 text-base font-bold text-[#1976D2] hover:bg-[#eaf2fb]">
                 ⬇ Print kit (ZIP)
               </a>
             </div>
             <p className="mt-2 text-sm text-secondary">
-              New to this? The <b>Activity Guide</b> walks you through setup, exactly what to do, a
+              New to this? The <b>Activity guide</b> walks you through setup, exactly what to do, a
               no-tablet version, and volunteer tips. The <b>print kit</b> bundles every printable
               for this activity in one download.
             </p>

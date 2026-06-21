@@ -1,7 +1,7 @@
 import Link from 'next/link'
 
 export const metadata = {
-  title: 'Canning Timeline Puzzle — MFP Toolkit',
+  title: 'Canning timeline puzzle — MFP Toolkit',
 }
 
 // Self-contained puzzle at public/games/timeline/timeline-app.html (also offline).
@@ -23,7 +23,7 @@ export default function TimelinePuzzlePage() {
       </div>
       <iframe
         src="/games/timeline/timeline-app.html"
-        title="Canning Timeline Puzzle"
+        title="Canning timeline puzzle"
         className="w-full flex-1 border-0"
       />
     </main>

@@ -1,7 +1,7 @@
 import Link from 'next/link'
 
 export const metadata = {
-  title: 'Food Preservation Myth Busters — MFP Toolkit',
+  title: 'Food preservation myth busters — MFP Toolkit',
 }
 
 // Self-contained game at public/games/myth-busters/myth-app.html (also offline).
@@ -23,7 +23,7 @@ export default function MythBustersPage() {
       </div>
       <iframe
         src="/games/myth-busters/myth-app.html"
-        title="Food Preservation Myth Busters"
+        title="Food preservation myth busters"
         className="w-full flex-1 border-0"
       />
     </main>
