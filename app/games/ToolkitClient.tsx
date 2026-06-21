@@ -225,24 +225,22 @@ function Badge({ children, cls = 'bg-[#eef1f5] text-[#42556b]' }: { children: Re
   return <span className={`inline-block rounded-full px-2.5 py-1 text-xs font-bold ${cls}`}>{children}</span>
 }
 
-const PILL =
-  'inline-flex min-h-11 items-center rounded-full border px-4 py-2 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d73f09] focus-visible:ring-offset-1'
+const SELECT =
+  'min-h-11 rounded-xl border bg-white px-3 py-2 text-sm font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d73f09]'
+const ALL_LABEL: Record<FacetKey, string> = {
+  Category: 'All categories', Skill: 'All skill levels', Audience: 'All ages', Prep: 'All prep times',
+}
 
 export default function ToolkitClient() {
-  const [filters, setFilters] = useState<Record<FacetKey, Set<string>>>({
-    Category: new Set(), Skill: new Set(), Audience: new Set(), Prep: new Set(),
-  })
+  const [filters, setFilters] = useState<Record<FacetKey, string>>({ Category: '', Skill: '', Audience: '', Prep: '' })
   const [query, setQuery] = useState('')
   const hydrated = useRef(false)
 
   // ---- read filters from the URL on first mount ----
   useEffect(() => {
     const sp = new URLSearchParams(window.location.search)
-    const next = { Category: new Set<string>(), Skill: new Set<string>(), Audience: new Set<string>(), Prep: new Set<string>() }
-    for (const k of FACET_KEYS) {
-      const v = sp.get(k.toLowerCase())
-      if (v) v.split(',').filter(Boolean).forEach((x) => next[k].add(x))
-    }
+    const next: Record<FacetKey, string> = { Category: '', Skill: '', Audience: '', Prep: '' }
+    for (const k of FACET_KEYS) { const v = sp.get(k.toLowerCase()); if (v) next[k] = v }
     setFilters(next)
     setQuery(sp.get('q') ?? '')
     hydrated.current = true
@@ -252,32 +250,28 @@ export default function ToolkitClient() {
   useEffect(() => {
     if (!hydrated.current) return
     const sp = new URLSearchParams()
-    for (const k of FACET_KEYS) if (filters[k].size) sp.set(k.toLowerCase(), [...filters[k]].join(','))
+    for (const k of FACET_KEYS) if (filters[k]) sp.set(k.toLowerCase(), filters[k])
     if (query.trim()) sp.set('q', query.trim())
     const qs = sp.toString()
     window.history.replaceState(null, '', qs ? `?${qs}` : window.location.pathname)
   }, [filters, query])
 
-  function toggle(facet: FacetKey, value: string) {
-    setFilters((prev) => {
-      const next = new Set(prev[facet])
-      next.has(value) ? next.delete(value) : next.add(value)
-      return { ...prev, [facet]: next }
-    })
+  function setFacet(facet: FacetKey, value: string) {
+    setFilters((prev) => ({ ...prev, [facet]: value }))
   }
   function clearAll() {
-    setFilters({ Category: new Set(), Skill: new Set(), Audience: new Set(), Prep: new Set() })
+    setFilters({ Category: '', Skill: '', Audience: '', Prep: '' })
     setQuery('')
   }
-  const activeCount = FACET_KEYS.reduce((n, k) => n + filters[k].size, 0) + (query.trim() ? 1 : 0)
+  const activeCount = FACET_KEYS.reduce((n, k) => n + (filters[k] ? 1 : 0), 0) + (query.trim() ? 1 : 0)
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase()
     return ACTIVITIES.filter((a) => {
-      if (filters.Category.size && !filters.Category.has(a.category)) return false
-      if (filters.Skill.size && !filters.Skill.has(a.skill)) return false
-      if (filters.Audience.size && !a.audience.some((x) => filters.Audience.has(x))) return false
-      if (filters.Prep.size && !filters.Prep.has(a.prep)) return false
+      if (filters.Category && a.category !== filters.Category) return false
+      if (filters.Skill && a.skill !== filters.Skill) return false
+      if (filters.Audience && !a.audience.includes(filters.Audience)) return false
+      if (filters.Prep && a.prep !== filters.Prep) return false
       if (q && !`${a.title} ${a.category} ${a.audienceLabel} ${a.count} ${a.keywords}`.toLowerCase().includes(q)) return false
       return true
     }).sort((a, b) => a.title.localeCompare(b.title))
@@ -295,64 +289,38 @@ export default function ToolkitClient() {
         </p>
       </div>
 
-      {/* Filter bar */}
-      <section className="overflow-hidden rounded-3xl border border-[#d8d1c7] bg-white shadow-sm">
-        <div className="p-5 sm:p-6">
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-            <h2 className="text-sm font-bold uppercase tracking-[0.14em] text-[#d73f09]">Find an activity</h2>
-            {activeCount > 0 && (
-              <button onClick={clearAll} className="text-sm font-semibold text-[#1976D2] hover:underline">
-                Clear filters ({activeCount})
-              </button>
-            )}
-          </div>
-
-          <label className="mb-4 block">
+      {/* Filter bar — search + compact dropdowns in one row */}
+      <section className="overflow-hidden rounded-2xl border border-[#d8d1c7] bg-white shadow-sm">
+        <div className="flex flex-wrap items-center gap-2 p-3 sm:p-4">
+          <label className="min-w-[180px] flex-1">
             <span className="sr-only">Search activities</span>
             <input
               type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search activities (e.g. bingo, sorting, kids)…"
-              className="w-full rounded-xl border border-[#d8d1c7] bg-[#fafafa] px-4 py-3 text-base text-primary placeholder:text-[#999] focus:border-[#d73f09] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d73f09]"
+              placeholder="Search activities…"
+              className="w-full min-h-11 rounded-xl border border-[#d8d1c7] bg-[#fafafa] px-4 py-2 text-base text-primary placeholder:text-[#999] focus:border-[#d73f09] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d73f09]"
             />
           </label>
-
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {FACET_KEYS.map((facet) => (
-              <div key={facet}>
-                <p className="mb-1.5 text-xs font-bold uppercase tracking-wide text-secondary">{facet}</p>
-                <div className="flex flex-wrap gap-2">
-                  {FACETS[facet].map((value) => {
-                    const active = filters[facet].has(value)
-                    return (
-                      <button
-                        key={value}
-                        onClick={() => toggle(facet, value)}
-                        aria-pressed={active}
-                        className={`${PILL} ${active ? 'border-[#d73f09] bg-[#d73f09] text-white' : 'border-[#d8d1c7] bg-white text-primary hover:bg-[#f3f0ed]'}`}
-                      >
-                        {value}
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Topic color legend */}
-          <details className="mt-4 text-sm">
-            <summary className="cursor-pointer font-semibold text-secondary">Topic colors</summary>
-            <div className="mt-2 flex flex-wrap gap-x-4 gap-y-2">
-              {TOPICS.map((t) => (
-                <span key={t.id} className="inline-flex items-center gap-1.5 text-xs text-secondary">
-                  <span className="inline-block h-3 w-3 rounded-full" style={{ backgroundColor: t.color }} aria-hidden />
-                  {t.name}
-                </span>
+          {FACET_KEYS.map((facet) => (
+            <select
+              key={facet}
+              aria-label={`Filter by ${facet}`}
+              value={filters[facet]}
+              onChange={(e) => setFacet(facet, e.target.value)}
+              className={`${SELECT} ${filters[facet] ? 'border-[#d73f09] text-[#d73f09]' : 'border-[#d8d1c7] text-primary'}`}
+            >
+              <option value="">{ALL_LABEL[facet]}</option>
+              {FACETS[facet].map((value) => (
+                <option key={value} value={value}>{value}</option>
               ))}
-            </div>
-          </details>
+            </select>
+          ))}
+          {activeCount > 0 && (
+            <button onClick={clearAll} className="px-1 text-sm font-semibold text-[#1976D2] hover:underline">
+              Clear
+            </button>
+          )}
         </div>
       </section>
 
