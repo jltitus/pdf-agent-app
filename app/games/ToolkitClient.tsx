@@ -178,6 +178,37 @@ const ACTIVITIES: Activity[] = [
     printNote:
       'Print question cards double-sided (flip on short edge) and cut. Print the flip-board for a table easel — big front (guess) and back (answer).',
   },
+  {
+    id: 'seasonal-planner',
+    emoji: '📅',
+    title: 'Seasonal Preservation Planner',
+    accent: '#388E3C',
+    category: 'Planner',
+    skill: 'Grab & go',
+    audience: ['Teens', 'Adults'],
+    audienceLabel: 'Teens & Adults',
+    prep: '2–5 min',
+    count: '30 produce · 12 months',
+    keywords: 'seasonal planner calendar willamette valley produce months in season handout',
+    description: (
+      <>
+        A one-page Willamette Valley (Marion &amp; Yamhill County) planner: which produce is at
+        peak each month and the best way to preserve it, color-coded by method. Great as a
+        take-home handout. The digital version lets you tap any month for processing notes and yields.
+      </>
+    ),
+    play: '/games/seasonal-planner',
+    playLabel: '📅 Open planner',
+    fullscreen: '/games/seasonal/planner-app.html',
+    runSheet: '/games/guides/seasonal-planner-run-sheet.pdf',
+    kit: '/games/kits/seasonal-planner-print-kit.zip',
+    prints: [
+      { label: '🟧 Planner — color', href: '/games/seasonal/seasonal-planner-color.pdf' },
+      { label: '⬛ Planner — black & white (photocopy)', href: '/games/seasonal/seasonal-planner-bw.pdf' },
+    ],
+    printNote:
+      'One US-Letter page. Use color for display and black & white for easy photocopying and giveaways.',
+  },
 ]
 
 // ---- filter facets ----
@@ -249,7 +280,7 @@ export default function ToolkitClient() {
       if (filters.Prep.size && !filters.Prep.has(a.prep)) return false
       if (q && !`${a.title} ${a.category} ${a.audienceLabel} ${a.count} ${a.keywords}`.toLowerCase().includes(q)) return false
       return true
-    })
+    }).sort((a, b) => a.title.localeCompare(b.title))
   }, [filters, query])
 
   return (

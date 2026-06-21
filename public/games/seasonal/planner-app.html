@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<title>Seasonal Preservation Planner</title>
+<style>
+  :root { --osu-orange:#d73f09; --ink:#222; --bg:#f7f4ef; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { margin:0; height:100%; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--ink); }
+  .app { min-height:100vh; display:flex; flex-direction:column; }
+  header { background:var(--osu-orange); color:#fff; padding:10px 20px; }
+  header .sub { font-size:11px; opacity:.9; text-transform:uppercase; letter-spacing:.15em; }
+  header h1 { margin:2px 0 0; font-size:20px; }
+  .monthbar { position:sticky; top:0; z-index:5; background:#fff; border-bottom:1px solid #e3ddd2; display:flex; align-items:center; gap:8px; padding:10px 16px; flex-wrap:wrap; }
+  .monthbar button.nav { border:none; background:#f3f0ed; border-radius:10px; width:42px; height:42px; font-size:22px; font-weight:800; cursor:pointer; }
+  .months { display:flex; gap:6px; flex-wrap:wrap; flex:1 1 auto; justify-content:center; }
+  .m { border:2px solid #e3ddd2; background:#fff; border-radius:10px; padding:8px 12px; font-size:15px; font-weight:800; cursor:pointer; min-height:40px; }
+  .m.active { background:var(--osu-orange); color:#fff; border-color:var(--osu-orange); }
+  main { flex:1 1 auto; padding:18px; }
+  .grid { display:grid; gap:14px; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); max-width:1100px; margin:0 auto; }
+  .card { background:#fff; border-radius:16px; box-shadow:0 4px 14px rgba(0,0,0,.08); overflow:hidden; }
+  .card .top { height:8px; }
+  .card .body { padding:14px 16px; }
+  .name { font-size:19px; font-weight:800; }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; margin:8px 0; }
+  .chip { color:#fff; border-radius:8px; padding:4px 9px; font-size:12px; font-weight:800; }
+  .notes { font-size:14px; color:#444; line-height:1.4; }
+  .yield { margin-top:6px; font-size:13px; font-weight:700; color:#1a6; }
+  .src { margin-top:6px; font-size:11px; color:#aaa; }
+  .empty { text-align:center; color:#999; padding:40px; font-size:17px; }
+  .legendnote { max-width:1100px; margin:0 auto 12px; font-size:13px; color:#777; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="sub">OSU Extension · Marion & Yamhill County · MFP</div>
+    <h1>Seasonal Preservation Planner — Willamette Valley</h1>
+  </header>
+  <div class="monthbar">
+    <button class="nav" id="prev" aria-label="Previous month">‹</button>
+    <div class="months" id="months"></div>
+    <button class="nav" id="nextM" aria-label="Next month">›</button>
+  </div>
+  <main>
+    <p class="legendnote" id="count"></p>
+    <div class="grid" id="grid"></div>
+  </main>
+</div>
+<script>window.__EMBEDDED_SEASONAL__ = null;</script>
+<script>
+(function(){
+  "use strict";
+  var MON=["January","February","March","April","May","June","July","August","September","October","November","December"];
+  var MABBR=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  var MCOLOR={"Freezing":"#1976D2","Water-bath canning":"#D73F09","Pressure canning":"#7B1FA2","Drying":"#5D4037","Pickling/Fermenting":"#00859B","Jam/Jelly":"#C2185B","Cold storage":"#388E3C"};
+  var ITEMS=[], cur=0;
+  var grid=document.getElementById("grid"), monthsEl=document.getElementById("months"), countEl=document.getElementById("count");
+
+  function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+  function load(){ if(window.__EMBEDDED_SEASONAL__&&window.__EMBEDDED_SEASONAL__.length) return Promise.resolve(window.__EMBEDDED_SEASONAL__);
+    return fetch("seasonal-data.json",{cache:"no-store"}).then(function(r){if(!r.ok)throw new Error("data "+r.status);return r.json();}); }
+
+  function buildMonths(){
+    monthsEl.innerHTML=MABBR.map(function(m,i){ return '<button class="m'+(i===cur?' active':'')+'" data-m="'+i+'">'+m+'</button>'; }).join('');
+    Array.prototype.forEach.call(monthsEl.querySelectorAll(".m"),function(b){ b.addEventListener("click",function(){ cur=+b.getAttribute("data-m"); render(); }); });
+  }
+  function render(){
+    buildMonths();
+    var list=ITEMS.filter(function(it){ return (it.peak_months||[]).indexOf(cur)>=0; });
+    countEl.textContent=list.length+" item"+(list.length===1?"":"s")+" at peak in "+MON[cur]+" at Willamette Valley markets";
+    if(!list.length){ grid.innerHTML='<p class="empty">Nothing at local peak this month — a great time to use what you preserved!</p>'; return; }
+    grid.innerHTML=list.map(function(it){
+      var color=MCOLOR[it.best_preservation_methods[0]]||"#888";
+      var chips=it.best_preservation_methods.map(function(m){ return '<span class="chip" style="background:'+(MCOLOR[m]||"#888")+'">'+esc(m)+'</span>'; }).join('');
+      return '<div class="card"><div class="top" style="background:'+color+'"></div><div class="body">'+
+        '<div class="name">'+esc(it.produce_name)+'</div>'+
+        '<div class="chips">'+chips+'</div>'+
+        '<div class="notes">'+esc(it.processing_notes)+'</div>'+
+        (it.approximate_yield?'<div class="yield">Yield: '+esc(it.approximate_yield)+'</div>':'')+
+        (it.source_document?'<div class="src">Source: '+esc(it.source_document)+'</div>':'')+
+      '</div></div>';
+    }).join('');
+  }
+  document.getElementById("prev").addEventListener("click",function(){ cur=(cur+11)%12; render(); });
+  document.getElementById("nextM").addEventListener("click",function(){ cur=(cur+1)%12; render(); });
+
+  load().then(function(d){ ITEMS=d; try{ cur=new Date().getMonth(); }catch(e){ cur=6; } render(); })
+    .catch(function(e){ grid.innerHTML='<p class="empty">Couldn\'t load: '+esc(e.message)+'</p>'; });
+})();
+</script>
+</body>
+</html>
