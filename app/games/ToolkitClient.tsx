@@ -24,7 +24,6 @@ const TIERS = [
 const EFFORT_CLS: Record<string, string> = {
   'Grab & go': 'bg-[#e6f4ea] text-[#2e7d32]',
   'Some prep': 'bg-[#fff4e0] text-[#b26a00]',
-  'Trained MFP': 'bg-[#fdeaea] text-[#c62828]',
 }
 
 type Activity = {
@@ -32,7 +31,7 @@ type Activity = {
   emoji: string
   title: string
   category: string
-  skill: 'Grab & go' | 'Some prep' | 'Trained MFP'
+  skill: 'Grab & go' | 'Some prep'
   skillNote?: string
   audience: string[] // from Kids/Tweens/Teens/Adults
   audienceLabel: string
@@ -44,6 +43,7 @@ type Activity = {
   runSheet: string
   deckGrid?: boolean
   prints?: { label: string; href: string; note?: string }[]
+  references?: { label: string; href: string; download?: boolean }[]
 }
 
 const ACTIVITIES: Activity[] = [
@@ -67,6 +67,7 @@ const ACTIVITIES: Activity[] = [
     fullscreen: '/games/prize-wheel-app.html',
     runSheet: '/games/guides/prize-wheel-run-sheet.pdf',
     deckGrid: true,
+    references: [{ label: '📊 Question bank (CSV, 640 Q&A)', href: '/games/questions.csv', download: true }],
   },
   {
     id: 'is-this-safe',
@@ -243,6 +244,20 @@ export default function ToolkitClient() {
 
             {/* Print for a table */}
             <div className="mt-5 border-t border-[#ece6dc] pt-4">
+              {a.references && (
+                <div className="mb-4">
+                  <p className="mb-2 text-sm font-bold uppercase tracking-wide text-secondary">
+                    Volunteer reference
+                  </p>
+                  <div className="flex flex-wrap gap-x-5 gap-y-2 text-base">
+                    {a.references.map((r) => (
+                      <a key={r.href} className="font-semibold text-[#1976D2] hover:underline" href={r.href} download={r.download}>
+                        {r.label}
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
               <p className="mb-2 text-sm font-bold uppercase tracking-wide text-secondary">
                 🖨 Print for an in-person table
               </p>

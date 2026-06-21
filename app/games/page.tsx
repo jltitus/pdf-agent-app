@@ -36,7 +36,6 @@ export default function ToolkitPage() {
               <span className="font-bold uppercase tracking-wide">Skill to run:</span>
               <span><b className="text-[#2e7d32]">Grab &amp; go</b> — open &amp; play, no prep</span>
               <span><b className="text-[#b26a00]">Some prep</b> — print, cut, gather supplies</span>
-              <span><b className="text-[#c62828]">Trained MFP</b> — needs preservation knowledge</span>
             </div>
           </div>
         </section>
@@ -52,15 +51,11 @@ export default function ToolkitPage() {
               <h2 className="text-2xl font-bold text-primary">Handouts &amp; references</h2>
               <span className="text-sm text-secondary">for volunteers</span>
             </div>
+            <p className="mb-3 text-sm text-secondary">Apply to every activity.</p>
             <ul className="space-y-2 text-base">
               <li>
                 <a className="font-semibold text-[#1976D2] hover:underline" href="/games/PRIZES.md" target="_blank">
                   🎁 Prize &amp; reward ideas (by age group)
-                </a>
-              </li>
-              <li>
-                <a className="font-semibold text-[#1976D2] hover:underline" href="/games/questions.csv" download>
-                  📊 Prize Wheel question bank (CSV, 640 Q&amp;A)
                 </a>
               </li>
             </ul>
