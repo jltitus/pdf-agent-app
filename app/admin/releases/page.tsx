@@ -917,7 +917,7 @@ className={inputClass}
 <input
 value={title}
 onChange={(e) => setTitle(e.target.value)}
-placeholder="Example: Release Management"
+placeholder="Example: Release management"
 className={inputClass}
 />
 </div>

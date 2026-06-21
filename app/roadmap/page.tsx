@@ -150,7 +150,7 @@ export default function RoadmapPage() {
 
               <section className="space-y-3">
                 <div className="rounded-2xl border border-[#d8d1c7] bg-white p-4 shadow-sm">
-                  <h2 className="text-xl font-bold text-primary">In Progress</h2>
+                  <h2 className="text-xl font-bold text-primary">In progress</h2>
                   <p className="text-sm text-secondary">
                     Improvements currently being worked on.
                   </p>

@@ -32,7 +32,7 @@ export default function ForgotPasswordPage() {
   return (
     <main className="min-h-screen flex items-center justify-center p-8">
       <div className="w-full max-w-md rounded-2xl border p-6 space-y-5">
-        <h1 className="text-2xl font-bold">Reset Password</h1>
+        <h1 className="text-2xl font-bold">Reset password</h1>
 
         <form onSubmit={sendReset} className="space-y-4">
           <input

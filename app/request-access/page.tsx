@@ -42,7 +42,7 @@ export default function RequestAccessPage() {
         
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-bold text-primary">Request Access</h1>
+          <h1 className="text-2xl font-bold text-primary">Request access</h1>
           <p className="mt-2 text-sm text-secondary">
             Request access to the MFP Volunteer Resource Hub. Access is manually approved.
           </p>

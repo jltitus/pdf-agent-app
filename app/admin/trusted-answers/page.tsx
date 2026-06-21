@@ -237,7 +237,7 @@ export default function AdminTrustedAnswersPage() {
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-xs font-bold uppercase tracking-wide text-[#d73f09]">Admin</p>
-            <h1 className="text-2xl font-bold text-primary">Trusted Answers</h1>
+            <h1 className="text-2xl font-bold text-primary">Trusted answers</h1>
             <p className="mt-1 text-sm text-secondary">
               {answers.length} total · {activeCount} active
             </p>

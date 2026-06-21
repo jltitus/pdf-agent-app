@@ -31,7 +31,7 @@ async function sendTemporaryPasswordEmail({
       <table style="margin:20px 0;background:#f7f4ef;border-radius:10px;padding:16px 20px;width:100%;">
         <tr><td style="font-size:13px;color:#666;padding-bottom:4px;">Email</td></tr>
         <tr><td style="font-weight:600;color:#1a1a1a;padding-bottom:12px;">${email}</td></tr>
-        <tr><td style="font-size:13px;color:#666;padding-bottom:4px;">Temporary Password</td></tr>
+        <tr><td style="font-size:13px;color:#666;padding-bottom:4px;">Temporary password</td></tr>
         <tr><td style="font-weight:600;color:#1a1a1a;font-size:18px;letter-spacing:0.05em;">${tempPassword}</td></tr>
       </table>
       <p>

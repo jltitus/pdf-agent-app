@@ -207,7 +207,7 @@ export default function AdminUsersPage() {
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <p className="text-xs font-bold uppercase tracking-wide text-[#d73f09]">Admin</p>
-            <h1 className="text-2xl font-bold text-primary">User Management</h1>
+            <h1 className="text-2xl font-bold text-primary">User management</h1>
             <p className="mt-1 text-sm text-secondary">{users.length} total accounts</p>
           </div>
           <a

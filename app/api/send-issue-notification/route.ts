@@ -26,9 +26,9 @@ export async function POST(request: Request) {
     const { error } = await resend.emails.send({
       from: 'MFP Reference system <mfp@titus225.com>',
       to: process.env.ADMIN_NOTIFICATION_EMAIL,
-      subject: `New Issue Report: ${issueType}`,
+      subject: `New issue report: ${issueType}`,
       html: emailTemplate(`
-        <h2 style="margin:0 0 16px;font-size:22px;color:#1a1a1a;">New Issue Report</h2>
+        <h2 style="margin:0 0 16px;font-size:22px;color:#1a1a1a;">New issue report</h2>
         <table style="width:100%;border-collapse:collapse;">
           <tr><td style="padding:8px 0;border-bottom:1px solid #e5e1db;font-size:13px;color:#666;width:120px;">Type</td><td style="padding:8px 0;border-bottom:1px solid #e5e1db;font-weight:600;">${issueType}</td></tr>
           <tr><td style="padding:8px 0;border-bottom:1px solid #e5e1db;font-size:13px;color:#666;">User</td><td style="padding:8px 0;border-bottom:1px solid #e5e1db;">${userEmail || 'Unknown'}</td></tr>

@@ -19,7 +19,7 @@ export async function POST(request: Request) {
       to: process.env.ADMIN_NOTIFICATION_EMAIL,
       subject: `PDF ready: ${displayName}`,
       html: emailTemplate(`
-        <h2 style="margin:0 0 16px;font-size:22px;color:#1a1a1a;">PDF Processing Complete</h2>
+        <h2 style="margin:0 0 16px;font-size:22px;color:#1a1a1a;">PDF Processing complete</h2>
         <p><strong>${displayName}</strong> has been indexed and is ready for AI search.</p>
         ${pagesProcessed ? `<p style="background:#f7f4ef;border-radius:8px;padding:12px;display:inline-block;"><strong>${pagesProcessed}</strong> pages processed</p>` : ''}
         <p style="color:#666;">Users can now ask questions about this publication.</p>

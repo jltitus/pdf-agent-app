@@ -2062,7 +2062,7 @@ export default function AdminPage() {
                 { key: "documents", label: "Documents" },
                 { key: "feedback", label: "Feedback" },
                 { key: "enhancements", label: "Enhancements" },
-                { key: "audit", label: "Audit Logs" },
+                { key: "audit", label: "Audit logs" },
                 { key: "trusted", label: "Trusted" },
                 { key: "releases", label: "Releases" },
               ].map((tab) => (
@@ -2296,7 +2296,7 @@ export default function AdminPage() {
               {userAnalytics.heatmap.length === 7 && (
                 <section className={`${cardClass} space-y-4`}>
                   <div>
-                    <h2 className="text-2xl font-bold text-primary">Activity Heatmap</h2>
+                    <h2 className="text-2xl font-bold text-primary">Activity heatmap</h2>
                     <p className="text-sm text-secondary">Questions asked by day and hour (your local time).</p>
                   </div>
                   {(() => {
@@ -3147,7 +3147,7 @@ export default function AdminPage() {
               <section className={`${cardClass} space-y-4`}>
                 <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <h2 className="text-2xl font-bold text-primary">User Feedback</h2>
+                    <h2 className="text-2xl font-bold text-primary">User feedback</h2>
                     <p className="text-sm text-secondary">{feedbackCounts.helpful} helpful · {feedbackCounts.not_helpful} not helpful · {feedbackCounts.missing_source} source issues</p>
                   </div>
                 </div>
@@ -3212,7 +3212,7 @@ export default function AdminPage() {
               {noAnswerItems.length > 0 && (
                 <section className={`${cardClass} space-y-4`}>
                   <div>
-                    <h2 className="text-2xl font-bold text-primary">Unanswered Questions</h2>
+                    <h2 className="text-2xl font-bold text-primary">Unanswered questions</h2>
                     <p className="text-sm text-secondary">{noAnswerItems.length} question{noAnswerItems.length !== 1 ? 's' : ''} with no source found</p>
                   </div>
                   <div className="space-y-3">
@@ -3250,7 +3250,7 @@ export default function AdminPage() {
               {/* Issue reports */}
               <section className={`${cardClass} space-y-4`}>
                 <div>
-                  <h2 className="text-2xl font-bold text-primary">Issue Reports</h2>
+                  <h2 className="text-2xl font-bold text-primary">Issue reports</h2>
                   <p className="text-sm text-secondary">{openIssues.length} open · {reviewedIssues.length} reviewed · {resolvedIssues.length} resolved</p>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -3309,7 +3309,7 @@ export default function AdminPage() {
             <section className={`${cardClass} space-y-4`}>
               <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold text-primary">Audit Logs</h2>
+                  <h2 className="text-2xl font-bold text-primary">Audit logs</h2>
                   <p className="text-sm text-secondary">{filteredAuditLogs.length} of {auditLogs.length} entries</p>
                 </div>
                 <button type="button" onClick={exportAuditLogsCSV} className={secondaryButton}>Export CSV</button>

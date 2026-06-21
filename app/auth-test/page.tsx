@@ -29,7 +29,7 @@ export default function AuthTestPage() {
 
   return (
     <main className="min-h-screen p-8">
-      <h1 className="text-2xl font-bold mb-4">Auth Test</h1>
+      <h1 className="text-2xl font-bold mb-4">Auth test</h1>
       <pre className="rounded-xl border p-4 whitespace-pre-wrap">{result}</pre>
     </main>
   )

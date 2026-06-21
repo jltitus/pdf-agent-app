@@ -63,9 +63,9 @@ export async function POST(request: Request) {
             <h2 style="margin:0 0 16px;font-size:20px;color:#1a1a1a;">You've been granted admin access</h2>
             <p>Hello ${name},</p>
             <p>An administrator has granted you admin access to the MFP Volunteer Resource Hub. You will now see an <strong>Admin</strong> button in the navigation menu.</p>
-            <p>From the Admin area you can manage users, review publications, view audit logs, and more.</p>
+            <p>From the admin area you can manage users, review publications, view audit logs, and more.</p>
             <p style="margin-top:24px;">
-              <a href="${siteUrl}/admin" style="display:inline-block;background-color:#d73f09;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;">Go to Admin Dashboard</a>
+              <a href="${siteUrl}/admin" style="display:inline-block;background-color:#d73f09;color:#ffffff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:600;font-size:15px;">Go to admin dashboard</a>
             </p>
           `),
         })

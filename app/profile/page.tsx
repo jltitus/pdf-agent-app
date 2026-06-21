@@ -219,7 +219,7 @@ export default function ProfilePage() {
               <section className="rounded-2xl border border-[#d8d1c7] bg-white p-5 shadow-sm">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <h2 className="text-xl font-bold">Saved Publications</h2>
+                    <h2 className="text-xl font-bold">Saved publications</h2>
                     <p className="mt-1 text-sm text-secondary">
                       Publications you saved from the library.
                     </p>
@@ -277,7 +277,7 @@ export default function ProfilePage() {
               <section className="rounded-2xl border border-[#d8d1c7] bg-white p-5 shadow-sm">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                   <div>
-                    <h2 className="text-xl font-bold">My Contacts</h2>
+                    <h2 className="text-xl font-bold">My contacts</h2>
                     <p className="mt-1 text-sm text-secondary">
                       Preservers you saved from the community directory.
                     </p>
@@ -482,7 +482,7 @@ export default function ProfilePage() {
               </section>
 
               <section className="rounded-2xl border border-[#d8d1c7] bg-white p-5 shadow-sm">
-                <h2 className="text-xl font-bold">Activity Summary</h2>
+                <h2 className="text-xl font-bold">Activity summary</h2>
 
                 <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                   <div className="rounded-xl border border-[#d8d1c7] bg-[#fcfaf7] p-4">
