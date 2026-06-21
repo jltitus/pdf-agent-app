@@ -39,10 +39,12 @@ type Activity = {
   count: string
   description: React.ReactNode
   play: string
+  playLabel?: string
   fullscreen: string
   runSheet: string
   deckGrid?: boolean
   prints?: { label: string; href: string; note?: string }[]
+  printNote?: string
   references?: { label: string; href: string; download?: boolean }[]
 }
 
@@ -97,6 +99,37 @@ const ACTIVITIES: Activity[] = [
       { label: '🔑 Volunteer answer key', href: '/games/sorting/volunteer-key.pdf' },
       { label: '🪧 Sorting signs', href: '/games/sorting/sorting-labels.pdf' },
     ],
+    printNote:
+      'Print scenario cards double-sided (flip on short edge) so each answer lands on the back. Set the three signs across the table and keep the answer key handy.',
+  },
+  {
+    id: 'preservation-bingo',
+    emoji: '🎟️',
+    title: 'Preservation Bingo',
+    category: 'Bingo game',
+    skill: 'Some prep',
+    audience: ['Kids', 'Tweens', 'Teens', 'Adults'],
+    audienceLabel: 'All ages',
+    prep: '10–15 min',
+    count: '72 terms · 30 cards',
+    description: (
+      <>
+        Classic 5×5 bingo with food-preservation terms. The caller draws a term and reads a
+        clue at the right age level (Kids / Tweens / Teens / Adult); players cover it if it&rsquo;s
+        on their card. First to five in a row wins. Text cards for teens/adults, icon cards for kids.
+      </>
+    ),
+    play: '/games/bingo',
+    playLabel: '📢 Open caller',
+    fullscreen: '/games/bingo/caller.html',
+    runSheet: '/games/guides/preservation-bingo-run-sheet.pdf',
+    prints: [
+      { label: '🎟️ Bingo cards — teens/adults (text)', href: '/games/bingo/bingo-cards-adults.pdf' },
+      { label: '🧒 Bingo cards — kids (icons)', href: '/games/bingo/bingo-cards-kids.pdf' },
+      { label: '🔑 Volunteer call sheet (4 age clues)', href: '/games/bingo/volunteer-call-sheet.pdf' },
+    ],
+    printNote:
+      'Print 2 cards per sheet and cut in half. Give each player a card and markers (dried beans, pennies, or a pen).',
   },
 ]
 
@@ -220,7 +253,7 @@ export default function ToolkitClient() {
                 href={a.play}
                 className="rounded-xl bg-[#d73f09] px-6 py-3 text-base font-bold text-white shadow-sm hover:bg-[#b23408]"
               >
-                ▶ Play on tablet
+                {a.playLabel ?? '▶ Play on tablet'}
               </Link>
               <Link
                 href={a.fullscreen}
@@ -271,10 +304,7 @@ export default function ToolkitClient() {
                       </a>
                     ))}
                   </div>
-                  <p className="mt-2 text-xs text-secondary">
-                    Print scenario cards double-sided (flip on short edge) so each answer lands on the
-                    back. Set the three signs across the table and keep the answer key handy.
-                  </p>
+                  {a.printNote && <p className="mt-2 text-xs text-secondary">{a.printNote}</p>}
                 </>
               )}
 

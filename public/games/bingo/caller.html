@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<title>Preservation Bingo — Caller</title>
+<style>
+  :root { --osu-orange:#d73f09; --ink:#222; --bg:#f7f4ef; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { margin:0; height:100%; }
+  body { font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif; background:var(--bg); color:var(--ink); overflow:hidden; user-select:none; }
+  .app { height:100vh; display:flex; flex-direction:column; }
+  header { background:var(--osu-orange); color:#fff; padding:10px 20px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+  header h1 { margin:0; font-size:20px; }
+  header .sub { font-size:11px; opacity:.9; text-transform:uppercase; letter-spacing:.15em; }
+  .tiers { display:flex; gap:8px; }
+  .tier { background:rgba(255,255,255,.18); color:#fff; border:2px solid transparent; border-radius:10px; padding:8px 14px; font-size:15px; font-weight:800; cursor:pointer; }
+  .tier.active { background:#fff; color:var(--osu-orange); }
+  main { flex:1 1 auto; display:flex; min-height:0; }
+  .stage { flex:1 1 62%; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; gap:18px; }
+  .term { font-size:clamp(40px,8vw,96px); font-weight:900; text-align:center; line-height:1.05; color:var(--ink); }
+  .topic { font-size:14px; font-weight:800; text-transform:uppercase; letter-spacing:.1em; }
+  .clue { background:#fff; border-radius:18px; box-shadow:0 6px 20px rgba(0,0,0,.10); padding:18px 24px; font-size:clamp(18px,2.3vw,26px); font-weight:600; text-align:center; max-width:760px; color:#333; }
+  .source { font-size:12px; color:#999; }
+  .btn { border:none; border-radius:16px; padding:20px 40px; font-size:22px; font-weight:900; cursor:pointer; color:#fff; background:var(--osu-orange); box-shadow:0 6px 16px rgba(215,63,9,.3); }
+  .btn:active { transform:scale(.98); }
+  .btn.secondary { background:#6b6258; font-size:15px; padding:10px 18px; box-shadow:none; }
+  .called { flex:1 1 38%; border-left:1px solid #e3ddd2; background:#fff; display:flex; flex-direction:column; min-height:0; }
+  .called h2 { margin:0; padding:12px 16px; font-size:14px; text-transform:uppercase; letter-spacing:.1em; color:#888; border-bottom:1px solid #eee; display:flex; justify-content:space-between; }
+  .chips { flex:1 1 auto; overflow:auto; padding:12px; display:flex; flex-wrap:wrap; gap:8px; align-content:flex-start; }
+  .chip { border-radius:10px; padding:7px 11px; font-size:14px; font-weight:700; color:#fff; }
+  .chip.latest { outline:3px solid #222; }
+  .placeholder { color:#aaa; font-size:15px; padding:20px; }
+  @media (orientation:portrait) { main { flex-direction:column; } .called { border-left:none; border-top:1px solid #e3ddd2; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div>
+      <div class="sub">Oregon State University Extension · MFP</div>
+      <h1>Preservation Bingo — Caller</h1>
+    </div>
+    <div class="tiers" id="tiers"></div>
+  </header>
+  <main>
+    <div class="stage">
+      <div class="topic" id="topic"></div>
+      <div class="term" id="term">Tap “Draw next term”</div>
+      <div class="clue" id="clue" style="display:none"></div>
+      <div class="source" id="source"></div>
+      <button class="btn" id="draw">Draw next term</button>
+      <button class="btn secondary" id="reset">Reset game</button>
+    </div>
+    <div class="called">
+      <h2><span>Called</span><span id="count">0 / 0</span></h2>
+      <div class="chips" id="chips"><div class="placeholder">No terms called yet.</div></div>
+    </div>
+  </main>
+</div>
+<script>window.__EMBEDDED_BINGO__ = null;</script>
+<script>
+(function(){
+  "use strict";
+  var TIERS=[["kids","Kids"],["tweens","Tweens"],["teens","Teens"],["adult","Adult"]];
+  var TERMS=[], remaining=[], called=[], tier="adult", current=null;
+  var elTopic=document.getElementById("topic"),elTerm=document.getElementById("term"),elClue=document.getElementById("clue"),elSrc=document.getElementById("source"),elChips=document.getElementById("chips"),elCount=document.getElementById("count");
+
+  function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+  function load(){ if(window.__EMBEDDED_BINGO__&&window.__EMBEDDED_BINGO__.length) return Promise.resolve(window.__EMBEDDED_BINGO__);
+    return fetch("terms.json",{cache:"no-store"}).then(function(r){if(!r.ok)throw new Error("terms.json "+r.status);return r.json();}); }
+
+  function buildTiers(){ var h=""; TIERS.forEach(function(t){ h+='<button class="tier'+(t[0]===tier?' active':'')+'" data-t="'+t[0]+'">'+t[1]+'</button>'; });
+    document.getElementById("tiers").innerHTML=h;
+    Array.prototype.forEach.call(document.querySelectorAll(".tier"),function(b){ b.addEventListener("click",function(){ tier=b.getAttribute("data-t"); buildTiers(); if(current) showClue(); }); }); }
+
+  function shuffle(a){ a=a.slice(); for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;} return a; }
+  function reset(){ remaining=shuffle(TERMS); called=[]; current=null; elTopic.textContent=""; elTerm.textContent='Tap “Draw next term”'; elClue.style.display="none"; elSrc.textContent=""; renderChips(); }
+  function showClue(){ var key="clue_"+tier; elClue.textContent="“"+(current[key]||current.clue_adult)+"”"; elClue.style.display="block"; }
+  function draw(){ if(!remaining.length){ elTerm.textContent="All terms called!"; elClue.style.display="none"; elTopic.textContent=""; return; }
+    current=remaining.pop(); called.push(current);
+    elTopic.textContent=current.topic; elTopic.style.color=current.color;
+    elTerm.textContent=current.term; showClue();
+    elSrc.textContent=current.source_document?("Source: "+current.source_document):"";
+    renderChips(); }
+  function renderChips(){ elCount.textContent=called.length+" / "+TERMS.length;
+    if(!called.length){ elChips.innerHTML='<div class="placeholder">No terms called yet.</div>'; return; }
+    elChips.innerHTML=called.slice().reverse().map(function(c,i){ return '<span class="chip'+(i===0?' latest':'')+'" style="background:'+esc(c.color)+'">'+esc(c.term)+'</span>'; }).join(''); }
+
+  document.getElementById("draw").addEventListener("click",draw);
+  document.getElementById("reset").addEventListener("click",reset);
+  buildTiers();
+  load().then(function(d){ TERMS=d; reset(); }).catch(function(e){ elTerm.textContent="Couldn't load terms"; elClue.style.display="block"; elClue.textContent=e.message; });
+})();
+</script>
+</body>
+</html>
