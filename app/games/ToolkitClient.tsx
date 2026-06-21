@@ -209,6 +209,38 @@ const ACTIVITIES: Activity[] = [
     printNote:
       'One US-Letter page. Use color for display and black & white for easy photocopying and giveaways.',
   },
+  {
+    id: 'myth-busters',
+    emoji: '🔬',
+    title: 'Food Preservation Myth Busters',
+    accent: '#C62828',
+    category: 'Myth busting',
+    skill: 'Some prep',
+    audience: ['Teens', 'Adults'],
+    audienceLabel: 'Teens & Adults',
+    prep: '5–10 min',
+    count: '40 myths',
+    keywords: 'myth busters true false misconception debunk fact risk',
+    description: (
+      <>
+        A visitor reads a plausible-sounding claim and guesses <b className="text-[#4A773C]">True</b> or{' '}
+        <b className="text-[#D73F09]">False</b> — then you bust it with a warm, plain-language explanation,
+        why people believe it, and a risk level. Mostly false, with a few surprising trues. HIGH-risk myths
+        are flagged.
+      </>
+    ),
+    play: '/games/myth-busters',
+    fullscreen: '/games/myth-busters/myth-app.html',
+    runSheet: '/games/guides/myth-busters-activity-guide.pdf',
+    kit: '/games/kits/myth-busters-print-kit.zip',
+    prints: [
+      { label: '🃏 Myth cards — front (claim)', href: '/games/myth-busters/myth-cards-front.pdf' },
+      { label: '↩ Myth cards — back (bust)', href: '/games/myth-busters/myth-cards-back.pdf' },
+      { label: '🔑 Volunteer key', href: '/games/myth-busters/volunteer-key.pdf' },
+    ],
+    printNote:
+      'Print double-sided (flip on short edge) so each bust lands on the back of its claim, then cut. HIGH-risk myths have a red border.',
+  },
 ]
 
 // ---- filter facets ----
