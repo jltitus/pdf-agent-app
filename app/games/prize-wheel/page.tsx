@@ -1,7 +1,7 @@
 import Link from 'next/link'
 
 export const metadata = {
-  title: 'Prize Wheel — MFP Games',
+  title: 'Food Preservation Trivia — MFP Toolkit',
 }
 
 // The wheel itself is a self-contained static app at public/games/prize-wheel-app.html
@@ -28,7 +28,7 @@ export default function PrizeWheelPage() {
       </div>
       <iframe
         src="/games/prize-wheel-app.html"
-        title="MFP Prize Wheel"
+        title="Food Preservation Trivia"
         className="w-full flex-1 border-0"
       />
     </main>

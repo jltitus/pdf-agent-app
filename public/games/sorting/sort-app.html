@@ -53,6 +53,7 @@
       <h1>Is This Safe? — Sorting Game</h1>
     </div>
     <div class="controls">
+      <select id="tierFilter" aria-label="Filter by age group"></select>
       <select id="topicFilter" aria-label="Filter by topic"></select>
       <span id="score">Correct: 0 / 0</span>
       <button id="reset">Reset</button>
@@ -66,15 +67,16 @@
   "use strict";
   var ANSWERS=["SAFE","NOT SAFE","IT DEPENDS"];
   var VERDICT_COLOR={"SAFE":"var(--safe)","NOT SAFE":"var(--notsafe)","IT DEPENDS":"var(--depends)"};
-  var CARDS=[], used={}, score={correct:0,total:0}, filter="all", current=null, answered=false;
-  var main=document.getElementById("main"), sel=document.getElementById("topicFilter");
+  var CARDS=[], used={}, score={correct:0,total:0}, filter="all", tierFilter="all", current=null, answered=false;
+  var main=document.getElementById("main"), sel=document.getElementById("topicFilter"), tsel=document.getElementById("tierFilter");
 
   function load(){ if(window.__EMBEDDED_CARDS__&&window.__EMBEDDED_CARDS__.length) return Promise.resolve(window.__EMBEDDED_CARDS__);
     return fetch("cards.json",{cache:"no-store"}).then(function(r){if(!r.ok)throw new Error("cards.json "+r.status);return r.json();}); }
   function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
 
-  function pool(){ return CARDS.filter(function(c){ return (filter==="all"||c.topic_id===filter)&&!used[c.card_id]; }); }
-  function pick(){ var p=pool(); if(!p.length){ CARDS.forEach(function(c){ if(filter==="all"||c.topic_id===filter) delete used[c.card_id]; }); p=pool(); }
+  function inScope(c){ return (filter==="all"||c.topic_id===filter)&&(tierFilter==="all"||c.tier_id===tierFilter); }
+  function pool(){ return CARDS.filter(function(c){ return inScope(c)&&!used[c.card_id]; }); }
+  function pick(){ var p=pool(); if(!p.length){ CARDS.forEach(function(c){ if(inScope(c)) delete used[c.card_id]; }); p=pool(); }
     return p.length? p[Math.floor(Math.random()*p.length)] : null; }
 
   function render(){
@@ -119,6 +121,13 @@
     Object.keys(topics).forEach(function(id){ html+='<option value="'+id+'">'+esc(topics[id])+'</option>'; });
     sel.innerHTML=html;
     sel.addEventListener("change",function(){ filter=sel.value; render(); });
+    // age tiers in canonical order
+    var order=["kids","tweens","teens","adults"], labels={};
+    CARDS.forEach(function(c){ if(c.tier_id) labels[c.tier_id]=c.age_tier; });
+    var th='<option value="all">All ages</option>';
+    order.forEach(function(id){ if(labels[id]) th+='<option value="'+id+'">'+esc(labels[id])+'</option>'; });
+    tsel.innerHTML=th;
+    tsel.addEventListener("change",function(){ tierFilter=tsel.value; render(); });
   }
   document.getElementById("reset").addEventListener("click",function(){ score={correct:0,total:0}; updateScore(); });
 

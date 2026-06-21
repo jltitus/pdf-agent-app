@@ -52,7 +52,7 @@ const ACTIVITIES: Activity[] = [
   {
     id: 'prize-wheel',
     emoji: '🎡',
-    title: 'Prize Wheel Trivia',
+    title: 'Food Preservation Trivia',
     category: 'Trivia game',
     skill: 'Grab & go',
     audience: ['Kids', 'Tweens', 'Teens', 'Adults'],
@@ -61,8 +61,8 @@ const ACTIVITIES: Activity[] = [
     count: '640 questions',
     description: (
       <>
-        Spin the wheel to land on a topic, pick the player&rsquo;s age group, and answer
-        trivia to win a prize. 8 color-coded topics × 4 age tiers.
+        Spin the wheel to land on a topic, pick the player&rsquo;s age group, and answer a
+        trivia question — then share the fun fact. 8 color-coded topics × 4 age tiers.
       </>
     ),
     play: '/games/prize-wheel',
@@ -77,11 +77,10 @@ const ACTIVITIES: Activity[] = [
     title: 'Is This Safe? Sorting Game',
     category: 'Sorting game',
     skill: 'Some prep',
-    skillNote: 'Beginner–Intermediate',
-    audience: ['Teens', 'Adults'],
-    audienceLabel: 'Teens & Adults',
+    audience: ['Kids', 'Tweens', 'Teens', 'Adults'],
+    audienceLabel: 'All ages',
     prep: '5–10 min',
-    count: '60 scenario cards',
+    count: '96 scenario cards',
     description: (
       <>
         Players read a real home preservation scenario and decide:{' '}
