@@ -2065,6 +2065,7 @@ export default function AdminPage() {
                 { key: "audit", label: "Audit logs" },
                 { key: "trusted", label: "Trusted" },
                 { key: "releases", label: "Releases" },
+                { key: "outreach", label: "Outreach feedback" },
               ].map((tab) => (
                 <button
                   key={tab.key}
@@ -2088,6 +2089,10 @@ export default function AdminPage() {
                     }
                     if (tab.key === "trusted") {
                       window.location.href = "/admin/trusted-answers";
+                      return;
+                    }
+                    if (tab.key === "outreach") {
+                      window.location.href = "/admin/outreach-feedback";
                       return;
                     }
                     setActiveTab(tab.key as any);

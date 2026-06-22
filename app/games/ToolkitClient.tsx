@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
+import ActivityFeedback from './ActivityFeedback'
 
 // ---- shared data ----
 const TOPICS = [
@@ -689,6 +690,8 @@ export default function ToolkitClient() {
                 )}
               </div>
             </details>
+
+            <ActivityFeedback activityId={a.id} accent={a.accent} />
           </div>
         </section>
       ))}
