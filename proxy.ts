@@ -102,5 +102,9 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     '/((?!_next/static|_next/image|favicon.ico|icon.png|apple-touch-icon.png|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)',
+    // The pattern above excludes image files everywhere. This entry re-includes EVERYTHING under
+    // /games (including .jpg photos) so the members-only Toolkit assets are auth-gated, while
+    // public site images stay open. (Matcher entries are OR'd.)
+    '/games/:path*',
   ],
 }

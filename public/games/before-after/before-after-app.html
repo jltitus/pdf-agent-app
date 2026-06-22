@@ -25,6 +25,7 @@
   .tag{font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;opacity:.85;}
   .panel.before .tag{color:#4a773c;} .panel.after .tag{color:#fff;}
   .emoji{font-size:64px;line-height:1.1;margin:8px 0 4px;}
+  .ph{width:100%;max-width:240px;height:150px;object-fit:cover;border-radius:12px;margin:8px 0 4px;background:#fff;}
   .pname{font-size:22px;font-weight:800;margin:2px 0 6px;}
   .pdesc{font-size:14px;line-height:1.4;opacity:.95;}
   .panel.before .pname{color:#2f5224;}
@@ -74,6 +75,7 @@
     ["chili","🌶️"],["pepper","🌶️"],["garlic","🧄"],["onion","🧅"],["basil","🌿"],["rhubarb","🌿"]];
   function icon(name){var n=String(name||"").toLowerCase();for(var i=0;i<ICONS.length;i++){if(n.indexOf(ICONS[i][0])>-1)return ICONS[i][1];}return "🧺";}
   function afterIcon(method){var m=String(method||"").toLowerCase();if(m.indexOf("frozen")>-1||m.indexOf("freez")>-1)return "🧊";if(m.indexOf("dehydr")>-1||m.indexOf("dried")>-1||m.indexOf("dry")>-1)return "🍂";if(m.indexOf("ferment")>-1)return "🫧";return "🫙";}
+  function media(photo,emoji){return photo?'<img class="ph" src="'+esc(photo)+'" alt="" loading="lazy">':'<div class="emoji">'+emoji+'</div>';}
   function load(){if(window.__EMBEDDED_BA__&&window.__EMBEDDED_BA__.length)return Promise.resolve(window.__EMBEDDED_BA__);return fetch("display-data.json",{cache:"no-store"}).then(function(r){if(!r.ok)throw new Error("data "+r.status);return r.json();});}
 
   function renderStage(){
@@ -82,10 +84,10 @@
     var x=view[idx],col=x.color||"#F57C00";
     stage.innerHTML='<div class="title">The transformation</div>'+
       '<div class="panels">'+
-        '<div class="panel before"><div class="tag">Before · fresh</div><div class="emoji">'+icon(x.produce_item)+'</div>'+
+        '<div class="panel before"><div class="tag">Before · fresh</div>'+media(x.photo_fresh,icon(x.produce_item))+
           '<div class="pname">'+esc(x.produce_item)+'</div><div class="pdesc">'+esc(x.fresh_description||"")+'</div></div>'+
         '<div class="arrowcol"><div class="ar">→</div><div class="method">'+esc(x.preservation_method||"Preserved")+'</div></div>'+
-        '<div class="panel after" style="background:'+esc(col)+'"><div class="tag">After · preserved</div><div class="emoji">'+afterIcon(x.preservation_method)+'</div>'+
+        '<div class="panel after" style="background:'+esc(col)+'"><div class="tag">After · preserved</div>'+media(x.photo_preserved,afterIcon(x.preservation_method))+
           '<div class="pname">'+esc(x.preserved_form)+'</div>'+(x.yield_ratio?'<div class="pdesc">'+esc(x.yield_ratio)+'</div>':'')+'</div>'+
       '</div>'+
       '<div class="meta"><div class="info">'+esc(x.info_card_text||"")+'</div>'+
