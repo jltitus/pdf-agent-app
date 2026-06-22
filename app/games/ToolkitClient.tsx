@@ -292,11 +292,12 @@ const ACTIVITIES: Activity[] = [
     keywords: 'recipe cards swap tested jam salsa pickle canning take-home citation',
     description: (
       <>
-        A take-one / swap-one station of <b>tested</b> recipe cards (4×6) drawn from OSU &amp; USDA
-        publications — jam, salsa, pickles, canned fruit, green beans, and more. Each card has the
-        exact ingredients, headspace, processing time, yield, its source citation, and a
-        tested-recipe reminder. A Master Food Preserver should verify each card against its source
-        before printing for the public.
+        A take-one / swap-one station of <b>tested</b> recipe sheets — one full 8.5×11 page each —
+        drawn from OSU &amp; USDA publications: jam, salsa, pickles, canned fruit, green beans, and
+        more. Each sheet has the exact ingredients, the kitchen tools you&apos;ll need, step-by-step
+        canning directions (from the OSU canning checklist), headspace, processing time, yield, a
+        photo slot, and full source citations. A Master Food Preserver should verify each recipe
+        against its source before printing for the public.
       </>
     ),
     play: '/games/recipe-swap',
@@ -304,7 +305,7 @@ const ACTIVITIES: Activity[] = [
     runSheet: '/games/guides/recipe-card-swap-station-activity-guide.pdf',
     kit: '/games/kits/recipe-card-swap-station-print-kit.zip',
     prints: [
-      { label: '🃏 Recipe cards (4×6, 2-up)', href: '/games/recipes/recipe-cards-all.pdf' },
+      { label: '🃏 Recipe sheets (full page, 1 per recipe)', href: '/games/recipes/recipe-cards-all.pdf' },
       { label: '🔑 Recipe index (citations + verify note)', href: '/games/recipes/recipe-index.pdf' },
     ],
     printNote:
