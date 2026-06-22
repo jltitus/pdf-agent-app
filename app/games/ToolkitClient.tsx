@@ -310,6 +310,68 @@ const ACTIVITIES: Activity[] = [
     printNote:
       'Verify each recipe against its cited OSU/USDA publication (see the Recipe index) before printing for the public. Every card carries the tested-recipe disclaimer.',
   },
+  {
+    id: 'jar-display',
+    emoji: '🫙',
+    title: 'What went wrong? Jar display',
+    accent: '#C62828',
+    category: 'Display',
+    skill: 'Some prep',
+    audience: ['Teens', 'Adults'],
+    audienceLabel: 'Teens & Adults',
+    prep: '15–20 min',
+    count: '18 jars',
+    keywords: 'jar display what went wrong spoilage seal safe not safe discard mistakes',
+    description: (
+      <>
+        A &ldquo;spot the problem&rdquo; display of jars showing common canning mistakes — failed
+        seals, un-acidified tomatoes, crystallization — with tags telling visitors if each is{' '}
+        <b className="text-[#2E7D32]">Safe</b>, <b className="text-[#F57C00]">Not Safe</b>, or{' '}
+        <b className="text-[#C62828]">Discard</b>. Runs itself; the tablet quiz lets visitors guess first.
+      </>
+    ),
+    play: '/games/jar-display',
+    fullscreen: '/games/jar-display/jar-app.html',
+    runSheet: '/games/guides/what-went-wrong-jar-display-activity-guide.pdf',
+    kit: '/games/kits/what-went-wrong-jar-display-print-kit.zip',
+    prints: [
+      { label: '🏷 Jar tags (Safe / Not Safe / Discard)', href: '/games/jar-display/jar-tags.pdf' },
+      { label: '🪧 Table signage', href: '/games/jar-display/table-signage.pdf' },
+      { label: '🛠 Setup guide (recreate the jars)', href: '/games/jar-display/setup-guide.pdf' },
+      { label: '🔑 Volunteer talking points', href: '/games/jar-display/volunteer-talking-points.pdf' },
+    ],
+    printNote:
+      'Recreate the example jars from the setup guide and attach a tag to each. Label every unsafe jar "DISPLAY ONLY — DO NOT EAT" and never let anyone taste a display jar.',
+  },
+  {
+    id: 'before-after',
+    emoji: '🍓',
+    title: 'Before & after jar display',
+    accent: '#388E3C',
+    category: 'Display',
+    skill: 'Grab & go',
+    audience: ['Kids', 'Tweens', 'Teens', 'Adults'],
+    audienceLabel: 'All ages',
+    prep: '10 min',
+    count: '20 pairings',
+    keywords: 'before after fresh preserved produce pairing display willamette valley season yield',
+    description: (
+      <>
+        Fresh Willamette Valley produce paired with its preserved version — strawberries beside jam,
+        cucumbers beside pickles, green beans beside canned. Each pairing has an info card with the
+        method, season, and fresh-to-preserved yield. Zero facilitation; the tablet browser shows them all.
+      </>
+    ),
+    play: '/games/before-after',
+    fullscreen: '/games/before-after/before-after-app.html',
+    runSheet: '/games/guides/before-after-jar-display-activity-guide.pdf',
+    kit: '/games/kits/before-after-jar-display-print-kit.zip',
+    prints: [
+      { label: '🃏 Display cards (4×6, 2-up)', href: '/games/before-after/display-cards.pdf' },
+    ],
+    printNote:
+      'Print the display cards and stand one next to each fresh + preserved pairing. Rotate pairings to match what is in season at the market that week.',
+  },
 ]
 
 // ---- filter facets ----

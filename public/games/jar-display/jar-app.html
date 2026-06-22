@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<title>What went wrong?</title>
+<style>
+  :root{--osu-orange:#d73f09;--ink:#222;--bg:#f7f4ef;--safe:#2E7D32;--notsafe:#F57C00;--discard:#C62828;}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;} html,body{margin:0;height:100%;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);overflow:hidden;user-select:none;}
+  .app{height:100vh;display:flex;flex-direction:column;}
+  header{background:var(--osu-orange);color:#fff;padding:10px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;}
+  header h1{margin:0;font-size:20px;} header .sub{font-size:11px;opacity:.9;text-transform:uppercase;letter-spacing:.15em;}
+  .controls{font-weight:700;display:flex;gap:12px;align-items:center;}
+  .controls button{background:rgba(255,255,255,.18);color:#fff;border:none;border-radius:8px;padding:6px 12px;font-weight:700;cursor:pointer;}
+  main{flex:1 1 auto;display:flex;align-items:center;justify-content:center;padding:20px;min-height:0;}
+  .card{background:#fff;border-radius:22px;box-shadow:0 8px 26px rgba(0,0,0,.10);width:min(780px,95vw);max-height:86vh;overflow:auto;padding:24px 28px;}
+  .eyebrow{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:var(--osu-orange);}
+  .jar{font-size:clamp(20px,2.6vw,28px);font-weight:800;line-height:1.3;margin:8px 0;}
+  .signs{font-size:16px;color:#555;margin-bottom:6px;}
+  .choices{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-top:14px;}
+  .choice{border:4px solid #e3ddd2;background:#fff;border-radius:16px;padding:18px 8px;font-size:clamp(14px,1.8vw,18px);font-weight:900;cursor:pointer;}
+  .choice[data-k="SAFE"]{color:var(--safe);} .choice[data-k="NOT SAFE"]{color:var(--notsafe);} .choice[data-k="DISCARD"]{color:var(--discard);}
+  .choice.right{box-shadow:0 0 0 3px rgba(46,125,50,.3);} .choice.wrong{opacity:.5;} .choice:disabled{cursor:default;}
+  .reveal{margin-top:16px;display:none;} .reveal.show{display:block;}
+  .verdict{font-size:20px;font-weight:900;} .lab{font-size:12px;font-weight:800;text-transform:uppercase;color:#888;margin-top:10px;}
+  .txt{font-size:16px;line-height:1.45;color:#333;} .src{margin-top:8px;font-size:12px;color:#aaa;}
+  .btn{border:none;border-radius:14px;padding:14px 26px;font-size:18px;font-weight:800;cursor:pointer;color:#fff;background:var(--osu-orange);margin-top:14px;}
+  @media(orientation:portrait){.choices{grid-template-columns:1fr;}}
+</style></head><body>
+<div class="app">
+  <header><div><div class="sub">OSU Extension · MFP</div><h1>What went wrong?</h1></div>
+  <div class="controls"><span id="score">0 / 0</span><button id="reset">Reset</button></div></header>
+  <main id="main"></main>
+</div>
+<script>window.__EMBEDDED_JAR__=null;</script>
+<script>(function(){"use strict";
+  var VC={SAFE:"#2E7D32","NOT SAFE":"#F57C00",DISCARD:"#C62828"};
+  var D=[],used={},score={c:0,t:0},cur=null,answered=false,main=document.getElementById("main");
+  function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+  function load(){if(window.__EMBEDDED_JAR__&&window.__EMBEDDED_JAR__.length)return Promise.resolve(window.__EMBEDDED_JAR__);return fetch("display-data.json",{cache:"no-store"}).then(function(r){if(!r.ok)throw new Error("data "+r.status);return r.json();});}
+  function pick(){var p=D.filter(function(c){return !used[c.scenario_id];});if(!p.length){D.forEach(function(c){delete used[c.scenario_id];});p=D;}return p[Math.floor(Math.random()*p.length)];}
+  function render(){cur=pick();answered=false;used[cur.scenario_id]=true;var c=cur;
+    main.innerHTML='<div class="card"><div class="eyebrow">Is this jar safe?</div>'+
+      '<div class="jar">'+esc(c.jar_description)+'</div><div class="signs">You see: '+esc(c.visual_signs)+'</div>'+
+      '<div class="choices"><button class="choice" data-k="SAFE">SAFE</button><button class="choice" data-k="NOT SAFE">NOT SAFE</button><button class="choice" data-k="DISCARD">DISCARD</button></div>'+
+      '<div class="reveal" id="reveal"></div><div><button class="btn" id="next" style="display:none">Next jar →</button></div></div>';
+    Array.prototype.forEach.call(main.querySelectorAll(".choice"),function(b){b.addEventListener("click",function(){choose(b);});});
+    document.getElementById("next").addEventListener("click",render);}
+  function choose(b){if(answered)return;answered=true;var k=b.getAttribute("data-k"),ok=k===cur.is_it_safe;score.t++;if(ok)score.c++;document.getElementById("score").textContent=score.c+" / "+score.t;
+    Array.prototype.forEach.call(main.querySelectorAll(".choice"),function(x){x.disabled=true;if(x.getAttribute("data-k")===cur.is_it_safe)x.classList.add("right");else x.classList.add("wrong");});
+    var c=cur,r=document.getElementById("reveal");
+    r.innerHTML='<div class="verdict" style="color:'+VC[c.is_it_safe]+'">'+(ok?"✔ ":"")+c.is_it_safe+'</div>'+
+      '<div class="lab">What went wrong</div><div class="txt">'+esc(c.what_went_wrong)+'</div>'+
+      '<div class="lab">Why</div><div class="txt">'+esc(c.why)+'</div>'+
+      '<div class="lab">How to prevent</div><div class="txt">'+esc(c.how_to_prevent)+'</div>'+
+      (c.source_document?'<div class="src">Source: '+esc(c.source_document)+'</div>':'');
+    r.classList.add("show");document.getElementById("next").style.display="inline-block";}
+  document.getElementById("reset").addEventListener("click",function(){score={c:0,t:0};document.getElementById("score").textContent="0 / 0";});
+  load().then(function(d){D=d;render();}).catch(function(e){main.innerHTML='<p style="padding:30px">Couldn\'t load: '+esc(e.message)+'</p>';});
+})();</script></body></html>

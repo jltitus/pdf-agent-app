@@ -38,5 +38,15 @@
     "id": "recipe-swap",
     "title": "Recipe card swap station",
     "file": "recipe-card-swap-station-activity-guide.pdf"
+  },
+  {
+    "id": "jar-display",
+    "title": "What went wrong? Jar display",
+    "file": "what-went-wrong-jar-display-activity-guide.pdf"
+  },
+  {
+    "id": "before-after",
+    "title": "Before & after jar display",
+    "file": "before-after-jar-display-activity-guide.pdf"
   }
 ]

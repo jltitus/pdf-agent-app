@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+<meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<title>Before & after</title>
+<style>
+  :root{--osu-orange:#d73f09;--ink:#222;--bg:#f7f4ef;}
+  *{box-sizing:border-box;} html,body{margin:0;height:100%;}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);}
+  .app{min-height:100vh;display:flex;flex-direction:column;}
+  header{background:var(--osu-orange);color:#fff;padding:10px 20px;} header .sub{font-size:11px;opacity:.9;text-transform:uppercase;letter-spacing:.15em;} header h1{margin:2px 0 0;font-size:20px;}
+  .bar{padding:10px 16px;background:#fff;border-bottom:1px solid #e3ddd2;}
+  .bar input{width:100%;max-width:420px;font-size:15px;padding:9px 12px;border-radius:10px;border:1px solid #d8d1c7;}
+  main{flex:1 1 auto;padding:16px;}
+  .grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));max-width:1200px;margin:0 auto;}
+  .card{background:#fff;border-radius:16px;box-shadow:0 4px 14px rgba(0,0,0,.08);overflow:hidden;}
+  .head{padding:14px 16px;color:#fff;} .name{font-size:19px;font-weight:800;} .arrow{font-size:11px;opacity:.95;letter-spacing:.1em;margin-top:2px;}
+  .body{padding:14px 16px;} .row{font-size:14px;margin:4px 0;} .row b{color:#444;}
+  .info{margin-top:8px;font-size:15px;line-height:1.45;color:#333;} .wow{margin-top:8px;font-size:14px;font-style:italic;color:#666;} .src{margin-top:8px;font-size:12px;color:#aaa;}
+  .empty{text-align:center;color:#999;padding:40px;}
+</style></head><body>
+<div class="app">
+  <header><div class="sub">OSU Extension · MFP · Willamette Valley</div><h1>Before &amp; after — fresh meets preserved</h1></header>
+  <div class="bar"><input id="q" type="search" placeholder="Search produce (strawberry, beans, pickle…)" aria-label="Search" /></div>
+  <main><div class="grid" id="grid"></div></main>
+</div>
+<script>window.__EMBEDDED_BA__=null;</script>
+<script>(function(){"use strict";
+  var D=[],q="",grid=document.getElementById("grid"),qEl=document.getElementById("q");
+  function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+  function load(){if(window.__EMBEDDED_BA__&&window.__EMBEDDED_BA__.length)return Promise.resolve(window.__EMBEDDED_BA__);return fetch("display-data.json",{cache:"no-store"}).then(function(r){if(!r.ok)throw new Error("data "+r.status);return r.json();});}
+  function render(){var list=D.filter(function(x){return !q||(x.produce_item+' '+x.preserved_form+' '+x.preservation_method).toLowerCase().includes(q);});
+    if(!list.length){grid.innerHTML='<p class="empty">No matches.</p>';return;}
+    grid.innerHTML=list.map(function(x){return '<div class="card"><div class="head" style="background:'+esc(x.color||"#F57C00")+'">'+
+      '<div class="name">'+esc(x.produce_item)+'</div><div class="arrow">FRESH → '+esc(x.preserved_form.toUpperCase())+'</div></div>'+
+      '<div class="body">'+
+      '<div class="row"><b>Fresh:</b> '+esc(x.fresh_description)+'</div>'+
+      '<div class="row"><b>Preserved:</b> '+esc(x.preserved_form)+' ('+esc(x.preservation_method)+')</div>'+
+      (x.best_season_in_willamette_valley?'<div class="row"><b>In season:</b> '+esc(x.best_season_in_willamette_valley)+'</div>':'')+
+      (x.yield_ratio?'<div class="row"><b>Yield:</b> '+esc(x.yield_ratio)+'</div>':'')+
+      '<div class="info">'+esc(x.info_card_text)+'</div>'+
+      (x.fun_talking_point?'<div class="wow">💡 '+esc(x.fun_talking_point)+'</div>':'')+
+      (x.source_document?'<div class="src">Source: '+esc(x.source_document)+'</div>':'')+
+      '</div></div>';}).join('');}
+  qEl.addEventListener("input",function(){q=qEl.value.trim().toLowerCase();render();});
+  load().then(function(d){D=d;render();}).catch(function(e){grid.innerHTML='<p class="empty">Couldn\'t load: '+esc(e.message)+'</p>';});
+})();</script></body></html>
