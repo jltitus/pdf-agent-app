@@ -3,44 +3,110 @@
 <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
 <title>Before & after</title>
 <style>
-  :root{--osu-orange:#d73f09;--ink:#222;--bg:#f7f4ef;}
+  :root{--osu-orange:#d73f09;--ink:#222;--bg:#f7f4ef;--line:#e3ddd2;}
   *{box-sizing:border-box;} html,body{margin:0;height:100%;}
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);}
   .app{min-height:100vh;display:flex;flex-direction:column;}
-  header{background:var(--osu-orange);color:#fff;padding:10px 20px;} header .sub{font-size:11px;opacity:.9;text-transform:uppercase;letter-spacing:.15em;} header h1{margin:2px 0 0;font-size:20px;}
-  .bar{padding:10px 16px;background:#fff;border-bottom:1px solid #e3ddd2;}
-  .bar input{width:100%;max-width:420px;font-size:15px;padding:9px 12px;border-radius:10px;border:1px solid #d8d1c7;}
-  main{flex:1 1 auto;padding:16px;}
-  .grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));max-width:1200px;margin:0 auto;}
-  .card{background:#fff;border-radius:16px;box-shadow:0 4px 14px rgba(0,0,0,.08);overflow:hidden;}
-  .head{padding:14px 16px;color:#fff;} .name{font-size:19px;font-weight:800;} .arrow{font-size:11px;opacity:.95;letter-spacing:.1em;margin-top:2px;}
-  .body{padding:14px 16px;} .row{font-size:14px;margin:4px 0;} .row b{color:#444;}
-  .info{margin-top:8px;font-size:15px;line-height:1.45;color:#333;} .wow{margin-top:8px;font-size:14px;font-style:italic;color:#666;} .src{margin-top:8px;font-size:12px;color:#aaa;}
+  header{background:var(--osu-orange);color:#fff;padding:12px 20px;}
+  header .sub{font-size:11px;opacity:.9;text-transform:uppercase;letter-spacing:.15em;}
+  header h1{margin:3px 0 0;font-size:21px;}
+  .purpose{background:#fff7ef;border-bottom:1px solid var(--line);color:#7a3a12;font-size:14px;padding:9px 20px;text-align:center;}
+  .bar{padding:10px 16px;background:#fff;border-bottom:1px solid var(--line);display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;}
+  .bar input{flex:1 1 280px;max-width:420px;font-size:15px;padding:9px 12px;border-radius:10px;border:1px solid #d8d1c7;}
+  .count{font-size:12px;color:#999;white-space:nowrap;}
+
+  main{flex:1 1 auto;padding:18px 16px;}
+  .stage{max-width:1000px;margin:0 auto;background:#fff;border-radius:20px;box-shadow:0 6px 22px rgba(0,0,0,.10);overflow:hidden;}
+  .stage .title{padding:14px 20px 4px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:#999;text-align:center;}
+  .panels{display:flex;align-items:stretch;gap:0;padding:6px 16px 18px;}
+  .panel{flex:1 1 0;min-width:0;border-radius:16px;padding:18px 16px;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;}
+  .panel.before{background:#f3f7f0;border:1px solid #dde7d6;}
+  .panel.after{color:#fff;}
+  .tag{font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:800;opacity:.85;}
+  .panel.before .tag{color:#4a773c;} .panel.after .tag{color:#fff;}
+  .emoji{font-size:64px;line-height:1.1;margin:8px 0 4px;}
+  .pname{font-size:22px;font-weight:800;margin:2px 0 6px;}
+  .pdesc{font-size:14px;line-height:1.4;opacity:.95;}
+  .panel.before .pname{color:#2f5224;}
+  .arrowcol{flex:0 0 92px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;}
+  .arrowcol .ar{font-size:34px;color:var(--osu-orange);font-weight:900;}
+  .arrowcol .method{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#7a3a12;text-align:center;line-height:1.3;background:#fff2e6;border:1px solid #f3d9c2;border-radius:999px;padding:4px 9px;}
+  .meta{border-top:1px solid var(--line);padding:14px 22px;}
+  .meta .info{font-size:15px;line-height:1.5;color:#333;}
+  .meta .grid2{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:10px;}
+  .meta .fact{font-size:13px;color:#555;} .meta .fact b{color:#333;}
+  .meta .wow{margin-top:10px;font-size:14px;font-style:italic;color:#7a3a12;}
+  .meta .src{margin-top:8px;font-size:11px;color:#aaa;}
+  .nav{display:flex;justify-content:space-between;align-items:center;max-width:1000px;margin:12px auto 0;}
+  .nav button{font-size:14px;font-weight:700;padding:9px 16px;border-radius:10px;border:1px solid #d8d1c7;background:#fff;color:var(--ink);cursor:pointer;}
+  .nav button:active{background:#f0ece4;}
+
+  .strip{max-width:1000px;margin:16px auto 0;display:flex;gap:10px;overflow-x:auto;padding:4px 2px 12px;-webkit-overflow-scrolling:touch;}
+  .thumb{flex:0 0 auto;width:96px;background:#fff;border:2px solid transparent;border-radius:14px;padding:10px 6px;text-align:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.06);}
+  .thumb.active{border-color:var(--osu-orange);}
+  .thumb .te{font-size:30px;line-height:1;} .thumb .tn{font-size:11px;margin-top:5px;color:#444;line-height:1.2;}
   .empty{text-align:center;color:#999;padding:40px;}
+  @media (max-width:640px){
+    .panels{flex-direction:column;}
+    .arrowcol{flex:0 0 auto;flex-direction:row;padding:6px 0;}
+    .arrowcol .ar{transform:rotate(90deg);}
+  }
 </style></head><body>
 <div class="app">
-  <header><div class="sub">OSU Extension · MFP · Willamette Valley</div><h1>Before &amp; after — fresh meets preserved</h1></header>
-  <div class="bar"><input id="q" type="search" placeholder="Search produce (strawberry, beans, pickle…)" aria-label="Search" /></div>
-  <main><div class="grid" id="grid"></div></main>
+  <header><div class="sub">OSU Extension · MFP · Willamette Valley</div><h1>Before &amp; after — fresh becomes preserved</h1></header>
+  <div class="purpose">Tap any produce below to see how summer's harvest becomes a jar you can enjoy all year.</div>
+  <div class="bar"><input id="q" type="search" placeholder="Search produce (strawberry, beans, pickle…)" aria-label="Search" /><span class="count" id="count"></span></div>
+  <main>
+    <div id="stageWrap">
+      <div class="stage" id="stage"></div>
+      <div class="nav"><button id="prev" type="button">← Previous</button><button id="next" type="button">Next →</button></div>
+    </div>
+    <div class="strip" id="strip"></div>
+  </main>
 </div>
 <script>window.__EMBEDDED_BA__=null;</script>
 <script>(function(){"use strict";
-  var D=[],q="",grid=document.getElementById("grid"),qEl=document.getElementById("q");
+  var D=[],view=[],idx=0,q="";
+  var stage=document.getElementById("stage"),strip=document.getElementById("strip"),qEl=document.getElementById("q"),countEl=document.getElementById("count");
   function esc(s){return String(s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+  var ICONS=[["strawberr","🍓"],["raspberr","🍓"],["blackberr","🫐"],["blueberr","🫐"],["cherr","🍒"],["peach","🍑"],["plum","🟣"],["pear","🍐"],["apple","🍎"],
+    ["green bean","🫛"],["bean","🫛"],["cucumber","🥒"],["pickle","🥒"],["zucchini","🥒"],["tomato","🍅"],["carrot","🥕"],["cabbage","🥬"],["sauerkraut","🥬"],
+    ["chili","🌶️"],["pepper","🌶️"],["garlic","🧄"],["onion","🧅"],["basil","🌿"],["rhubarb","🌿"]];
+  function icon(name){var n=String(name||"").toLowerCase();for(var i=0;i<ICONS.length;i++){if(n.indexOf(ICONS[i][0])>-1)return ICONS[i][1];}return "🧺";}
+  function afterIcon(method){var m=String(method||"").toLowerCase();if(m.indexOf("frozen")>-1||m.indexOf("freez")>-1)return "🧊";if(m.indexOf("dehydr")>-1||m.indexOf("dried")>-1||m.indexOf("dry")>-1)return "🍂";if(m.indexOf("ferment")>-1)return "🫧";return "🫙";}
   function load(){if(window.__EMBEDDED_BA__&&window.__EMBEDDED_BA__.length)return Promise.resolve(window.__EMBEDDED_BA__);return fetch("display-data.json",{cache:"no-store"}).then(function(r){if(!r.ok)throw new Error("data "+r.status);return r.json();});}
-  function render(){var list=D.filter(function(x){return !q||(x.produce_item+' '+x.preserved_form+' '+x.preservation_method).toLowerCase().includes(q);});
-    if(!list.length){grid.innerHTML='<p class="empty">No matches.</p>';return;}
-    grid.innerHTML=list.map(function(x){return '<div class="card"><div class="head" style="background:'+esc(x.color||"#F57C00")+'">'+
-      '<div class="name">'+esc(x.produce_item)+'</div><div class="arrow">FRESH → '+esc(x.preserved_form.toUpperCase())+'</div></div>'+
-      '<div class="body">'+
-      '<div class="row"><b>Fresh:</b> '+esc(x.fresh_description)+'</div>'+
-      '<div class="row"><b>Preserved:</b> '+esc(x.preserved_form)+' ('+esc(x.preservation_method)+')</div>'+
-      (x.best_season_in_willamette_valley?'<div class="row"><b>In season:</b> '+esc(x.best_season_in_willamette_valley)+'</div>':'')+
-      (x.yield_ratio?'<div class="row"><b>Yield:</b> '+esc(x.yield_ratio)+'</div>':'')+
-      '<div class="info">'+esc(x.info_card_text)+'</div>'+
-      (x.fun_talking_point?'<div class="wow">💡 '+esc(x.fun_talking_point)+'</div>':'')+
-      (x.source_document?'<div class="src">Source: '+esc(x.source_document)+'</div>':'')+
-      '</div></div>';}).join('');}
-  qEl.addEventListener("input",function(){q=qEl.value.trim().toLowerCase();render();});
-  load().then(function(d){D=d;render();}).catch(function(e){grid.innerHTML='<p class="empty">Couldn\'t load: '+esc(e.message)+'</p>';});
+
+  function renderStage(){
+    if(!view.length){stage.innerHTML='<p class="empty">No matches.</p>';return;}
+    if(idx>=view.length)idx=0; if(idx<0)idx=view.length-1;
+    var x=view[idx],col=x.color||"#F57C00";
+    stage.innerHTML='<div class="title">The transformation</div>'+
+      '<div class="panels">'+
+        '<div class="panel before"><div class="tag">Before · fresh</div><div class="emoji">'+icon(x.produce_item)+'</div>'+
+          '<div class="pname">'+esc(x.produce_item)+'</div><div class="pdesc">'+esc(x.fresh_description||"")+'</div></div>'+
+        '<div class="arrowcol"><div class="ar">→</div><div class="method">'+esc(x.preservation_method||"Preserved")+'</div></div>'+
+        '<div class="panel after" style="background:'+esc(col)+'"><div class="tag">After · preserved</div><div class="emoji">'+afterIcon(x.preservation_method)+'</div>'+
+          '<div class="pname">'+esc(x.preserved_form)+'</div>'+(x.yield_ratio?'<div class="pdesc">'+esc(x.yield_ratio)+'</div>':'')+'</div>'+
+      '</div>'+
+      '<div class="meta"><div class="info">'+esc(x.info_card_text||"")+'</div>'+
+        '<div class="grid2">'+
+          (x.best_season_in_willamette_valley?'<div class="fact"><b>In season:</b> '+esc(x.best_season_in_willamette_valley)+'</div>':'')+
+          (x.preserved_form?'<div class="fact"><b>Keeps as:</b> '+esc(x.preserved_form)+'</div>':'')+
+        '</div>'+
+        (x.fun_talking_point?'<div class="wow">💡 '+esc(x.fun_talking_point)+'</div>':'')+
+        (x.source_document?'<div class="src">Source: '+esc(x.source_document)+'</div>':'')+
+      '</div>';
+    renderStrip();
+  }
+  function renderStrip(){
+    strip.innerHTML=view.map(function(x,i){return '<div class="thumb'+(i===idx?' active':'')+'" data-i="'+i+'"><div class="te">'+icon(x.produce_item)+'</div><div class="tn">'+esc(x.produce_item)+'</div></div>';}).join('');
+    var act=strip.querySelector(".thumb.active"); if(act&&act.scrollIntoView)act.scrollIntoView({block:"nearest",inline:"nearest"});
+  }
+  function applyFilter(){view=D.filter(function(x){return !q||(x.produce_item+' '+x.preserved_form+' '+x.preservation_method).toLowerCase().includes(q);});idx=0;countEl.textContent=view.length+(view.length===1?" pairing":" pairings");renderStage();}
+
+  strip.addEventListener("click",function(e){var t=e.target.closest(".thumb");if(!t)return;idx=parseInt(t.getAttribute("data-i"),10)||0;renderStage();});
+  document.getElementById("prev").addEventListener("click",function(){idx--;renderStage();});
+  document.getElementById("next").addEventListener("click",function(){idx++;renderStage();});
+  qEl.addEventListener("input",function(){q=qEl.value.trim().toLowerCase();applyFilter();});
+  load().then(function(d){D=d;applyFilter();}).catch(function(e){stage.innerHTML='<p class="empty">Couldn\'t load: '+esc(e.message)+'</p>';});
 })();</script></body></html>
