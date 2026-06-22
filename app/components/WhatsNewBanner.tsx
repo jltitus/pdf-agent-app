@@ -2,9 +2,10 @@
 
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
+import { APP_VERSION } from '../../lib/appVersion'
 
 export default function WhatsNewBanner() {
-  const appVersion = process.env.NEXT_PUBLIC_APP_VERSION || '1.0.0'
+  const appVersion = APP_VERSION
 
   const [visible, setVisible] = useState(false)
 

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '../../lib/supabase/client'
+import { APP_VERSION } from '../../lib/appVersion'
 import Link from 'next/link'
 
 type UserInfo = {
@@ -19,7 +20,7 @@ export default function HeaderBar() {
   const [isAdmin, setIsAdmin] = useState(false)
   const [menuOpen, setMenuOpen] = useState(false)
 
-  const appVersion = process.env.NEXT_PUBLIC_APP_VERSION || 'Not set'
+  const appVersion = APP_VERSION
 
   useEffect(() => {
     async function loadUser() {

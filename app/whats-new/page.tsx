@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { APP_VERSION } from '../../lib/appVersion'
 
 type Release = {
   id: string
@@ -18,7 +19,7 @@ export default function WhatsNewPage() {
   const [message, setMessage] = useState('')
   const [releases, setReleases] = useState<Release[]>([])
 
-  const appVersion = process.env.NEXT_PUBLIC_APP_VERSION || 'Not set'
+  const appVersion = `v${APP_VERSION}`
 
   useEffect(() => {
     async function loadReleases() {
