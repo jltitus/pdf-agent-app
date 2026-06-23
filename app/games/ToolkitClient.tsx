@@ -372,7 +372,7 @@ const ACTIVITIES: Activity[] = [
       { label: '🃏 Display cards (4×6, 2-up)', href: '/games/before-after/display-cards.pdf' },
     ],
     printNote:
-      'Print the display cards and stand one next to each fresh + preserved pairing. Rotate pairings to match what is in season at the market that week.',
+      'Each card cites its OSU/USDA publication — verify the facts against that source before public use. Print the display cards and stand one next to each fresh + preserved pairing. Rotate pairings to match what is in season at the market that week.',
   },
 ]
 
