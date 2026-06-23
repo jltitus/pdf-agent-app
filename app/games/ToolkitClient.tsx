@@ -25,6 +25,7 @@ const TIERS = [
 const EFFORT_CLS: Record<string, string> = {
   'Grab & go': 'bg-[#e6f4ea] text-[#2e7d32]',
   'Some prep': 'bg-[#fff4e0] text-[#b26a00]',
+  'Experienced MFP': 'bg-[#fdeadf] text-[#b23408]',
 }
 
 type Activity = {
@@ -33,18 +34,20 @@ type Activity = {
   title: string
   accent: string
   category: string
-  skill: 'Grab & go' | 'Some prep'
+  skill: 'Grab & go' | 'Some prep' | 'Experienced MFP'
   audience: string[]
   audienceLabel: string
   prep: string
   count: string
   keywords: string
   description: React.ReactNode
-  play: string
+  // Interactive activities provide these; print-only demo kits use `openFiles` instead.
+  play?: string
   playLabel?: string
-  fullscreen: string
-  runSheet: string
-  kit: string
+  fullscreen?: string
+  runSheet?: string
+  kit?: string
+  openFiles?: { label: string; href: string; primary?: boolean }[]
   deckGrid?: boolean
   tierDecks?: { tier: string; front: string; back: string }[]
   puzzleGrid?: { label: string; kids: string; adult: string }[]
@@ -374,12 +377,41 @@ const ACTIVITIES: Activity[] = [
     printNote:
       'Each card cites its OSU/USDA publication — verify the facts against that source before public use. Print the display cards and stand one next to each fresh + preserved pairing. Rotate pairings to match what is in season at the market that week.',
   },
+  {
+    id: 'canning-fruits',
+    title: 'Canning fruits demo kit',
+    accent: '#F57C00',
+    emoji: '🍑',
+    category: 'Demonstration',
+    skill: 'Experienced MFP',
+    audience: ['Teens', 'Adults'],
+    audienceLabel: 'Teens, Adults',
+    prep: 'Demo setup',
+    count: '4 cited guides',
+    keywords: 'canning fruits demo water bath processing times syrup headspace altitude facilitation handout demonstration live',
+    description:
+      'Everything to lead a live boiling water bath canning-fruits demonstration: a narrated facilitation guide with a required safety briefing, a participant handout, an equipment checklist, and a laminate quick-reference. Processing times, syrup ratios, headspace, and altitude are cited to specific OSU/USDA publications. Opens on a tablet or prints.',
+    openFiles: [
+      { label: '📋 Open facilitation guide', href: '/games/canning-fruits/facilitation-guide.pdf', primary: true },
+      { label: '📄 Participant handout', href: '/games/canning-fruits/participant-handout.pdf' },
+      { label: '🗂 Quick reference', href: '/games/canning-fruits/quick-reference.pdf' },
+      { label: '✅ Equipment checklist', href: '/games/canning-fruits/equipment-checklist.pdf' },
+    ],
+    prints: [
+      { label: '📋 Facilitation guide (PDF)', href: '/games/canning-fruits/facilitation-guide.pdf' },
+      { label: '📄 Participant handout (PDF)', href: '/games/canning-fruits/participant-handout.pdf' },
+      { label: '✅ Equipment checklist (PDF)', href: '/games/canning-fruits/equipment-checklist.pdf' },
+      { label: '🗂 Quick reference — laminate (PDF)', href: '/games/canning-fruits/quick-reference.pdf' },
+    ],
+    printNote:
+      'Experienced-MFP-led live demonstration. Every processing time, syrup ratio, headspace, and altitude value cites a specific OSU/USDA publication — verify against the cited source before public use.',
+  },
 ]
 
 // ---- filter facets ----
 const FACETS = {
   Category: Array.from(new Set(ACTIVITIES.map((a) => a.category))),
-  Skill: ['Grab & go', 'Some prep'],
+  Skill: ['Grab & go', 'Some prep', 'Experienced MFP'],
   Audience: ['Kids', 'Tweens', 'Teens', 'Adults'],
   Prep: Array.from(new Set(ACTIVITIES.map((a) => a.prep))),
 } as const
@@ -548,24 +580,48 @@ export default function ToolkitClient() {
 
             {/* Primary actions */}
             <div className="mt-4 flex flex-wrap gap-3">
-              <Link href={a.play} className="rounded-xl bg-[#d73f09] px-6 py-3 text-base font-bold text-white shadow-sm hover:bg-[#b23408]">
-                {a.playLabel ?? '▶ Play on tablet'}
-              </Link>
-              <Link href={a.fullscreen} target="_blank" className="rounded-xl border-2 border-[#d73f09] px-6 py-3 text-base font-bold text-[#d73f09] hover:bg-[#fdeee8]">
-                Open full screen ↗
-              </Link>
-              <a href={a.runSheet} target="_blank" className="rounded-xl border-2 border-[#5D4037] px-6 py-3 text-base font-bold text-[#5D4037] hover:bg-[#f3ece8]">
-                📋 Activity guide
-              </a>
-              <a href={a.kit} download className="rounded-xl border-2 border-[#1976D2] px-6 py-3 text-base font-bold text-[#1976D2] hover:bg-[#eaf2fb]">
-                ⬇ Print kit (ZIP)
-              </a>
+              {/* Demo kits (no tablet app): each PDF opens in the browser so it's usable on a tablet. */}
+              {a.openFiles
+                ? a.openFiles.map((f) => (
+                    <a key={f.href} href={f.href} target="_blank" rel="noreferrer"
+                      className={f.primary
+                        ? 'rounded-xl bg-[#d73f09] px-6 py-3 text-base font-bold text-white shadow-sm hover:bg-[#b23408]'
+                        : 'rounded-xl border-2 border-[#d73f09] px-6 py-3 text-base font-bold text-[#d73f09] hover:bg-[#fdeee8]'}>
+                      {f.label}
+                    </a>
+                  ))
+                : (
+                  <>
+                    {a.play && (
+                      <Link href={a.play} className="rounded-xl bg-[#d73f09] px-6 py-3 text-base font-bold text-white shadow-sm hover:bg-[#b23408]">
+                        {a.playLabel ?? '▶ Play on tablet'}
+                      </Link>
+                    )}
+                    {a.fullscreen && (
+                      <Link href={a.fullscreen} target="_blank" className="rounded-xl border-2 border-[#d73f09] px-6 py-3 text-base font-bold text-[#d73f09] hover:bg-[#fdeee8]">
+                        Open full screen ↗
+                      </Link>
+                    )}
+                    {a.runSheet && (
+                      <a href={a.runSheet} target="_blank" className="rounded-xl border-2 border-[#5D4037] px-6 py-3 text-base font-bold text-[#5D4037] hover:bg-[#f3ece8]">
+                        📋 Activity guide
+                      </a>
+                    )}
+                    {a.kit && (
+                      <a href={a.kit} download className="rounded-xl border-2 border-[#1976D2] px-6 py-3 text-base font-bold text-[#1976D2] hover:bg-[#eaf2fb]">
+                        ⬇ Print kit (ZIP)
+                      </a>
+                    )}
+                  </>
+                )}
             </div>
-            <p className="mt-2 text-sm text-secondary">
-              New to this? The <b>Activity guide</b> walks you through setup, exactly what to do, a
-              no-tablet version, and volunteer tips. The <b>print kit</b> bundles every printable
-              for this activity in one download.
-            </p>
+            {!a.openFiles && (
+              <p className="mt-2 text-sm text-secondary">
+                New to this? The <b>Activity guide</b> walks you through setup, exactly what to do, a
+                no-tablet version, and volunteer tips. The <b>print kit</b> bundles every printable
+                for this activity in one download.
+              </p>
+            )}
 
             {/* Collapsible: individual print files */}
             <details className="mt-5 rounded-2xl border border-[#ece6dc] bg-[#faf8f4] open:pb-4">
