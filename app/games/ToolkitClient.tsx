@@ -406,6 +406,35 @@ const ACTIVITIES: Activity[] = [
     printNote:
       'Experienced-MFP-led live demonstration. Every processing time, syrup ratio, headspace, and altitude value cites a specific OSU/USDA publication — verify against the cited source before public use.',
   },
+  {
+    id: 'canning-vegetables',
+    title: 'Canning vegetables demo kit',
+    accent: '#2E7D32',
+    emoji: '🫑',
+    category: 'Demonstration',
+    skill: 'Experienced MFP',
+    audience: ['Teens', 'Adults'],
+    audienceLabel: 'Teens, Adults',
+    prep: 'Demo setup',
+    count: '4 cited guides',
+    keywords: 'canning vegetables demo pressure canner low acid botulism psi gauge altitude venting facilitation handout demonstration live green beans',
+    description:
+      'Everything to lead a live PRESSURE-canning vegetables demonstration: a facilitation guide written as a step-by-step lesson plan for first-time facilitators (required safety briefing, narrated venting/pressure/cooldown sequence), a participant handout, an equipment checklist, and a laminate quick-reference. Because vegetables are low-acid, the kit teaches the method and safety and cites the verified pressure-by-altitude table; for exact per-vegetable times it points to the official tested chart (PNW 172 / USDA) rather than reproducing one. Opens on a tablet or prints.',
+    openFiles: [
+      { label: '📋 Open facilitation guide', href: '/games/canning-vegetables/facilitation-guide.pdf', primary: true },
+      { label: '📄 Participant handout', href: '/games/canning-vegetables/participant-handout.pdf' },
+      { label: '🗂 Quick reference', href: '/games/canning-vegetables/quick-reference.pdf' },
+      { label: '✅ Equipment checklist', href: '/games/canning-vegetables/equipment-checklist.pdf' },
+    ],
+    prints: [
+      { label: '📋 Facilitation guide (PDF)', href: '/games/canning-vegetables/facilitation-guide.pdf' },
+      { label: '📄 Participant handout (PDF)', href: '/games/canning-vegetables/participant-handout.pdf' },
+      { label: '✅ Equipment checklist (PDF)', href: '/games/canning-vegetables/equipment-checklist.pdf' },
+      { label: '🗂 Quick reference — laminate (PDF)', href: '/games/canning-vegetables/quick-reference.pdf' },
+    ],
+    printNote:
+      'Experienced-MFP-led live PRESSURE-canning demonstration. Vegetables are low-acid — never water-bath them. The pressure/altitude values cite PNW 172; for exact per-vegetable times use the official tested chart. Verify against the cited source before public use.',
+  },
 ]
 
 // ---- filter facets ----
