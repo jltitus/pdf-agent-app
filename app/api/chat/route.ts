@@ -817,7 +817,8 @@ export async function POST(request: Request) {
 
       const openaiStream = openai.responses.stream({
         model: 'gpt-4.1-mini',
-        include: ['output[*].file_search_call.search_results'] as any,
+                include: ['file_search_call.results'] as any,
+
         instructions: `
 You are a strict document-grounded assistant.
 
